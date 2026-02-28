@@ -3,10 +3,10 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 pub struct Spell {
-    id: u64,
-    name: String,
-    incantation: String, // actual command/commands
-    lore: String,        // description
-    school: String,      // category
-    glyphs: Vec<String>, // search terms to help search
+    pub id: u64,
+    pub name: String,
+    pub incantation: String, // actual command/commands
+    pub lore: String,        // description
+    pub school: String,      // category
+    pub glyphs: Vec<String>, // search terms to help search
 }
