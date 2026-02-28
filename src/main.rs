@@ -3,4 +3,7 @@ mod data;
 use data::Spell;
 use data::Spellbook;
 
-fn main() {}
+fn main() {
+    // load codex from disk
+    // show category select screen
+}
