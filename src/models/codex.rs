@@ -6,3 +6,4 @@ pub struct Codex {
     pub spells: Vec<Spell>,
     pub spellbooks: Vec<Spellbook>,
 }
+

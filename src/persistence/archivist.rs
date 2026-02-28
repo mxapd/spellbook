@@ -1,13 +1,12 @@
+use crate::models::Codex;
 use std::fs;
-
-use super::Codex;
 
 pub struct Archivist;
 
 impl Archivist {
     pub fn load(path: &str) -> Result<Codex, Box<dyn std::error::Error>> {
         let contents = fs::read_to_string(path)?;
-        let codex = serde_json::from_str(contents.as_str())?;
+        let codex = serde_json::from_str(&contents)?;
         Ok(codex)
     }
 
