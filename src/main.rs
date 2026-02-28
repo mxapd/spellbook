@@ -1,23 +1,25 @@
-mod app;
 mod models;
 mod persistence;
+mod state;
 mod ui;
 
 use ratatui;
 
 fn main() -> std::io::Result<()> {
-    // load codex from disk
-    println!("started program");
-    let codex = persistence::Archivist::load("codex.json").expect("Failed to load codex");
-    println!("loaded codex");
+    // 1. draw update to terminal
+    ratatui::run(codex)
+    // 2. read input
+    // 3. update state
+}
 
-    println!("spells loaded: {}", codex.spells.len());
-    println!("spellbooks loaded: {}", codex.spellbooks.len());
+fn codex(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
+    let codex = persistence::Archivist::load("codex.json").expect("failed to load codex");
+    let state = state::State::new(codex);
+    let mut ui_state = ui::UiState::new();
 
-    // create tui
-    let mut terminal = ratatui::init();
-
-    let result = app::run(&mut terminal, codex);
-    ratatui::restore();
-    result
+    loop {
+        terminal.draw(|frame| {
+            ui::render(frame, &state, &mut ui_state);
+        })?;
+    }
 }
