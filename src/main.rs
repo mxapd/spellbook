@@ -1,9 +1,10 @@
-mod data;
+mod models;
 
-use data::Spell;
-use data::Spellbook;
+use models::Archivist;
 
 fn main() {
     // load codex from disk
-    // show category select screen
+    println!("started program");
+    let codex = Archivist::load("codex.json").expect("Failed to load codex");
+    println!("loaded codex");
 }

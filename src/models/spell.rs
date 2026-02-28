@@ -1,3 +1,7 @@
+// spell.rs
+use serde::{Deserialize, Serialize};
+
+#[derive(Serialize, Deserialize)]
 pub struct Spell {
     id: u64,
     name: String,
