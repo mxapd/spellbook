@@ -10,11 +10,20 @@ pub fn handle_event(key: KeyCode, state: &State, ui: &mut UiState) -> bool {
     }
 }
 
-fn handle_spellbook_list(key: KeyCode, state: &State, ui: &mut UiState) -> bool {}
+fn handle_spellbook_list(key: KeyCode, state: &State, ui: &mut UiState) -> bool {
+    match key {
+        KeyCode::Char('q') | KeyCode::Esc => true,
+        _ => false,
+    }
+}
 
-fn handle_spell_list(key: KeyCode, state: &State, ui: &mut UiState) -> bool {}
+fn handle_spell_list(key: KeyCode, state: &State, ui: &mut UiState) -> bool {
+    false
+}
 
-fn handle_search(key: KeyCode, state: &State, ui: &mut UiState) -> bool {}
+fn handle_search(key: KeyCode, state: &State, ui: &mut UiState) -> bool {
+    false
+}
 
 fn update_filtered(state: &State, ui: &mut UiState, ctx: &SearchContext) {}
 

@@ -52,22 +52,22 @@
   "spellbooks": [
     {
       "id": 1,
-      "name": "Tome of Seeing",
+      "name": "Tome of your mom",
       "cover": "Spells for observing and inspecting the system.",
       "sigil": "👁",
       "spell_ids": [1, 3, 6]
     },
     {
       "id": 2,
-      "name": "Grimoire of Containers",
-      "cover": "Spells for summoning and managing Docker containers.",
+      "name": "whales?",
+      "cover": "Spells for summoning and managing whales.",
       "sigil": "🐳",
       "spell_ids": [4, 5]
     },
     {
       "id": 3,
-      "name": "Book of Ruin",
-      "cover": "Dangerous spells. Handle with care.",
+      "name": "Book of bankruptcy",
+      "cover": "huh",
       "sigil": "💀",
       "spell_ids": [2]
     }
