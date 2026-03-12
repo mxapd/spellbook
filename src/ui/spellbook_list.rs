@@ -14,35 +14,23 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
         ])
         .split(frame.area());
 
-    // Spellbook list
-    let items: Vec<ListItem> = state
+    // create a list of spellbooks
+    let spellbooks: Vec<ListItem> = state
         .codex
         .spellbooks
         .iter()
-        .enumerate()
-        .map(|(i, sb)| {
-            let prefix = if Some(i) == ui.spellbook_list_state.selected() {
-                "> "
-            } else {
-                "  "
-            };
-            ListItem::new(format!("{}{}", prefix, sb.name))
-        })
+        .map(|sb| ListItem::new(format!("{}", sb.name)))
         .collect();
 
-    let list = List::new(items)
-        .block(Block::default().title("spellbook").borders(Borders::ALL))
-        .highlight_style(
-            Style::default()
-                .bg(Color::DarkGray)
-                .add_modifier(Modifier::BOLD),
-        );
+    let list = List::new(spellbooks)
+        .block(Block::bordered().title("spellbook"))
+        .highlight_style(Style::new().italic())
+        .highlight_symbol(">");
 
     frame.render_stateful_widget(list, chunks[0], &mut ui.spellbook_list_state);
 
-    // Footer
-    let footer = Paragraph::new(" / search   q quit").style(Style::default().fg(Color::DarkGray));
+    // footer
+    let footer = Paragraph::new(" / search   q quit");
 
     frame.render_widget(footer, chunks[1]);
 }
-
