@@ -1,11 +1,14 @@
-// spellbook.rs
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Spellbook {
-    pub id: u64,
     pub name: String,
-    pub cover: String, // description
-    pub sigil: String, // for future asci art or something
+    pub cover: String,
+    pub sigil: String,
+    /// References spells by ID (populated after load)
+    #[serde(default)]
     pub spell_ids: Vec<u64>,
+    /// References spells by name (from TOML file)
+    #[serde(default)]
+    pub spells: Vec<String>,
 }

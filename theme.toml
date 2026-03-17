@@ -1,0 +1,28 @@
+selected_theme = 8
+
+[default]
+name = "Default Dark"
+bg = 0
+fg = 7
+accent = 4
+muted = 8
+selection = 12
+border = 8
+
+[default_light]
+name = "Default Light"
+bg = 7
+fg = 0
+accent = 4
+muted = 8
+selection = 14
+border = 8
+
+[dracula]
+name = "Dracula"
+bg = 0
+fg = 213
+accent = 97
+muted = 139
+selection = 141
+border = 98
