@@ -1,4 +1,4 @@
-use crate::models::SpineStyle;
+use crate::models::{SpineStyle, ViewMode};
 use crate::state::State;
 use crate::ui::UiState;
 use ratatui::layout::{Alignment, Constraint, Direction, Layout};
@@ -55,55 +55,55 @@ fn build_spine_decorations(
         _ => 1,
     };
     let space_below = space_above;
+    let decorations_above = above.len();
+    let decorations_below = below.len();
 
     // Wrap name to fit spine width
     let name_lines = wrap_text_for_spine(name, spine_width);
     let name_count = name_lines.len();
 
-    // Calculate where name should start to be centered in spine_height
+    // Calculate where name starts to be vertically centered in spine_height
     let name_start = (spine_height.saturating_sub(name_count)) / 2;
 
-    // Calculate how many rows we need at the top before decorations
-    // name_start includes: padding + decorations_above + space_above
-    let decorations_above_height = above.len();
-    let needed_top = name_start.saturating_sub(decorations_above_height + space_above);
+    // Calculate positions relative to centered name
+    let decor_above_start = name_start
+        .saturating_sub(space_above)
+        .saturating_sub(decorations_above);
+    let decor_below_start = name_start + name_count + space_below;
 
-    // Build the spine text row by row
+    // Build spine row by row
     let mut spine_text: Vec<Line<'static>> = Vec::with_capacity(spine_height);
 
-    // Row 0 to needed_top: padding
-    for _ in needed_top..name_start {
-        spine_text.push(Line::from(""));
-    }
-
-    // Rows for decorations above
-    for decor in &above {
-        spine_text.push(Line::from(vec![Span::styled(pad(decor), decor_style)]));
-    }
-
-    // Spacing rows above name
-    for _ in 0..space_above {
-        spine_text.push(Line::from(""));
-    }
-
-    // Name lines
-    for line in &name_lines {
-        spine_text.push(Line::from(vec![Span::styled(pad(line), name_style)]));
-    }
-
-    // Spacing rows below name
-    for _ in 0..space_below {
-        spine_text.push(Line::from(""));
-    }
-
-    // Decorations below
-    for decor in &below {
-        spine_text.push(Line::from(vec![Span::styled(pad(decor), decor_style)]));
-    }
-
-    // Fill remaining rows with padding to match spine_height
-    while spine_text.len() < spine_height {
-        spine_text.push(Line::from(""));
+    for row in 0..spine_height {
+        if row >= decor_above_start && row < name_start {
+            // Decoration row above name (relative to where name starts)
+            let decor_idx = row - decor_above_start;
+            if (decor_idx as usize) < decorations_above {
+                spine_text.push(Line::from(vec![Span::styled(
+                    pad(above[decor_idx as usize]),
+                    decor_style,
+                )]));
+            } else {
+                spine_text.push(Line::from(""));
+            }
+        } else if row >= name_start && row < name_start + name_count {
+            // Name row
+            let name_idx = row - name_start;
+            spine_text.push(Line::from(vec![Span::styled(
+                pad(&name_lines[name_idx as usize]),
+                name_style,
+            )]));
+        } else if row >= decor_below_start && row < decor_below_start + decorations_below {
+            // Decoration row below name
+            let decor_idx = row - decor_below_start;
+            spine_text.push(Line::from(vec![Span::styled(
+                pad(below[decor_idx as usize]),
+                decor_style,
+            )]));
+        } else {
+            // Padding row
+            spine_text.push(Line::from(""));
+        }
     }
 
     spine_text
@@ -260,7 +260,14 @@ fn render_spellbook_browser(
 
     frame.render_widget(block, area);
 
-    if all_books_fit {
+    let view_mode = state.user_settings.view_mode;
+    let show_cards = match view_mode {
+        ViewMode::Cards => true,
+        ViewMode::Spines => false,
+        ViewMode::Auto => all_books_fit,
+    };
+
+    if show_cards {
         render_spellbook_cards(
             frame,
             state,

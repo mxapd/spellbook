@@ -1,4 +1,4 @@
-use crate::models::{Codex, ThemeConfig};
+use crate::models::{Codex, ThemeConfig, UserSettings};
 use crate::{log_debug, log_info};
 use std::collections::HashSet;
 use std::fs;
@@ -85,6 +85,47 @@ impl Archivist {
 
         let mut config: ThemeConfig = toml::from_str(&contents).unwrap_or_default();
         config.selected_theme = index;
+
+        let new_content = toml::to_string_pretty(&config)?;
+        fs::write(path, new_content)?;
+        Ok(())
+    }
+
+    /// Loads user settings (view mode, etc.) from config file.
+    pub fn load_user_settings(path: &str) -> UserSettings {
+        let contents = match fs::read_to_string(path) {
+            Ok(c) => c,
+            Err(_) => return UserSettings::default(),
+        };
+
+        let config: ThemeConfig = match toml::from_str(&contents) {
+            Ok(c) => c,
+            Err(_) => return UserSettings::default(),
+        };
+
+        config.settings
+    }
+
+    /// Saves user settings to config file.
+    pub fn save_user_settings(
+        path: &str,
+        settings: &UserSettings,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let contents = match fs::read_to_string(path) {
+            Ok(c) => c,
+            Err(_) => {
+                let config = ThemeConfig {
+                    selected_theme: 0,
+                    settings: settings.clone(),
+                };
+                let new_content = toml::to_string_pretty(&config)?;
+                fs::write(path, new_content)?;
+                return Ok(());
+            }
+        };
+
+        let mut config: ThemeConfig = toml::from_str(&contents).unwrap_or_default();
+        config.settings = settings.clone();
 
         let new_content = toml::to_string_pretty(&config)?;
         fs::write(path, new_content)?;

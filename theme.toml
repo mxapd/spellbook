@@ -1,1 +1,4 @@
-selected_theme = 7
+selected_theme = 0
+
+[settings]
+view_mode = "Cards"

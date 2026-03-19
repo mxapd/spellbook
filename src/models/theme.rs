@@ -130,8 +130,44 @@ impl RatatuiColors {
 
 use serde::{Deserialize, Serialize};
 
+/// Controls how spellbooks are displayed in the search browser
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize, Default)]
+pub enum ViewMode {
+    #[default]
+    Auto, // Responsive: cards when they fit, spines otherwise
+    Cards,  // Always show cards
+    Spines, // Always show spines
+}
+
+impl ViewMode {
+    pub fn next(self) -> Self {
+        match self {
+            ViewMode::Auto => ViewMode::Cards,
+            ViewMode::Cards => ViewMode::Spines,
+            ViewMode::Spines => ViewMode::Auto,
+        }
+    }
+
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            ViewMode::Auto => "auto",
+            ViewMode::Cards => "cards",
+            ViewMode::Spines => "spines",
+        }
+    }
+}
+
+/// User preferences and UI settings (persisted to config)
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize, Default)]
+pub struct UserSettings {
+    #[serde(default)]
+    pub view_mode: ViewMode,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize, Default)]
 pub struct ThemeConfig {
     #[serde(default)]
     pub selected_theme: usize,
+    #[serde(default)]
+    pub settings: UserSettings,
 }

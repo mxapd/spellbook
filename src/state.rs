@@ -1,5 +1,5 @@
 use crate::log_info;
-use crate::models::{Codex, RatatuiColors};
+use crate::models::{Codex, RatatuiColors, UserSettings};
 use crate::persistence::Archivist;
 
 const THEME_CONFIG_PATH: &str = "theme.toml";
@@ -9,6 +9,7 @@ pub struct State {
     pub theme: RatatuiColors,
     pub current_theme_index: usize,
     pub theme_names: Vec<&'static str>,
+    pub user_settings: UserSettings,
 }
 
 impl State {
@@ -30,11 +31,17 @@ impl State {
         let current_theme_index = saved_index.min(theme_names.len() - 1);
         let theme = Self::get_theme_by_index(current_theme_index);
 
+        let user_settings = Archivist::load_user_settings(THEME_CONFIG_PATH);
+
+        // Ensure settings are saved to config (for first-time setup or updates)
+        let _ = Archivist::save_user_settings(THEME_CONFIG_PATH, &user_settings);
+
         Self {
             codex,
             theme,
             current_theme_index,
             theme_names,
+            user_settings,
         }
     }
 
@@ -62,5 +69,12 @@ impl State {
         log_info!("Theme changed to: {}", theme_name);
 
         let _ = Archivist::save_theme_index(THEME_CONFIG_PATH, self.current_theme_index);
+    }
+
+    pub fn cycle_view_mode(&mut self) {
+        self.user_settings.view_mode = self.user_settings.view_mode.next();
+        let mode_str = self.user_settings.view_mode.as_str();
+        log_info!("View mode changed to: {}", mode_str);
+        let _ = Archivist::save_user_settings(THEME_CONFIG_PATH, &self.user_settings);
     }
 }

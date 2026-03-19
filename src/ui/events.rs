@@ -23,6 +23,15 @@ pub fn handle_event(
         return false;
     }
 
+    // Handle view mode cycling with 'v' - disabled while typing
+    if key == KeyCode::Char('v') && !ui.is_typing {
+        state.cycle_view_mode();
+        return false;
+    }
+
+    // Sync view_mode from state to ui for render functions
+    ui.view_mode = state.user_settings.view_mode;
+
     match &ui.screen {
         Screen::SpellbookList => {
             log_debug!("Screen: SpellbookList");

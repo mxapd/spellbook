@@ -3335,3 +3335,380 @@
 [1773890731.621364524] [DEBUG] Screen: SearchOverlay
 [1773890732.063296888] [DEBUG] KeyEvent: code=Char('q'), modifiers=KeyModifiers(0x0)
 [1773890732.063347908] [INFO] Spellbook exiting
+[1773890914.292832011] [INFO] Spellbook started (mode: Browse)
+[1773890915.955559962] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1773890915.955624082] [DEBUG] Screen: SpellbookList
+[1773890917.021544590] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773890917.021603780] [DEBUG] Screen: SearchOverlay
+[1773890917.218588576] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773890917.218646325] [DEBUG] Screen: SearchOverlay
+[1773890917.443563816] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773890917.443624336] [DEBUG] Screen: SearchOverlay
+[1773890917.651574416] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773890917.651628576] [DEBUG] Screen: SearchOverlay
+[1773890917.858516291] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773890917.858586941] [DEBUG] Screen: SearchOverlay
+[1773890918.006577050] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773890918.006633890] [DEBUG] Screen: SearchOverlay
+[1773890918.139465091] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773890918.139533791] [DEBUG] Screen: SearchOverlay
+[1773890918.345495079] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773890918.345566659] [DEBUG] Screen: SearchOverlay
+[1773890918.534524568] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773890918.534578148] [DEBUG] Screen: SearchOverlay
+[1773890918.695490484] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773890918.695543344] [DEBUG] Screen: SearchOverlay
+[1773890918.847514536] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773890918.847569475] [DEBUG] Screen: SearchOverlay
+[1773890918.999497818] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773890918.999554338] [DEBUG] Screen: SearchOverlay
+[1773890919.120464358] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773890919.120515578] [DEBUG] Screen: SearchOverlay
+[1773890919.267508021] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773890919.267564501] [DEBUG] Screen: SearchOverlay
+[1773890919.412909100] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773890919.412959530] [DEBUG] Screen: SearchOverlay
+[1773890924.537638921] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773890924.537698101] [DEBUG] Screen: SearchOverlay
+[1773890924.704466522] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773890924.704520982] [DEBUG] Screen: SearchOverlay
+[1773890924.876546402] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773890924.876604591] [DEBUG] Screen: SearchOverlay
+[1773890925.275503723] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773890925.275558633] [DEBUG] Screen: SearchOverlay
+[1773890925.457492081] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773890925.457546681] [DEBUG] Screen: SearchOverlay
+[1773890925.845507749] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773890925.845563959] [DEBUG] Screen: SearchOverlay
+[1773890926.149486983] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773890926.149554663] [DEBUG] Screen: SearchOverlay
+[1773890926.344518448] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773890926.344568878] [DEBUG] Screen: SearchOverlay
+[1773890926.512495174] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773890926.512545974] [DEBUG] Screen: SearchOverlay
+[1773890926.763485778] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773890926.763536007] [DEBUG] Screen: SearchOverlay
+[1773890926.978474419] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773890926.978532349] [DEBUG] Screen: SearchOverlay
+[1773890927.190466022] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773890927.190514512] [DEBUG] Screen: SearchOverlay
+[1773890927.340481833] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773890927.340530013] [DEBUG] Screen: SearchOverlay
+[1773890928.297488460] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773890928.297540990] [DEBUG] Screen: SearchOverlay
+[1773890928.463497764] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773890928.463545174] [DEBUG] Screen: SearchOverlay
+[1773890928.613466675] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773890928.613533974] [DEBUG] Screen: SearchOverlay
+[1773890928.780982643] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773890928.781036213] [DEBUG] Screen: SearchOverlay
+[1773890928.969474154] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773890928.969524394] [DEBUG] Screen: SearchOverlay
+[1773890929.176530349] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773890929.176581579] [DEBUG] Screen: SearchOverlay
+[1773890929.566506617] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773890929.566563827] [DEBUG] Screen: SearchOverlay
+[1773890929.721446377] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773890929.721496407] [DEBUG] Screen: SearchOverlay
+[1773890929.868511170] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773890929.868561460] [DEBUG] Screen: SearchOverlay
+[1773890930.033473199] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773890930.033520309] [DEBUG] Screen: SearchOverlay
+[1773890930.362471310] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773890930.362522040] [DEBUG] Screen: SearchOverlay
+[1773890930.564498086] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773890930.564550865] [DEBUG] Screen: SearchOverlay
+[1773890930.710422253] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773890930.710464023] [DEBUG] Screen: SearchOverlay
+[1773891502.329114192] [DEBUG] KeyEvent: code=Char('q'), modifiers=KeyModifiers(0x0)
+[1773891502.329177312] [INFO] Spellbook exiting
+[1773891627.523149015] [INFO] Spellbook started (mode: Browse)
+[1773891628.890579658] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1773891628.890637428] [DEBUG] Screen: SpellbookList
+[1773891636.715577475] [DEBUG] KeyEvent: code=Char('q'), modifiers=KeyModifiers(0x0)
+[1773891636.715636745] [INFO] Spellbook exiting
+[1773891637.763849156] [INFO] Spellbook started (mode: Browse)
+[1773891640.248575635] [DEBUG] KeyEvent: code=Enter, modifiers=KeyModifiers(0x0)
+[1773891640.248637555] [DEBUG] Screen: SpellbookList
+[1773891643.798537028] [DEBUG] KeyEvent: code=Char('q'), modifiers=KeyModifiers(0x0)
+[1773891643.798594397] [INFO] Spellbook exiting
+[1773891849.739167799] [INFO] Spellbook started (mode: Browse)
+[1773891851.429670368] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1773891851.429722418] [DEBUG] Screen: SpellbookList
+[1773891852.010848167] [DEBUG] KeyEvent: code=Char('v'), modifiers=KeyModifiers(0x0)
+[1773891852.010907137] [DEBUG] Screen: SearchOverlay
+[1773891852.525654841] [DEBUG] KeyEvent: code=Char('v'), modifiers=KeyModifiers(0x0)
+[1773891852.525705951] [DEBUG] Screen: SearchOverlay
+[1773891853.137680694] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1773891853.137737714] [DEBUG] Screen: SearchOverlay
+[1773891853.292621165] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1773891853.292674145] [DEBUG] Screen: SearchOverlay
+[1773891853.840653633] [DEBUG] KeyEvent: code=Tab, modifiers=KeyModifiers(0x0)
+[1773891853.840698452] [DEBUG] Screen: SearchOverlay
+[1773891854.285652105] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773891854.285705855] [DEBUG] Screen: SearchOverlay
+[1773891854.446629571] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773891854.446679621] [DEBUG] Screen: SearchOverlay
+[1773891854.578601506] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773891854.578645636] [DEBUG] Screen: SearchOverlay
+[1773891854.955148581] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773891854.955194051] [DEBUG] Screen: SearchOverlay
+[1773891855.111650535] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773891855.111701544] [DEBUG] Screen: SearchOverlay
+[1773891855.436739322] [DEBUG] KeyEvent: code=Char('q'), modifiers=KeyModifiers(0x0)
+[1773891855.436791162] [INFO] Spellbook exiting
+[1773891856.730111531] [INFO] Spellbook started (mode: Browse)
+[1773891857.553648700] [DEBUG] KeyEvent: code=Char('v'), modifiers=KeyModifiers(0x0)
+[1773891857.553692300] [INFO] View mode changed to: cards
+[1773891860.499636344] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773891860.499686624] [DEBUG] Screen: SpellbookList
+[1773891862.081628971] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1773891862.081682170] [DEBUG] Screen: SpellbookList
+[1773891862.723605340] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773891862.723649620] [DEBUG] Screen: SearchOverlay
+[1773891863.085627115] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773891863.085677115] [DEBUG] Screen: SearchOverlay
+[1773891863.573611141] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773891863.573663751] [DEBUG] Screen: SearchOverlay
+[1773891863.731583968] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773891863.731633148] [DEBUG] Screen: SearchOverlay
+[1773891864.346617269] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773891864.346666869] [DEBUG] Screen: SearchOverlay
+[1773891864.644612738] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1773891864.644670898] [DEBUG] Screen: SearchOverlay
+[1773891864.810595193] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1773891864.810646183] [DEBUG] Screen: SearchOverlay
+[1773891865.136583297] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1773891865.136626806] [DEBUG] Screen: SearchOverlay
+[1773891865.289594655] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1773891865.289644614] [DEBUG] Screen: SearchOverlay
+[1773891878.476559581] [DEBUG] KeyEvent: code=Tab, modifiers=KeyModifiers(0x0)
+[1773891878.476615550] [DEBUG] Screen: SearchOverlay
+[1773891879.066575024] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773891879.066625914] [DEBUG] Screen: SearchOverlay
+[1773891879.242542267] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773891879.242599447] [DEBUG] Screen: SearchOverlay
+[1773891879.533804445] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773891879.533863834] [DEBUG] Screen: SearchOverlay
+[1773891879.707537377] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773891879.707593587] [DEBUG] Screen: SearchOverlay
+[1773891879.861660901] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773891879.861708751] [DEBUG] Screen: SearchOverlay
+[1773891880.015523026] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773891880.015571895] [DEBUG] Screen: SearchOverlay
+[1773891880.422689564] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773891880.422748804] [DEBUG] Screen: SearchOverlay
+[1773891880.601522396] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773891880.601572166] [DEBUG] Screen: SearchOverlay
+[1773891880.772710279] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1773891880.772766199] [DEBUG] Screen: SearchOverlay
+[1773891881.197552545] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773891881.197626514] [DEBUG] Screen: SearchOverlay
+[1773891881.438587599] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773891881.438654709] [DEBUG] Screen: SearchOverlay
+[1773891881.632521408] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773891881.632570328] [DEBUG] Screen: SearchOverlay
+[1773891881.809535738] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773891881.809587667] [DEBUG] Screen: SearchOverlay
+[1773891881.986555557] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773891881.986605026] [DEBUG] Screen: SearchOverlay
+[1773891882.342590456] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773891882.342645016] [DEBUG] Screen: SearchOverlay
+[1773891882.983684639] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1773891882.983734739] [DEBUG] Screen: SearchOverlay
+[1773891883.191514571] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1773891883.191558911] [DEBUG] Screen: SearchOverlay
+[1773891883.393526986] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1773891883.393577976] [DEBUG] Screen: SearchOverlay
+[1773891883.579526659] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1773891883.579585688] [DEBUG] Screen: SearchOverlay
+[1773891883.779535823] [DEBUG] KeyEvent: code=Tab, modifiers=KeyModifiers(0x0)
+[1773891883.779586973] [DEBUG] Screen: SearchOverlay
+[1773891884.519550357] [DEBUG] KeyEvent: code=Char('s'), modifiers=KeyModifiers(0x0)
+[1773891884.519602087] [DEBUG] Screen: SearchOverlay
+[1773891884.584497529] [DEBUG] KeyEvent: code=Char('a'), modifiers=KeyModifiers(0x0)
+[1773891884.584547209] [DEBUG] Screen: SearchOverlay
+[1773891884.700485950] [DEBUG] KeyEvent: code=Char('d'), modifiers=KeyModifiers(0x0)
+[1773891884.700533260] [DEBUG] Screen: SearchOverlay
+[1773891884.874472052] [DEBUG] KeyEvent: code=Char('a'), modifiers=KeyModifiers(0x0)
+[1773891884.874523202] [DEBUG] Screen: SearchOverlay
+[1773891884.899433678] [DEBUG] KeyEvent: code=Char('s'), modifiers=KeyModifiers(0x0)
+[1773891884.899472878] [DEBUG] Screen: SearchOverlay
+[1773891885.483650756] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1773891885.483701456] [DEBUG] Screen: SearchOverlay
+[1773891885.669511329] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1773891885.669561699] [DEBUG] Screen: SearchOverlay
+[1773891885.820532866] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1773891885.820584126] [DEBUG] Screen: SearchOverlay
+[1773891885.950516969] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1773891885.950574099] [DEBUG] Screen: SearchOverlay
+[1773891886.914539179] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1773891886.914596049] [DEBUG] Screen: SearchOverlay
+[1773891887.809526046] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773891887.809576915] [DEBUG] Screen: SearchOverlay
+[1773891887.972598612] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773891887.972647262] [DEBUG] Screen: SearchOverlay
+[1773891888.593536168] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773891888.593584678] [DEBUG] Screen: SearchOverlay
+[1773891888.845525818] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773891888.845577088] [DEBUG] Screen: SearchOverlay
+[1773891889.019502439] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773891889.019552079] [DEBUG] Screen: SearchOverlay
+[1773891889.165453606] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773891889.165494776] [DEBUG] Screen: SearchOverlay
+[1773891889.439526554] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773891889.439586484] [DEBUG] Screen: SearchOverlay
+[1773891889.600013441] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773891889.600079611] [DEBUG] Screen: SearchOverlay
+[1773891889.755518329] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773891889.755567298] [DEBUG] Screen: SearchOverlay
+[1773891889.870726933] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773891889.870776063] [DEBUG] Screen: SearchOverlay
+[1773891890.145508228] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773891890.145575568] [DEBUG] Screen: SearchOverlay
+[1773891890.298474506] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773891890.298528605] [DEBUG] Screen: SearchOverlay
+[1773891890.451473944] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773891890.451524344] [DEBUG] Screen: SearchOverlay
+[1773891890.590476831] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773891890.590523071] [DEBUG] Screen: SearchOverlay
+[1773891890.757480262] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773891890.757529792] [DEBUG] Screen: SearchOverlay
+[1773891890.945516915] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773891890.945578545] [DEBUG] Screen: SearchOverlay
+[1773891891.155503818] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773891891.155563508] [DEBUG] Screen: SearchOverlay
+[1773891895.920484489] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773891895.920544549] [DEBUG] Screen: SearchOverlay
+[1773891896.208470560] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773891896.208516760] [DEBUG] Screen: SearchOverlay
+[1773891896.383675936] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773891896.383726096] [DEBUG] Screen: SearchOverlay
+[1773891896.796489392] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773891896.796540762] [DEBUG] Screen: SearchOverlay
+[1773891898.896464803] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773891898.896512452] [DEBUG] Screen: SearchOverlay
+[1773891899.091443009] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773891899.091489939] [DEBUG] Screen: SearchOverlay
+[1773891899.261461626] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773891899.261514866] [DEBUG] Screen: SearchOverlay
+[1773891899.485470541] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773891899.485516801] [DEBUG] Screen: SearchOverlay
+[1773891899.784485597] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773891899.784538157] [DEBUG] Screen: SearchOverlay
+[1773891900.085673314] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773891900.085730464] [DEBUG] Screen: SearchOverlay
+[1773891900.635484625] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773891900.635533695] [DEBUG] Screen: SearchOverlay
+[1773891900.915500639] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773891900.915553858] [DEBUG] Screen: SearchOverlay
+[1773891902.546465893] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773891902.546519093] [DEBUG] Screen: SearchOverlay
+[1773891903.750455313] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773891903.750499133] [DEBUG] Screen: SearchOverlay
+[1773891904.022457560] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773891904.022510720] [DEBUG] Screen: SearchOverlay
+[1773891904.243461699] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773891904.243509368] [DEBUG] Screen: SearchOverlay
+[1773891925.904466454] [DEBUG] KeyEvent: code=Char('q'), modifiers=KeyModifiers(0x0)
+[1773891925.904531664] [INFO] Spellbook exiting
+[1773891927.323811523] [INFO] Spellbook started (mode: Browse)
+[1773891928.630376401] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1773891928.630433110] [DEBUG] Screen: SpellbookList
+[1773891930.558336931] [DEBUG] KeyEvent: code=Char('q'), modifiers=KeyModifiers(0x0)
+[1773891930.558397731] [INFO] Spellbook exiting
+[1773892035.930793771] [INFO] Spellbook started (mode: Browse)
+[1773892037.651401910] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1773892037.651457560] [DEBUG] Screen: SpellbookList
+[1773892038.505325198] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773892038.505384358] [DEBUG] Screen: SearchOverlay
+[1773892038.674931276] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773892038.675008236] [DEBUG] Screen: SearchOverlay
+[1773892038.934932243] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773892038.935006973] [DEBUG] Screen: SearchOverlay
+[1773892039.070103281] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773892039.070182891] [DEBUG] Screen: SearchOverlay
+[1773892039.201969812] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773892039.202019242] [DEBUG] Screen: SearchOverlay
+[1773892039.361934316] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773892039.361983776] [DEBUG] Screen: SearchOverlay
+[1773892039.513925271] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773892039.513976801] [DEBUG] Screen: SearchOverlay
+[1773892039.634916263] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773892039.634959003] [DEBUG] Screen: SearchOverlay
+[1773892039.824941663] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773892039.824991213] [DEBUG] Screen: SearchOverlay
+[1773892040.146912015] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773892040.146963255] [DEBUG] Screen: SearchOverlay
+[1773892042.517903037] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773892042.517956497] [DEBUG] Screen: SearchOverlay
+[1773892042.689930986] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773892042.689974436] [DEBUG] Screen: SearchOverlay
+[1773892043.361964741] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773892043.362018781] [DEBUG] Screen: SearchOverlay
+[1773892043.523920907] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773892043.523975897] [DEBUG] Screen: SearchOverlay
+[1773892044.082942210] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773892044.082984810] [DEBUG] Screen: SearchOverlay
+[1773892044.259933769] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773892044.259981859] [DEBUG] Screen: SearchOverlay
+[1773892044.540041028] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773892044.540093018] [DEBUG] Screen: SearchOverlay
+[1773892046.209443374] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773892046.209492964] [DEBUG] Screen: SearchOverlay
+[1773892046.380912284] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773892046.380963284] [DEBUG] Screen: SearchOverlay
+[1773892046.513932700] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773892046.513987640] [DEBUG] Screen: SearchOverlay
+[1773892046.749915916] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773892046.749964225] [DEBUG] Screen: SearchOverlay
+[1773892056.261848716] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773892056.261902786] [DEBUG] Screen: SearchOverlay
+[1773892056.450906949] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773892056.450963289] [DEBUG] Screen: SearchOverlay
+[1773892056.610910042] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773892056.610976672] [DEBUG] Screen: SearchOverlay
+[1773892056.730857517] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773892056.730914467] [DEBUG] Screen: SearchOverlay
+[1773892056.896840997] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1773892056.896885617] [DEBUG] Screen: SearchOverlay
+[1773892057.109845279] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773892057.109888259] [DEBUG] Screen: SearchOverlay
+[1773892057.285856630] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773892057.285911390] [DEBUG] Screen: SearchOverlay
+[1773892057.440854302] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773892057.440900072] [DEBUG] Screen: SearchOverlay
+[1773892057.553844424] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773892057.553896583] [DEBUG] Screen: SearchOverlay
+[1773892057.711895994] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1773892057.711949394] [DEBUG] Screen: SearchOverlay
+[1773892058.195899987] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773892058.195951586] [DEBUG] Screen: SearchOverlay
+[1773892058.606848827] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773892058.606910536] [DEBUG] Screen: SearchOverlay
+[1773892058.850827031] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773892058.850876671] [DEBUG] Screen: SearchOverlay
+[1773892059.009912977] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773892059.009975417] [DEBUG] Screen: SearchOverlay
+[1773892059.170904746] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773892059.170954456] [DEBUG] Screen: SearchOverlay
+[1773892059.343060452] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773892059.343129002] [DEBUG] Screen: SearchOverlay
+[1773892059.523853386] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773892059.523902666] [DEBUG] Screen: SearchOverlay
+[1773892059.670848028] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773892059.670901868] [DEBUG] Screen: SearchOverlay
+[1773892059.862880999] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773892059.862940629] [DEBUG] Screen: SearchOverlay
+[1773892060.053838824] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773892060.053895904] [DEBUG] Screen: SearchOverlay
+[1773892060.229867125] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773892060.229923465] [DEBUG] Screen: SearchOverlay
+[1773892060.382898334] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773892060.382954114] [DEBUG] Screen: SearchOverlay
+[1773892060.525850452] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773892060.525899771] [DEBUG] Screen: SearchOverlay
+[1773892060.803875866] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1773892060.803931836] [DEBUG] Screen: SearchOverlay
+[1773892074.735760836] [DEBUG] KeyEvent: code=Char('q'), modifiers=KeyModifiers(0x0)
+[1773892074.735818945] [INFO] Spellbook exiting

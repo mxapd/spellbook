@@ -1,5 +1,7 @@
 use ratatui::widgets::ListState;
 
+use crate::models::ViewMode;
+
 pub mod add_spell;
 pub mod events;
 pub mod render;
@@ -78,6 +80,8 @@ pub struct UiState {
     /// Last render dimensions (for resize detection)
     pub search_last_width: u16,
     pub search_last_height: u16,
+    /// View mode for spellbook browser (auto/cards/spines)
+    pub view_mode: ViewMode,
 }
 
 impl UiState {
@@ -123,6 +127,7 @@ impl UiState {
             search_spines_per_row: 1,
             search_last_width: 0,
             search_last_height: 0,
+            view_mode: ViewMode::default(),
         }
     }
 
