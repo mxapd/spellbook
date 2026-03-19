@@ -1,27 +1,45 @@
 use crate::clipboard;
+use crate::log_debug;
 use crate::persistence::Archivist;
 use crate::state::State;
 use crate::ui::{AddSpellField, Screen, SearchContext, UiState};
-use crossterm::event::KeyCode;
+use crossterm::event::{KeyCode, KeyModifiers};
 
 /// Main event handler - routes key events to the appropriate screen handler.
-pub fn handle_event(key: KeyCode, state: &mut State, ui: &mut UiState) -> bool {
+pub fn handle_event(
+    key: KeyCode,
+    state: &mut State,
+    ui: &mut UiState,
+    modifiers: KeyModifiers,
+) -> bool {
     // Handle quit keys globally - but only Esc when we're at the root screen
     if key == KeyCode::Char('q') {
         return true;
     }
 
-    // Handle theme cycling with 't'
-    if key == KeyCode::Char('t') {
+    // Handle theme cycling with 't' - disabled while typing
+    if key == KeyCode::Char('t') && !ui.is_typing {
         state.cycle_theme();
         return false;
     }
 
     match &ui.screen {
-        Screen::SpellbookList => handle_spellbook_list(key, state, ui),
-        Screen::SpellList => handle_spell_list(key, state, ui),
-        Screen::SearchOverlay { .. } => handle_search(key, state, ui),
-        Screen::AddSpell => handle_add_spell(key, state, ui),
+        Screen::SpellbookList => {
+            log_debug!("Screen: SpellbookList");
+            handle_spellbook_list(key, state, ui)
+        }
+        Screen::SpellList => {
+            log_debug!("Screen: SpellList");
+            handle_spell_list(key, state, ui)
+        }
+        Screen::SearchOverlay { .. } => {
+            log_debug!("Screen: SearchOverlay");
+            handle_search(key, state, ui)
+        }
+        Screen::AddSpell => {
+            log_debug!("Screen: AddSpell");
+            handle_add_spell(key, state, ui, modifiers)
+        }
     }
 }
 
@@ -141,6 +159,7 @@ fn handle_search(key: KeyCode, state: &State, ui: &mut UiState) -> bool {
             SearchContext::SpellbookList => Screen::SpellbookList,
             SearchContext::SpellList => Screen::SpellList,
         };
+        ui.exit_typing_mode();
         return false;
     }
 
@@ -271,16 +290,74 @@ fn copy_search_result(state: &State, ui: &mut UiState) {
     let _ = clipboard::copy_to_clipboard(&spell.incantation);
 }
 
+/// Saves the current spell and returns to the spellbook list.
+fn save_spell(state: &State, ui: &mut UiState) {
+    if !ui.add_spell_name.is_empty() && !ui.add_spell_command.is_empty() {
+        let tags: Vec<String> = ui
+            .add_spell_tags
+            .split(',')
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty())
+            .collect();
+
+        let spell = crate::models::Spell {
+            id: 0,
+            name: ui.add_spell_name.clone(),
+            incantation: ui.add_spell_command.clone(),
+            lore: ui.add_spell_lore.clone(),
+            school: ui.add_spell_school.clone(),
+            glyphs: tags,
+        };
+
+        let spellbook_name = if ui.add_spell_skip_spellbook {
+            None
+        } else {
+            ui.add_spell_spellbook
+                .and_then(|i| state.codex.spellbooks.get(i))
+                .map(|b| b.name.clone())
+        };
+
+        if let Err(e) = Archivist::append_spell("codex.toml", &spell, spellbook_name.as_deref()) {
+            eprintln!("Error saving spell: {}", e);
+        }
+    }
+
+    ui.add_spell_name.clear();
+    ui.add_spell_command.clear();
+    ui.add_spell_lore.clear();
+    ui.add_spell_school.clear();
+    ui.add_spell_tags.clear();
+    ui.add_spell_spellbook = None;
+    ui.add_spell_skip_spellbook = false;
+    ui.add_spell_dropdown_open = false;
+    ui.screen = Screen::SpellbookList;
+    ui.exit_typing_mode();
+}
+
 /// Handles key events in the Add Spell screen.
-fn handle_add_spell(key: KeyCode, state: &State, ui: &mut UiState) -> bool {
+fn handle_add_spell(
+    key: KeyCode,
+    state: &State,
+    ui: &mut UiState,
+    modifiers: KeyModifiers,
+) -> bool {
+    if key == KeyCode::Char('s') && modifiers.contains(KeyModifiers::CONTROL) {
+        save_spell(state, ui);
+        return false;
+    }
+
     match key {
         KeyCode::Esc => {
-            // Cancel and go back
-            ui.screen = Screen::SpellbookList;
+            if ui.add_spell_field == AddSpellField::Spellbook && ui.add_spell_dropdown_open {
+                ui.add_spell_dropdown_open = false;
+            } else {
+                ui.screen = Screen::SpellbookList;
+                ui.exit_typing_mode();
+            }
             false
         }
         KeyCode::Tab => {
-            // Cycle through fields forward
+            ui.add_spell_dropdown_open = false;
             ui.add_spell_field = match ui.add_spell_field {
                 AddSpellField::Name => AddSpellField::Command,
                 AddSpellField::Command => AddSpellField::Lore,
@@ -288,20 +365,24 @@ fn handle_add_spell(key: KeyCode, state: &State, ui: &mut UiState) -> bool {
                 AddSpellField::School => AddSpellField::Tags,
                 AddSpellField::Tags => AddSpellField::Spellbook,
                 AddSpellField::Spellbook => AddSpellField::Name,
-                AddSpellField::Save | AddSpellField::Cancel => AddSpellField::Name,
             };
+            ui.update_typing_state();
             false
         }
         KeyCode::Up => {
-            // If on Spellbook field, navigate dropdown, otherwise cycle fields
             if ui.add_spell_field == AddSpellField::Spellbook {
-                let options_count = state.codex.spellbooks.len() + 1; // +1 for Skip
-                if options_count > 0 {
-                    ui.add_spell_dropdown_index = if ui.add_spell_dropdown_index == 0 {
-                        options_count - 1
+                if ui.add_spell_dropdown_open {
+                    if ui.add_spell_dropdown_index == 0 {
+                        ui.add_spell_dropdown_open = false;
                     } else {
-                        ui.add_spell_dropdown_index - 1
-                    };
+                        let options_count = state.codex.spellbooks.len() + 1;
+                        if options_count > 0 {
+                            ui.add_spell_dropdown_index -= 1;
+                        }
+                    }
+                } else {
+                    ui.add_spell_field = AddSpellField::Tags;
+                    ui.update_typing_state();
                 }
             } else {
                 ui.add_spell_field = match ui.add_spell_field {
@@ -311,17 +392,21 @@ fn handle_add_spell(key: KeyCode, state: &State, ui: &mut UiState) -> bool {
                     AddSpellField::Tags => AddSpellField::School,
                     AddSpellField::Spellbook => AddSpellField::Tags,
                     AddSpellField::Name => AddSpellField::Spellbook,
-                    AddSpellField::Save | AddSpellField::Cancel => AddSpellField::Spellbook,
                 };
+                ui.update_typing_state();
             }
             false
         }
         KeyCode::Down => {
-            // If on Spellbook field, navigate dropdown, otherwise cycle fields
             if ui.add_spell_field == AddSpellField::Spellbook {
-                let options_count = state.codex.spellbooks.len() + 1; // +1 for Skip
-                if options_count > 0 {
-                    ui.add_spell_dropdown_index = (ui.add_spell_dropdown_index + 1) % options_count;
+                if ui.add_spell_dropdown_open {
+                    let options_count = state.codex.spellbooks.len() + 1;
+                    if options_count > 0 {
+                        ui.add_spell_dropdown_index =
+                            (ui.add_spell_dropdown_index + 1) % options_count;
+                    }
+                } else {
+                    ui.add_spell_dropdown_open = true;
                 }
             } else {
                 ui.add_spell_field = match ui.add_spell_field {
@@ -330,101 +415,42 @@ fn handle_add_spell(key: KeyCode, state: &State, ui: &mut UiState) -> bool {
                     AddSpellField::Lore => AddSpellField::School,
                     AddSpellField::School => AddSpellField::Tags,
                     AddSpellField::Tags => AddSpellField::Spellbook,
-                    AddSpellField::Spellbook => AddSpellField::Name,
-                    AddSpellField::Save | AddSpellField::Cancel => AddSpellField::Name,
+                    _ => ui.add_spell_field,
                 };
+                ui.update_typing_state();
             }
             false
         }
-        KeyCode::Enter => {
-            match ui.add_spell_field {
-                AddSpellField::Save => {
-                    // Save the spell
-                    if !ui.add_spell_name.is_empty() && !ui.add_spell_command.is_empty() {
-                        let tags: Vec<String> = ui
-                            .add_spell_tags
-                            .split(',')
-                            .map(|s| s.trim().to_string())
-                            .filter(|s| !s.is_empty())
-                            .collect();
-
-                        let spell = crate::models::Spell {
-                            id: 0, // Will be assigned on load
-                            name: ui.add_spell_name.clone(),
-                            incantation: ui.add_spell_command.clone(),
-                            lore: ui.add_spell_lore.clone(),
-                            school: ui.add_spell_school.clone(),
-                            glyphs: tags,
-                        };
-
-                        let spellbook_name = if ui.add_spell_skip_spellbook {
-                            None
-                        } else {
-                            ui.add_spell_spellbook
-                                .and_then(|i| state.codex.spellbooks.get(i))
-                                .map(|b| b.name.clone())
-                        };
-
-                        if let Err(e) =
-                            Archivist::append_spell("codex.toml", &spell, spellbook_name.as_deref())
-                        {
-                            eprintln!("Error saving spell: {}", e);
-                        }
-                    }
-
-                    // Reset form and go back
-                    ui.add_spell_name.clear();
-                    ui.add_spell_command.clear();
-                    ui.add_spell_lore.clear();
-                    ui.add_spell_school.clear();
-                    ui.add_spell_tags.clear();
-                    ui.add_spell_spellbook = None;
-                    ui.add_spell_skip_spellbook = false;
-                    ui.screen = Screen::SpellbookList;
-                    false
-                }
-                AddSpellField::Cancel => {
-                    // Cancel - go back without saving
-                    ui.add_spell_name.clear();
-                    ui.add_spell_command.clear();
-                    ui.add_spell_lore.clear();
-                    ui.add_spell_school.clear();
-                    ui.add_spell_tags.clear();
-                    ui.add_spell_spellbook = None;
-                    ui.add_spell_skip_spellbook = false;
-                    ui.screen = Screen::SpellbookList;
-                    false
-                }
-                AddSpellField::Spellbook => {
-                    // Confirm dropdown selection and move to next field
+        KeyCode::Enter => match ui.add_spell_field {
+            AddSpellField::Spellbook => {
+                if ui.add_spell_dropdown_open {
                     if ui.add_spell_dropdown_index >= state.codex.spellbooks.len() {
-                        // Skip option selected
                         ui.add_spell_skip_spellbook = true;
                         ui.add_spell_spellbook = None;
                     } else {
                         ui.add_spell_skip_spellbook = false;
                         ui.add_spell_spellbook = Some(ui.add_spell_dropdown_index);
                     }
-                    // Move to next field
-                    ui.add_spell_field = AddSpellField::Name;
-                    false
+                    ui.add_spell_dropdown_open = false;
+                } else {
+                    ui.add_spell_dropdown_open = true;
                 }
-                _ => {
-                    // For text fields, Enter moves to next field
-                    ui.add_spell_field = match ui.add_spell_field {
-                        AddSpellField::Name => AddSpellField::Command,
-                        AddSpellField::Command => AddSpellField::Lore,
-                        AddSpellField::Lore => AddSpellField::School,
-                        AddSpellField::School => AddSpellField::Tags,
-                        AddSpellField::Tags => AddSpellField::Spellbook,
-                        _ => ui.add_spell_field,
-                    };
-                    false
-                }
+                false
             }
-        }
+            _ => {
+                ui.add_spell_field = match ui.add_spell_field {
+                    AddSpellField::Name => AddSpellField::Command,
+                    AddSpellField::Command => AddSpellField::Lore,
+                    AddSpellField::Lore => AddSpellField::School,
+                    AddSpellField::School => AddSpellField::Tags,
+                    AddSpellField::Tags => AddSpellField::Spellbook,
+                    _ => ui.add_spell_field,
+                };
+                ui.update_typing_state();
+                false
+            }
+        },
         KeyCode::Backspace => {
-            // Delete character from current field
             match ui.add_spell_field {
                 AddSpellField::Name => {
                     ui.add_spell_name.pop();
@@ -446,7 +472,6 @@ fn handle_add_spell(key: KeyCode, state: &State, ui: &mut UiState) -> bool {
             false
         }
         KeyCode::Char(c) => {
-            // Add character to current field
             match ui.add_spell_field {
                 AddSpellField::Name => {
                     ui.add_spell_name.push(c);

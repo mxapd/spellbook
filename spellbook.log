@@ -1,0 +1,223 @@
+[1773877755.574527612] [INFO] Spellbook started (mode: AddSpell)
+[1773877759.128895687] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877759.128947436] [DEBUG] Screen: AddSpell
+[1773877759.286661490] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877759.286706449] [DEBUG] Screen: AddSpell
+[1773877760.162694936] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1773877760.162749476] [DEBUG] Screen: AddSpell
+[1773877760.584670314] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877760.584738344] [DEBUG] Screen: AddSpell
+[1773877760.755656706] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877760.755716236] [DEBUG] Screen: AddSpell
+[1773877760.914649596] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877760.914695196] [DEBUG] Screen: AddSpell
+[1773877761.051652570] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877761.051699780] [DEBUG] Screen: AddSpell
+[1773877761.309659550] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877761.309706000] [DEBUG] Screen: AddSpell
+[1773877761.694674395] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1773877761.694718415] [DEBUG] Screen: AddSpell
+[1773877761.863660884] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1773877761.863704294] [DEBUG] Screen: AddSpell
+[1773877762.034196657] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1773877762.034256547] [DEBUG] Screen: AddSpell
+[1773877762.352686922] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877762.352731022] [DEBUG] Screen: AddSpell
+[1773877762.525691845] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877762.525739425] [DEBUG] Screen: AddSpell
+[1773877762.666189306] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877762.666239556] [DEBUG] Screen: AddSpell
+[1773877762.961777580] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877762.961827130] [DEBUG] Screen: AddSpell
+[1773877763.108674595] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877763.108720185] [DEBUG] Screen: AddSpell
+[1773877763.411680210] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877763.411724530] [DEBUG] Screen: AddSpell
+[1773877763.569649752] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877763.569696092] [DEBUG] Screen: AddSpell
+[1773877763.806737995] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877763.806784475] [DEBUG] Screen: AddSpell
+[1773877763.945665772] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877763.945718992] [DEBUG] Screen: AddSpell
+[1773877764.155695360] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1773877764.155748560] [DEBUG] Screen: AddSpell
+[1773877764.360701318] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1773877764.360745848] [DEBUG] Screen: AddSpell
+[1773877764.629656536] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877764.629703326] [DEBUG] Screen: AddSpell
+[1773877764.798651555] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877764.798694385] [DEBUG] Screen: AddSpell
+[1773877764.963709949] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877764.963760119] [DEBUG] Screen: AddSpell
+[1773877765.109656518] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877765.109716638] [DEBUG] Screen: AddSpell
+[1773877765.229634929] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877765.229688919] [DEBUG] Screen: AddSpell
+[1773877765.829692881] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877765.829738211] [DEBUG] Screen: AddSpell
+[1773877765.869676285] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877765.869718624] [DEBUG] Screen: AddSpell
+[1773877765.909718948] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877765.909767418] [DEBUG] Screen: AddSpell
+[1773877765.949668482] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877765.949709002] [DEBUG] Screen: AddSpell
+[1773877765.989728965] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877765.989793185] [DEBUG] Screen: AddSpell
+[1773877766.029719529] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877766.029772249] [DEBUG] Screen: AddSpell
+[1773877766.069686822] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877766.069736002] [DEBUG] Screen: AddSpell
+[1773877766.110679352] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877766.110733802] [DEBUG] Screen: AddSpell
+[1773877766.149684299] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877766.149732119] [DEBUG] Screen: AddSpell
+[1773877766.189685553] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877766.189732162] [DEBUG] Screen: AddSpell
+[1773877766.229735466] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877766.229787316] [DEBUG] Screen: AddSpell
+[1773877766.269697070] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877766.269746759] [DEBUG] Screen: AddSpell
+[1773877766.309736073] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877766.309790663] [DEBUG] Screen: AddSpell
+[1773877766.349673086] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877766.349719736] [DEBUG] Screen: AddSpell
+[1773877766.389667710] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877766.389713810] [DEBUG] Screen: AddSpell
+[1773877766.429710313] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877766.429762853] [DEBUG] Screen: AddSpell
+[1773877766.469676077] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877766.469729377] [DEBUG] Screen: AddSpell
+[1773877766.509709690] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877766.509765390] [DEBUG] Screen: AddSpell
+[1773877766.549701544] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877766.549755964] [DEBUG] Screen: AddSpell
+[1773877766.589697727] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877766.589745387] [DEBUG] Screen: AddSpell
+[1773877766.629756100] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877766.629801430] [DEBUG] Screen: AddSpell
+[1773877766.669709254] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877766.669750704] [DEBUG] Screen: AddSpell
+[1773877766.709729208] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877766.709771307] [DEBUG] Screen: AddSpell
+[1773877766.749712981] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877766.749756531] [DEBUG] Screen: AddSpell
+[1773877766.789736895] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877766.789783875] [DEBUG] Screen: AddSpell
+[1773877766.829750278] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877766.829795328] [DEBUG] Screen: AddSpell
+[1773877766.869744701] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877766.869790141] [DEBUG] Screen: AddSpell
+[1773877766.909748335] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877766.909794045] [DEBUG] Screen: AddSpell
+[1773877766.949727639] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877766.949783438] [DEBUG] Screen: AddSpell
+[1773877766.989692242] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877766.989746302] [DEBUG] Screen: AddSpell
+[1773877767.029732635] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877767.029786265] [DEBUG] Screen: AddSpell
+[1773877767.069686179] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877767.069738859] [DEBUG] Screen: AddSpell
+[1773877767.109703252] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877767.109768522] [DEBUG] Screen: AddSpell
+[1773877767.149698246] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877767.149749216] [DEBUG] Screen: AddSpell
+[1773877767.189670649] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877767.189709849] [DEBUG] Screen: AddSpell
+[1773877767.229688733] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877767.229738363] [DEBUG] Screen: AddSpell
+[1773877767.269701116] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877767.269753176] [DEBUG] Screen: AddSpell
+[1773877767.309687750] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877767.309730959] [DEBUG] Screen: AddSpell
+[1773877767.349730813] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877767.349773183] [DEBUG] Screen: AddSpell
+[1773877767.389671247] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877767.389711067] [DEBUG] Screen: AddSpell
+[1773877767.429701590] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877767.429743930] [DEBUG] Screen: AddSpell
+[1773877767.469709723] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877767.469756143] [DEBUG] Screen: AddSpell
+[1773877767.509691897] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877767.509732577] [DEBUG] Screen: AddSpell
+[1773877767.634654078] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1773877767.634701708] [DEBUG] Screen: AddSpell
+[1773877768.234759369] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1773877768.234807899] [DEBUG] Screen: AddSpell
+[1773877768.274703003] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1773877768.274749893] [DEBUG] Screen: AddSpell
+[1773877768.314720676] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1773877768.314766986] [DEBUG] Screen: AddSpell
+[1773877768.354678810] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1773877768.354711840] [DEBUG] Screen: AddSpell
+[1773877768.394654673] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1773877768.394693363] [DEBUG] Screen: AddSpell
+[1773877768.434645527] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1773877768.434679987] [DEBUG] Screen: AddSpell
+[1773877768.474643020] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1773877768.474684800] [DEBUG] Screen: AddSpell
+[1773877768.514643794] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1773877768.514685374] [DEBUG] Screen: AddSpell
+[1773877768.554658667] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1773877768.554708447] [DEBUG] Screen: AddSpell
+[1773877768.594630011] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1773877768.594665281] [DEBUG] Screen: AddSpell
+[1773877768.634644324] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1773877768.634678204] [DEBUG] Screen: AddSpell
+[1773877768.674644277] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1773877768.674684197] [DEBUG] Screen: AddSpell
+[1773877768.714685440] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1773877768.714721060] [DEBUG] Screen: AddSpell
+[1773877768.754670204] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1773877768.754709194] [DEBUG] Screen: AddSpell
+[1773877768.794673557] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1773877768.794711917] [DEBUG] Screen: AddSpell
+[1773877775.362618496] [DEBUG] KeyEvent: code=Char('q'), modifiers=KeyModifiers(0x0)
+[1773877775.362669246] [INFO] Spellbook exiting
+[1773877779.441534079] [INFO] Spellbook started (mode: Browse)
+[1773877780.912611419] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877780.912653689] [DEBUG] Screen: SpellbookList
+[1773877781.218584939] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1773877781.218626489] [DEBUG] Screen: SpellbookList
+[1773877781.850851488] [DEBUG] KeyEvent: code=Enter, modifiers=KeyModifiers(0x0)
+[1773877781.850906868] [DEBUG] Screen: SpellbookList
+[1773877783.171584616] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877783.171636816] [DEBUG] Screen: SpellList
+[1773877783.339665746] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877783.339719546] [DEBUG] Screen: SpellList
+[1773877785.550778867] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877785.550833007] [DEBUG] Screen: SpellList
+[1773877788.424566884] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1773877788.424630734] [DEBUG] Screen: SpellList
+[1773877788.591564569] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1773877788.591625299] [DEBUG] Screen: SpellList
+[1773877788.768545306] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1773877788.768608935] [DEBUG] Screen: SpellList
+[1773877790.439560452] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1773877790.439606082] [DEBUG] Screen: SpellList
+[1773877801.096520593] [DEBUG] KeyEvent: code=Char('q'), modifiers=KeyModifiers(0x0)
+[1773877801.096578432] [INFO] Spellbook exiting
+[1773877802.333851006] [INFO] Spellbook started (mode: Browse)
+[1773877802.805551080] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877802.805602830] [DEBUG] Screen: SpellbookList
+[1773877802.985496422] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877802.985550252] [DEBUG] Screen: SpellbookList
+[1773877803.122691232] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1773877803.122736312] [DEBUG] Screen: SpellbookList
+[1773877803.496503501] [DEBUG] KeyEvent: code=Char('q'), modifiers=KeyModifiers(0x0)
+[1773877803.496549521] [INFO] Spellbook exiting
+[1773878424.337774430] [INFO] Spellbook started (mode: Browse)
+[1773878425.443990742] [DEBUG] KeyEvent: code=Char('q'), modifiers=KeyModifiers(0x0)
+[1773878425.444051242] [INFO] Spellbook exiting
+[1773878426.410476302] [INFO] Spellbook started (mode: Browse)
+[1773878426.874033784] [DEBUG] KeyEvent: code=Char('t'), modifiers=KeyModifiers(0x0)
+[1773878427.072976380] [DEBUG] KeyEvent: code=Char('t'), modifiers=KeyModifiers(0x0)
+[1773878427.581978894] [DEBUG] KeyEvent: code=Char('t'), modifiers=KeyModifiers(0x0)
+[1773878427.845013615] [DEBUG] KeyEvent: code=Char('t'), modifiers=KeyModifiers(0x0)
+[1773878428.106020985] [DEBUG] KeyEvent: code=Char('t'), modifiers=KeyModifiers(0x0)
+[1773878428.363975157] [DEBUG] KeyEvent: code=Char('t'), modifiers=KeyModifiers(0x0)
+[1773878428.780971051] [DEBUG] KeyEvent: code=Char('q'), modifiers=KeyModifiers(0x0)
+[1773878428.781023741] [INFO] Spellbook exiting
+[1773878429.778487262] [INFO] Spellbook started (mode: Browse)
+[1773878430.295965200] [DEBUG] KeyEvent: code=Char('t'), modifiers=KeyModifiers(0x0)
+[1773878430.760947385] [DEBUG] KeyEvent: code=Char('q'), modifiers=KeyModifiers(0x0)
+[1773878430.761005135] [INFO] Spellbook exiting

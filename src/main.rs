@@ -1,10 +1,14 @@
 mod clipboard;
+mod logging;
 mod models;
 mod persistence;
 mod state;
 mod ui;
 
-use crossterm::event::{self, Event, KeyEventKind};
+use crossterm::{
+    event::{self, Event, KeyEventKind, KeyboardEnhancementFlags, PushKeyboardEnhancementFlags},
+    execute,
+};
 use ratatui::DefaultTerminal;
 use std::env;
 use std::io;
@@ -42,23 +46,34 @@ fn run(terminal: &mut DefaultTerminal) -> io::Result<()> {
         }
     };
 
-    let theme = persistence::Archivist::load_theme("theme.toml");
-
-    let mut state = state::State::new(codex, theme);
+    let mut state = state::State::new(codex);
     let mut ui_state = ui::UiState::new(mode == AppMode::AddSpell);
+
+    logging::init_logging();
+    log_info!("Spellbook started (mode: {:?})", mode);
+
+    let _ = execute!(
+        io::stdout(),
+        PushKeyboardEnhancementFlags(KeyboardEnhancementFlags::DISAMBIGUATE_ESCAPE_CODES)
+    );
 
     loop {
         terminal.draw(|frame| {
             ui::render(frame, &state, &mut ui_state);
         })?;
 
-        // Handle key events
         if let Event::Key(key) = event::read()? {
             if key.kind != KeyEventKind::Press {
                 continue;
             }
-            let should_quit = ui::handle_event(key.code, &mut state, &mut ui_state);
+            log_debug!(
+                "KeyEvent: code={:?}, modifiers={:?}",
+                key.code,
+                key.modifiers
+            );
+            let should_quit = ui::handle_event(key.code, &mut state, &mut ui_state, key.modifiers);
             if should_quit {
+                log_info!("Spellbook exiting");
                 return Ok(());
             }
         }

@@ -154,14 +154,16 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
             .unwrap_or_else(|| "None".to_string())
     };
 
+    let spellbook_indicator = if spellbook_is_active && ui.add_spell_dropdown_open {
+        "▼"
+    } else {
+        " "
+    };
+
     let spellbook_line = Paragraph::new(Line::from(vec![
         Span::styled("> Spellbook:", label_style),
         Span::styled(
-            if spellbook_is_active {
-                format!("[▼] {}", current_selection)
-            } else {
-                format!("[ ] {}", current_selection)
-            },
+            format!("[{}] {}", spellbook_indicator, current_selection),
             if spellbook_is_active {
                 active_style
             } else {
@@ -171,8 +173,8 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
     ]));
     frame.render_widget(spellbook_line, form_chunks[6]);
 
-    // Show dropdown when Spellbook field is active
-    if spellbook_is_active {
+    // Show dropdown only when Spellbook field is active AND dropdown is open
+    if spellbook_is_active && ui.add_spell_dropdown_open {
         let dropdown_items: Vec<ListItem> = state
             .codex
             .spellbooks
@@ -207,7 +209,7 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
     }
 
     let footer = Paragraph::new(format!(
-        "tab/↑↓ navigate  Enter save  Esc cancel  t {}",
+        "tab/↑↓ navigate  Enter next  Ctrl+S save  Esc cancel  t {}",
         state.theme_names[state.current_theme_index]
     ))
     .style(Style::new().fg(theme.muted).bg(theme.bg));

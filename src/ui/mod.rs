@@ -33,8 +33,6 @@ pub enum AddSpellField {
     School,
     Tags,
     Spellbook,
-    Save,
-    Cancel,
 }
 
 pub struct UiState {
@@ -59,6 +57,10 @@ pub struct UiState {
     pub add_spell_spellbook: Option<usize>,
     pub add_spell_skip_spellbook: bool,
     pub add_spell_dropdown_index: usize,
+    /// Whether the spellbook dropdown is currently open
+    pub add_spell_dropdown_open: bool,
+    /// Whether user is currently typing in a text field (disables theme toggle)
+    pub is_typing: bool,
 }
 
 impl UiState {
@@ -93,6 +95,8 @@ impl UiState {
             add_spell_spellbook: None,
             add_spell_skip_spellbook: false,
             add_spell_dropdown_index: 0,
+            add_spell_dropdown_open: false,
+            is_typing: false,
         }
     }
 
@@ -104,5 +108,33 @@ impl UiState {
         self.search_list_state.select(Some(0));
         self.search_return_to = return_to.clone();
         self.screen = Screen::SearchOverlay { return_to };
+        self.is_typing = true;
+    }
+
+    /// Call when leaving text fields (typing mode disabled)
+    pub fn exit_typing_mode(&mut self) {
+        self.is_typing = false;
+    }
+
+    /// Updates is_typing based on the current AddSpell field
+    pub fn update_typing_state(&mut self) {
+        match &self.screen {
+            Screen::AddSpell => {
+                self.is_typing = matches!(
+                    self.add_spell_field,
+                    AddSpellField::Name
+                        | AddSpellField::Command
+                        | AddSpellField::Lore
+                        | AddSpellField::School
+                        | AddSpellField::Tags
+                );
+            }
+            Screen::SearchOverlay { .. } => {
+                self.is_typing = true;
+            }
+            _ => {
+                self.is_typing = false;
+            }
+        }
     }
 }

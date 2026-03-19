@@ -1,3 +1,4 @@
+use crate::log_info;
 use crate::models::{Codex, RatatuiColors};
 use crate::persistence::Archivist;
 
@@ -11,7 +12,7 @@ pub struct State {
 }
 
 impl State {
-    pub fn new(codex: Codex, _theme: RatatuiColors) -> Self {
+    pub fn new(codex: Codex) -> Self {
         let theme_names = vec![
             "default",
             "default-light",
@@ -56,6 +57,9 @@ impl State {
     pub fn cycle_theme(&mut self) {
         self.current_theme_index = (self.current_theme_index + 1) % self.theme_names.len();
         self.theme = Self::get_theme_by_index(self.current_theme_index);
+
+        let theme_name = self.theme_names[self.current_theme_index];
+        log_info!("Theme changed to: {}", theme_name);
 
         let _ = Archivist::save_theme_index(THEME_CONFIG_PATH, self.current_theme_index);
     }

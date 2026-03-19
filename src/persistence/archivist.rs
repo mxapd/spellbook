@@ -1,4 +1,5 @@
-use crate::models::{Codex, RatatuiColors, ThemeConfig};
+use crate::models::{Codex, ThemeConfig};
+use crate::{log_debug, log_info};
 use std::collections::HashSet;
 use std::fs;
 
@@ -16,7 +17,9 @@ impl Archivist {
     /// - No duplicate spell or spellbook names
     /// - No empty names
     pub fn load(path: &str) -> Result<Codex, Box<dyn std::error::Error>> {
+        log_info!("Loading codex from: {}", path);
         let contents = fs::read_to_string(path)?;
+        log_debug!("Loaded {} bytes from codex", contents.len());
 
         // First pass: load (IDs default to 0)
         let mut codex: Codex = toml::from_str(&contents)?;
@@ -42,27 +45,12 @@ impl Archivist {
         // Validate the loaded data
         validate_codex(&codex, &spell_names)?;
 
+        log_info!(
+            "Loaded {} spells and {} spellbooks",
+            codex.spells.len(),
+            codex.spellbooks.len()
+        );
         Ok(codex)
-    }
-
-    /// Loads a theme from a TOML file.
-    /// Returns default theme if file doesn't exist or fails to parse.
-    pub fn load_theme(path: &str) -> RatatuiColors {
-        let contents = match fs::read_to_string(path) {
-            Ok(c) => c,
-            Err(_) => return RatatuiColors::default(),
-        };
-
-        let config: ThemeConfig = match toml::from_str(&contents) {
-            Ok(c) => c,
-            Err(_) => return RatatuiColors::default(),
-        };
-
-        if let Some(theme) = config.get_theme("default") {
-            return theme.to_colors();
-        }
-
-        RatatuiColors::default()
     }
 
     /// Loads the selected theme index from config file.
@@ -109,6 +97,8 @@ impl Archivist {
         spell: &crate::models::Spell,
         spellbook: Option<&str>,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        log_info!("Saving spell: {} to codex", spell.name);
+
         // Read existing content
         let mut contents = fs::read_to_string(path)?;
 
@@ -129,19 +119,32 @@ impl Archivist {
 
         // If spellbook is specified, add the spell to that spellbook
         if let Some(book_name) = spellbook {
-            // Find and update the spellbook
             let spellbook_section = format!("[[spellbooks]]\nname = \"{}\"", book_name);
             if let Some(pos) = contents.find(&spellbook_section) {
-                // Find the end of this spellbook section (next [[spellbooks]] or end of file)
+                // Find the end of this spellbook section
                 let rest = &contents[pos..];
-                if let Some(end_pos) = rest[2..].find("[[spellbooks]]") {
-                    let insert_pos = pos + 2 + end_pos;
-                    contents.insert_str(insert_pos, &format!(", \"{}\"", spell.name));
-                }
+
+                // Find next spellbook or end of file
+                let insert_pos = if let Some(next_pos) = rest[2..].find("[[spellbooks]]") {
+                    pos + 2 + next_pos
+                } else {
+                    // Last spellbook - insert at end of file
+                    contents.len()
+                };
+                contents.insert_str(insert_pos, &format!(", \"{}\"", spell.name));
             }
         }
 
         fs::write(path, contents)?;
+        if let Some(book) = spellbook {
+            log_info!(
+                "Spell '{}' saved successfully (added to spellbook: {})",
+                spell.name,
+                book
+            );
+        } else {
+            log_info!("Spell '{}' saved successfully (no spellbook)", spell.name);
+        }
         Ok(())
     }
 }
