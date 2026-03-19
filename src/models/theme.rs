@@ -134,23 +134,23 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize, Default)]
 pub enum ViewMode {
     #[default]
-    Auto, // Responsive: cards when they fit, spines otherwise
-    Cards,  // Always show cards
-    Spines, // Always show spines
+    List, // Simple vertical list
+    Cards,  // Card view
+    Spines, // Compact spine view
 }
 
 impl ViewMode {
     pub fn next(self) -> Self {
         match self {
-            ViewMode::Auto => ViewMode::Cards,
+            ViewMode::List => ViewMode::Cards,
             ViewMode::Cards => ViewMode::Spines,
-            ViewMode::Spines => ViewMode::Auto,
+            ViewMode::Spines => ViewMode::List,
         }
     }
 
     pub fn as_str(&self) -> &'static str {
         match self {
-            ViewMode::Auto => "auto",
+            ViewMode::List => "list",
             ViewMode::Cards => "cards",
             ViewMode::Spines => "spines",
         }

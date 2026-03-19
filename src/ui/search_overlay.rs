@@ -1,11 +1,11 @@
 use crate::models::{SpineStyle, ViewMode};
 use crate::state::State;
-use crate::ui::UiState;
+use crate::ui::{SearchMode, UiState};
+use ratatui::Frame;
 use ratatui::layout::{Alignment, Constraint, Direction, Layout};
 use ratatui::style::{Modifier, Style};
 use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Block, Borders, List, ListItem, Paragraph, Wrap};
-use ratatui::Frame;
 
 fn build_spine_decorations(
     style: SpineStyle,
@@ -136,24 +136,40 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
 
     frame.render_widget(input_block, chunks[0]);
 
-    if ui.search_query.is_empty() && ui.search_showing_spellbooks {
-        render_spellbook_browser(frame, state, ui, chunks[1]);
-    } else if ui.filtered_indices.is_empty() {
-        let message = if ui.search_query.is_empty() {
-            "Type to search all spells..."
-        } else {
-            "No spells found"
-        };
-        let empty = Paragraph::new(message)
-            .block(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .border_style(Style::new().fg(theme.border)),
-            )
-            .style(Style::new().fg(theme.muted).bg(theme.bg));
-        frame.render_widget(empty, chunks[1]);
-    } else {
-        render_search_results(frame, state, ui, chunks[1]);
+    // Render main content based on search mode
+    match ui.search_mode {
+        SearchMode::BrowseSpellbooks | SearchMode::BrowseSpells => {
+            if ui.search_mode == SearchMode::BrowseSpells {
+                render_spellbook_spells(frame, state, ui, chunks[1]);
+            } else if ui.search_query.is_empty() && ui.search_showing_spellbooks {
+                render_spellbook_browser(frame, state, ui, chunks[1]);
+            } else if ui.search_query.starts_with(':') {
+                // Command mode - show filtered commands
+                render_command_list(frame, state, ui, chunks[1]);
+            } else if ui.filtered_indices.is_empty() {
+                let message = if ui.search_query.is_empty() {
+                    "Type to search all spells..."
+                } else {
+                    "No spells found"
+                };
+                let empty = Paragraph::new(message)
+                    .block(
+                        Block::default()
+                            .borders(Borders::ALL)
+                            .border_style(Style::new().fg(theme.border)),
+                    )
+                    .style(Style::new().fg(theme.muted).bg(theme.bg));
+                frame.render_widget(empty, chunks[1]);
+            } else {
+                render_search_results(frame, state, ui, chunks[1]);
+            }
+        }
+        SearchMode::AddSpell => {
+            render_add_spell_form(frame, state, ui, chunks[1]);
+        }
+        SearchMode::AddSpellbook => {
+            render_add_spellbook_form(frame, state, ui, chunks[1]);
+        }
     }
 
     let details = if ui.search_query.is_empty() && ui.search_showing_spellbooks {
@@ -181,16 +197,22 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
         Paragraph::new(msg.clone())
             .style(Style::new().fg(ratatui::style::Color::Green).bg(theme.bg))
     } else {
-        let hint_text = if ui.search_query.is_empty() && ui.search_showing_spellbooks {
-            format!(
-                "←→↑↓ navigate  enter open spellbook  esc close  t {}",
-                state.theme_names[state.current_theme_index]
-            )
-        } else {
-            format!(
-                "↑↓ navigate  enter copy  t {}  esc close",
-                state.theme_names[state.current_theme_index]
-            )
+        let hint_text = match ui.search_mode {
+            SearchMode::BrowseSpellbooks
+                if ui.search_query.is_empty() && ui.search_showing_spellbooks =>
+            {
+                "←→↑↓ navigate  enter open  : cmd".to_string()
+            }
+            SearchMode::BrowseSpells => "↑↓ navigate  enter copy  ← back".to_string(),
+            _ => {
+                if ui.search_query.starts_with(':') {
+                    "↑↓ navigate  enter run  esc cancel".to_string()
+                } else if ui.filtered_indices.is_empty() && ui.search_query.is_empty() {
+                    "type to search".to_string()
+                } else {
+                    "↑↓ navigate  enter copy  esc clear".to_string()
+                }
+            }
         };
         Paragraph::new(hint_text).style(Style::new().fg(theme.muted).bg(theme.bg))
     };
@@ -261,26 +283,42 @@ fn render_spellbook_browser(
     frame.render_widget(block, area);
 
     let view_mode = state.user_settings.view_mode;
-    let show_cards = match view_mode {
-        ViewMode::Cards => true,
-        ViewMode::Spines => false,
-        ViewMode::Auto => all_books_fit,
+    let show_as = match view_mode {
+        ViewMode::Cards => ShowAs::Cards,
+        ViewMode::Spines => ShowAs::Spines,
+        ViewMode::List => ShowAs::List,
     };
 
-    if show_cards {
-        render_spellbook_cards(
-            frame,
-            state,
-            ui,
-            inner,
-            card_width,
-            card_height,
-            card_gap,
-            cards_per_row,
-        );
-    } else {
-        render_spellbook_spines(frame, state, ui, inner, min_spine_width, spines_per_row);
+    // Store unified items_per_row for navigation
+    match show_as {
+        ShowAs::List => {
+            ui.search_items_per_row = 1;
+            render_spellbook_list(frame, state, ui, inner);
+        }
+        ShowAs::Cards => {
+            ui.search_items_per_row = cards_per_row;
+            render_spellbook_cards(
+                frame,
+                state,
+                ui,
+                inner,
+                card_width,
+                card_height,
+                card_gap,
+                cards_per_row,
+            );
+        }
+        ShowAs::Spines => {
+            ui.search_items_per_row = spines_per_row;
+            render_spellbook_spines(frame, state, ui, inner, min_spine_width, spines_per_row);
+        }
     }
+}
+
+enum ShowAs {
+    List,
+    Cards,
+    Spines,
 }
 
 fn render_spellbook_cards(
@@ -518,11 +556,7 @@ fn render_spellbook_spines(
         let total_in_view = display_end_idx - start_idx;
         let items_in_last_row = if total_in_view > 0 {
             let items = total_in_view % spines_per_row;
-            if items == 0 {
-                spines_per_row
-            } else {
-                items
-            }
+            if items == 0 { spines_per_row } else { items }
         } else {
             0
         };
@@ -553,6 +587,52 @@ fn render_spellbook_spines(
 
         frame.render_widget(spine, spine_area);
     }
+}
+
+fn render_spellbook_list(
+    frame: &mut Frame,
+    state: &State,
+    ui: &mut UiState,
+    area: ratatui::layout::Rect,
+) {
+    use ratatui::widgets::{List, ListItem};
+
+    let theme = &state.theme;
+    let spellbooks = &state.codex.spellbooks;
+
+    if spellbooks.is_empty() {
+        let empty = Paragraph::new("No spellbooks yet")
+            .style(Style::new().fg(theme.muted).bg(theme.bg))
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .border_style(Style::new().fg(theme.border)),
+            );
+        frame.render_widget(empty, area);
+        return;
+    }
+
+    let selected = ui.search_spellbook_index.unwrap_or(0);
+
+    let items: Vec<ListItem> = spellbooks
+        .iter()
+        .enumerate()
+        .map(|(i, sb)| {
+            let prefix = if i == selected { "> " } else { "  " };
+            ListItem::new(format!("{}{}", prefix, sb.name)).style(Style::new().fg(theme.fg))
+        })
+        .collect();
+
+    let list = List::new(items)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_style(Style::new().fg(theme.border))
+                .title_style(Style::new().fg(theme.accent)),
+        )
+        .style(Style::new().bg(theme.bg).fg(theme.fg));
+
+    frame.render_stateful_widget(list, area, &mut ui.search_list_state);
 }
 
 fn wrap_text_for_spine(text: &str, max_width: usize) -> Vec<String> {
@@ -597,6 +677,55 @@ fn wrap_text_for_spine(text: &str, max_width: usize) -> Vec<String> {
 
     lines.truncate(max_lines);
     lines
+}
+
+fn render_command_list(
+    frame: &mut Frame,
+    state: &State,
+    ui: &mut UiState,
+    area: ratatui::layout::Rect,
+) {
+    use crate::ui::events::filter_commands;
+
+    let theme = &state.theme;
+    let query_after_colon = ui.search_query.strip_prefix(':').unwrap_or("");
+    let filtered = filter_commands(query_after_colon);
+
+    if filtered.is_empty() {
+        let empty = Paragraph::new("No commands match")
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .title(" Commands ")
+                    .border_style(Style::new().fg(theme.border))
+                    .title_style(Style::new().fg(theme.accent)),
+            )
+            .style(Style::new().fg(theme.muted).bg(theme.bg));
+        frame.render_widget(empty, area);
+        return;
+    }
+
+    let results: Vec<ListItem> = filtered
+        .iter()
+        .map(|(_, alias, description)| {
+            let line = format!(":{}  {}", alias, description);
+            ListItem::new(line).style(Style::new().fg(theme.fg))
+        })
+        .collect();
+
+    let list = List::new(results)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title(" Commands ")
+                .border_style(Style::new().fg(theme.border))
+                .title_style(Style::new().fg(theme.accent)),
+        )
+        .highlight_style(Style::new().add_modifier(Modifier::BOLD))
+        .highlight_symbol(">")
+        .style(Style::new().bg(theme.bg).fg(theme.fg));
+
+    frame.render_stateful_widget(list, area, &mut ui.search_list_state);
 }
 
 fn render_search_results(
@@ -727,4 +856,144 @@ fn render_spell_details<'a>(state: &'a State, ui: &mut UiState) -> Vec<Line<'a>>
         }
         _ => vec![Line::from("")],
     }
+}
+
+/// Render spells for the selected spellbook (BrowseSpells mode)
+fn render_spellbook_spells(
+    frame: &mut Frame,
+    state: &State,
+    ui: &mut UiState,
+    area: ratatui::layout::Rect,
+) {
+    let theme = &state.theme;
+    let spellbook_index = match ui.selected_spellbook {
+        Some(idx) => idx,
+        None => return,
+    };
+
+    let spellbook = &state.codex.spellbooks[spellbook_index];
+
+    let spells: Vec<ListItem> = spellbook
+        .spell_ids
+        .iter()
+        .filter_map(|spell_id| state.codex.spells.iter().find(|s| s.id == *spell_id))
+        .map(|spell| ListItem::new(spell.name.clone()).style(Style::new().fg(theme.fg)))
+        .collect();
+
+    let list_block = Block::bordered()
+        .title(spellbook.name.clone())
+        .border_style(Style::new().fg(theme.border))
+        .title_style(Style::new().fg(theme.accent));
+
+    if spells.is_empty() {
+        let inner = list_block.inner(area);
+        frame.render_widget(list_block, area);
+        let empty_message = Paragraph::new("No spells in this spellbook")
+            .style(Style::new().fg(theme.muted).bg(theme.bg));
+        frame.render_widget(empty_message, inner);
+    } else {
+        let list = List::new(spells)
+            .block(list_block)
+            .highlight_style(
+                Style::new()
+                    .fg(theme.selection)
+                    .add_modifier(Modifier::BOLD),
+            )
+            .highlight_symbol(">")
+            .style(Style::new().bg(theme.bg).fg(theme.fg));
+
+        frame.render_stateful_widget(list, area, &mut ui.spell_list_state);
+    }
+}
+
+/// Render add spell form (AddSpell mode)
+fn render_add_spell_form(
+    frame: &mut Frame,
+    state: &State,
+    ui: &mut UiState,
+    area: ratatui::layout::Rect,
+) {
+    let theme = &state.theme;
+
+    let form_block = Block::bordered()
+        .title(" Add New Spell ")
+        .border_style(Style::new().fg(theme.border))
+        .title_style(Style::new().fg(theme.accent).bold());
+
+    frame.render_widget(form_block, area);
+
+    let inner_area = ratatui::layout::Rect {
+        x: area.x + 1,
+        y: area.y + 1,
+        width: area.width.saturating_sub(2),
+        height: area.height.saturating_sub(2),
+    };
+
+    let name_value = if ui.add_spell_name.is_empty() {
+        "[...]".to_string()
+    } else {
+        format!("[{}]", ui.add_spell_name)
+    };
+
+    let content = vec![
+        Line::from(vec![
+            Span::styled("Name: ", Style::new().fg(theme.muted)),
+            Span::styled(name_value, Style::new().fg(theme.fg)),
+        ]),
+        Line::from(""),
+        Line::from(vec![Span::styled(
+            "↑↓ fields  enter save  esc cancel",
+            Style::new().fg(theme.muted),
+        )]),
+    ];
+
+    let paragraph = Paragraph::new(content).style(Style::new().bg(theme.bg).fg(theme.fg));
+
+    frame.render_widget(paragraph, inner_area);
+}
+
+/// Render add spellbook form (AddSpellbook mode)
+fn render_add_spellbook_form(
+    frame: &mut Frame,
+    state: &State,
+    ui: &mut UiState,
+    area: ratatui::layout::Rect,
+) {
+    let theme = &state.theme;
+
+    let form_block = Block::bordered()
+        .title(" Add New Spellbook ")
+        .border_style(Style::new().fg(theme.border))
+        .title_style(Style::new().fg(theme.accent).bold());
+
+    frame.render_widget(form_block, area);
+
+    let inner_area = ratatui::layout::Rect {
+        x: area.x + 1,
+        y: area.y + 1,
+        width: area.width.saturating_sub(2),
+        height: area.height.saturating_sub(2),
+    };
+
+    let name_value = if ui.add_spellbook_name.is_empty() {
+        "[...]".to_string()
+    } else {
+        format!("[{}]", ui.add_spellbook_name)
+    };
+
+    let content = vec![
+        Line::from(vec![
+            Span::styled("Name: ", Style::new().fg(theme.muted)),
+            Span::styled(name_value, Style::new().fg(theme.fg)),
+        ]),
+        Line::from(""),
+        Line::from(vec![Span::styled(
+            "↑↓ fields  enter save  esc cancel",
+            Style::new().fg(theme.muted),
+        )]),
+    ];
+
+    let paragraph = Paragraph::new(content).style(Style::new().bg(theme.bg).fg(theme.fg));
+
+    frame.render_widget(paragraph, inner_area);
 }

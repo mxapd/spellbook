@@ -13,6 +13,19 @@ pub enum Screen {
 }
 ```
 
+### SearchOverlay Modes
+
+Within SearchOverlay, there are several modes defined by `SearchMode`:
+
+```rust
+pub enum SearchMode {
+    BrowseSpellbooks, // Default - show cards/spines of spellbooks
+    BrowseSpells,      // Show spells in selected spellbook
+    AddSpell,          // Add new spell form
+    AddSpellbook,      // Add new spellbook form
+}
+```
+
 ## Navigation Flow
 
 ```
@@ -27,8 +40,14 @@ pub enum Screen {
 │  (Details below)  │
 └──────────────────┘
 
-[ / ] from any screen → SearchOverlay
+[ / ] from any screen → SearchOverlay (BrowseSpellbooks)
 [ --add ] CLI arg    → AddSpell
+
+In SearchOverlay:
+  [Enter] on spellbook → BrowseSpells mode
+  [:n] command        → AddSpell mode
+  [:b] command        → BrowseSpellbooks mode
+  [Esc]               → Return to previous screen
 ```
 
 ## Screen Details
@@ -59,18 +78,40 @@ Displays spells within a selected spellbook, plus details panel.
 
 ### 3. SearchOverlay
 
-Modal overlay for searching across all spells.
+Primary navigation hub that consolidates browsing, searching, and adding spells.
 
 **Layout:**
-- Search input field (3 lines)
-- Filtered results list
-- Condensed details of selected spell
-- Footer: Keyboard hints
+- Search input bar (with `:` command prefix support)
+- Main area: Spellbooks displayed as cards or spines, OR spell list in BrowseSpells mode
+- Footer: Context-aware keyboard hints
 
 **State:**
+- `search_mode`: Current mode (BrowseSpellbooks, BrowseSpells, AddSpell, AddSpellbook)
+- `search_items_per_row`: Items per row (used for navigation)
+- `search_showing_spellbooks`: True when browsing spellbooks
 - `search_query`: Current search text
 - `filtered_indices`: Matching spell indices
-- `return_to`: Which screen to return to after search
+
+**Modes:**
+
+#### BrowseSpellbooks (default)
+- Displays all spellbooks as cards or spines based on view mode
+- Row-based navigation: Left/Right wrap within row, Up/Down wrap within column
+- Enter opens the selected spellbook
+- `:` opens command bar
+
+#### BrowseSpells
+- Shows spells from the selected spellbook
+- Simple list navigation with Up/Down
+- Left returns to BrowseSpellbooks mode
+- Enter copies the selected spell
+
+#### AddSpell
+- Form for adding new spells
+- Same layout as AddSpell screen
+
+#### AddSpellbook
+- Form for adding new spellbooks
 
 ### 4. AddSpell
 
@@ -113,6 +154,18 @@ Form for adding a new spell to the codex.
 - `add_spell_skip_spellbook`: Whether to skip adding to spellbook
 - `add_spell_dropdown_index`: Current dropdown selection
 
+## View Modes
+
+The SearchOverlay supports two view modes. Both are responsive and adapt to terminal width.
+
+### Cards (`:c`)
+Large card view displaying spellbook sigils, names, and descriptions.
+
+### Spines (`:p`)
+Compact spine (book spine) view showing just the sigils, ideal for many spellbooks.
+
+Cycle view modes with `v` key or use commands (`:c`, `:p`).
+
 ## Theming
 
 All screens support theming with the following color slots:
@@ -123,7 +176,11 @@ All screens support theming with the following color slots:
 - `selection`: Selection highlight color
 - `border`: Border color
 
-Available themes (cycle with `t`):
+Available themes (cycle with `t` or `:t`):
 - default, default-light, dracula, gruvbox-dark, gruvbox-light, nord, catppuccin, one-dark, solarized-dark, solarized-light
 
 Theme preference is persisted in `theme.toml`.
+
+## View Mode Persistence
+
+The current view mode preference is persisted in `theme.toml` alongside the theme selection.

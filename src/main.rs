@@ -49,6 +49,11 @@ fn run(terminal: &mut DefaultTerminal) -> io::Result<()> {
     let mut state = state::State::new(codex);
     let mut ui_state = ui::UiState::new(mode == AppMode::AddSpell);
 
+    // Start on SearchOverlay by default (unless --add is passed for AddSpell screen)
+    if mode == AppMode::Browse {
+        ui_state.open_search(ui::SearchContext::SpellbookList);
+    }
+
     logging::init_logging();
     log_info!("Spellbook started (mode: {:?})", mode);
 

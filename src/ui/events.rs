@@ -1,9 +1,166 @@
 use crate::clipboard;
 use crate::persistence::Archivist;
 use crate::state::State;
-use crate::ui::{AddSpellField, Screen, SearchContext, UiState};
+use crate::ui::{AddSpellField, Screen, SearchContext, SearchMode, UiState, ViewMode};
 use crate::{log_debug, log_error, log_info};
 use crossterm::event::{KeyCode, KeyModifiers};
+
+struct Command {
+    aliases: Vec<&'static str>,
+    description: &'static str,
+    action: CommandAction,
+}
+
+enum CommandAction {
+    NewSpell,
+    NewSpellbook,
+    BrowseSpellbooks,
+    BrowseSpells,
+    CardsView,
+    SpinesView,
+    ListView,
+    CycleTheme,
+    Help,
+}
+
+fn get_commands() -> Vec<Command> {
+    vec![
+        Command {
+            aliases: vec!["n", "new", "new spell", "add spell"],
+            description: "Add a new spell",
+            action: CommandAction::NewSpell,
+        },
+        Command {
+            aliases: vec![
+                "N",
+                "new book",
+                "new spellbook",
+                "add spellbook",
+                "add book",
+            ],
+            description: "Add a new spellbook",
+            action: CommandAction::NewSpellbook,
+        },
+        Command {
+            aliases: vec!["b", "books", "browse", "spellbooks"],
+            description: "Browse spellbooks",
+            action: CommandAction::BrowseSpellbooks,
+        },
+        Command {
+            aliases: vec!["s", "spells"],
+            description: "Browse spells in selected spellbook",
+            action: CommandAction::BrowseSpells,
+        },
+        Command {
+            aliases: vec!["c", "cards"],
+            description: "Card view mode",
+            action: CommandAction::CardsView,
+        },
+        Command {
+            aliases: vec!["p", "spines"],
+            description: "Spine view mode",
+            action: CommandAction::SpinesView,
+        },
+        Command {
+            aliases: vec!["l", "list"],
+            description: "List view mode",
+            action: CommandAction::ListView,
+        },
+        Command {
+            aliases: vec!["t", "theme"],
+            description: "Cycle theme",
+            action: CommandAction::CycleTheme,
+        },
+        Command {
+            aliases: vec!["?", "help"],
+            description: "Show help",
+            action: CommandAction::Help,
+        },
+    ]
+}
+
+pub fn filter_commands(query: &str) -> Vec<(usize, &'static str, &'static str)> {
+    let query_lower = query.to_lowercase();
+    let query_lower = query_lower.trim();
+
+    get_commands()
+        .into_iter()
+        .enumerate()
+        .filter(|(_, cmd)| {
+            cmd.aliases
+                .iter()
+                .any(|alias| alias.starts_with(&query_lower))
+        })
+        .map(|(idx, cmd)| (idx, cmd.aliases[0], cmd.description))
+        .collect()
+}
+
+fn execute_command_by_index(idx: usize, state: &mut State, ui: &mut UiState) {
+    let commands = get_commands();
+    if let Some(cmd) = commands.get(idx) {
+        execute_command_by_action(&cmd.action, state, ui);
+    }
+}
+
+fn execute_command_by_action(action: &CommandAction, state: &mut State, ui: &mut UiState) {
+    match action {
+        CommandAction::NewSpell => {
+            ui.search_mode = SearchMode::AddSpell;
+            ui.add_spell_field = AddSpellField::Name;
+            ui.is_typing = true;
+            log_info!("Command: new spell");
+        }
+        CommandAction::NewSpellbook => {
+            ui.search_mode = SearchMode::AddSpellbook;
+            ui.is_typing = true;
+            log_info!("Command: new spellbook");
+        }
+        CommandAction::BrowseSpellbooks => {
+            ui.search_mode = SearchMode::BrowseSpellbooks;
+            ui.search_showing_spellbooks = true;
+            ui.selected_spellbook = None;
+            log_info!("Command: browse");
+        }
+        CommandAction::BrowseSpells => {
+            if let Some(idx) = ui.selected_spellbook {
+                ui.search_mode = SearchMode::BrowseSpells;
+                ui.spell_list_state.select(Some(0));
+                log_info!("Command: spells");
+            } else {
+                ui.copy_feedback = Some("Select a spellbook first".to_string());
+            }
+        }
+        CommandAction::CardsView => {
+            state.user_settings.view_mode = ViewMode::Cards;
+            let _ = Archivist::save_user_settings("theme.toml", &state.user_settings);
+            ui.view_mode = ViewMode::Cards;
+            log_info!("Command: cards view");
+        }
+        CommandAction::SpinesView => {
+            state.user_settings.view_mode = ViewMode::Spines;
+            let _ = Archivist::save_user_settings("theme.toml", &state.user_settings);
+            ui.view_mode = ViewMode::Spines;
+            log_info!("Command: spines view");
+        }
+        CommandAction::ListView => {
+            state.user_settings.view_mode = ViewMode::List;
+            let _ = Archivist::save_user_settings("theme.toml", &state.user_settings);
+            ui.view_mode = ViewMode::List;
+            log_info!("Command: list view");
+        }
+        CommandAction::CycleTheme => {
+            state.cycle_theme();
+            log_info!("Command: cycle theme");
+        }
+        CommandAction::Help => {
+            ui.copy_feedback = Some(
+                ":n new :b browse :s spells :c cards :p spines :l list :t theme :? help"
+                    .to_string(),
+            );
+            log_info!("Command: help");
+        }
+    }
+}
 
 /// Main event handler - routes key events to the appropriate screen handler.
 pub fn handle_event(
@@ -12,9 +169,17 @@ pub fn handle_event(
     ui: &mut UiState,
     modifiers: KeyModifiers,
 ) -> bool {
-    // Handle quit keys globally - but only Esc when we're at the root screen
-    if key == KeyCode::Char('q') {
+    // Handle Ctrl+C to quit
+    if key == KeyCode::Char('c') && modifiers.contains(KeyModifiers::CONTROL) {
+        log_info!("Quit via Ctrl+C");
         return true;
+    }
+
+    // Handle Ctrl+Z - intercept but don't process (let terminal handle job control)
+    // Returning false without doing anything prevents it from being added to search
+    if key == KeyCode::Char('z') && modifiers.contains(KeyModifiers::CONTROL) {
+        log_info!("Ctrl+Z intercepted - terminal should handle suspend");
+        return false;
     }
 
     // Handle theme cycling with 't' - disabled while typing
@@ -163,16 +328,112 @@ fn handle_spell_list(key: KeyCode, state: &State, ui: &mut UiState) -> bool {
 }
 
 /// Handles key events in the search overlay.
-fn handle_search(key: KeyCode, state: &State, ui: &mut UiState) -> bool {
+fn handle_search(key: KeyCode, state: &mut State, ui: &mut UiState) -> bool {
     ui.copy_feedback = None;
 
-    // Close search on Escape - return to the screen we came from
+    // Close search on Escape - handle different modes
     if key == KeyCode::Esc {
-        ui.screen = match ui.search_return_to {
-            SearchContext::SpellbookList => Screen::SpellbookList,
-            SearchContext::SpellList => Screen::SpellList,
+        match ui.search_mode {
+            SearchMode::BrowseSpellbooks => {
+                // Close search and return to previous screen
+                ui.screen = match ui.search_return_to {
+                    SearchContext::SpellbookList => Screen::SpellbookList,
+                    SearchContext::SpellList => Screen::SpellList,
+                };
+                ui.exit_typing_mode();
+            }
+            SearchMode::BrowseSpells => {
+                // Return to spellbook browsing mode
+                ui.search_mode = SearchMode::BrowseSpellbooks;
+                ui.selected_spellbook = None;
+            }
+            SearchMode::AddSpell => {
+                // Cancel add spell and return to browse
+                ui.search_mode = SearchMode::BrowseSpellbooks;
+                ui.add_spell_name.clear();
+                ui.add_spell_command.clear();
+                ui.add_spell_lore.clear();
+                ui.add_spell_school.clear();
+                ui.add_spell_tags.clear();
+                ui.add_spell_message = None;
+                ui.exit_typing_mode();
+            }
+            SearchMode::AddSpellbook => {
+                // Cancel add spellbook and return to browse
+                ui.search_mode = SearchMode::BrowseSpellbooks;
+                ui.add_spellbook_name.clear();
+                ui.add_spellbook_cover.clear();
+                ui.add_spellbook_sigil.clear();
+                ui.exit_typing_mode();
+            }
+        }
+        return false;
+    }
+
+    // Handle spell list navigation in BrowseSpells mode
+    if ui.search_mode == SearchMode::BrowseSpells {
+        let spellbook_index = match ui.selected_spellbook {
+            Some(index) => index,
+            None => return false,
         };
-        ui.exit_typing_mode();
+        let spellbook = &state.codex.spellbooks[spellbook_index];
+        let spell_count = spellbook.spell_ids.len();
+
+        // Enter - copy the selected spell
+        if key == KeyCode::Enter && spell_count > 0 {
+            copy_selected_spell(state, ui);
+            return false;
+        }
+
+        // Navigate spell list with wrapping
+        if key == KeyCode::Down || key == KeyCode::Char('k') {
+            if spell_count > 0 {
+                let current = ui.spell_list_state.selected().unwrap_or(0);
+                let next = if current >= spell_count - 1 {
+                    0
+                } else {
+                    current + 1
+                };
+                ui.spell_list_state.select(Some(next));
+            }
+            return false;
+        }
+
+        if key == KeyCode::Up || key == KeyCode::Char('j') {
+            if spell_count > 0 {
+                let current = ui.spell_list_state.selected().unwrap_or(0);
+                let prev = if current == 0 {
+                    spell_count - 1
+                } else {
+                    current - 1
+                };
+                ui.spell_list_state.select(Some(prev));
+            }
+            return false;
+        }
+
+        // Left (h) - return to spellbook browsing mode
+        if key == KeyCode::Left || key == KeyCode::Char('h') {
+            ui.search_mode = SearchMode::BrowseSpellbooks;
+            ui.selected_spellbook = None;
+            return false;
+        }
+
+        // Right (l) - page down through spell list
+        if key == KeyCode::Right || key == KeyCode::Char('l') {
+            if spell_count > 0 {
+                let page_size = 10;
+                let current = ui.spell_list_state.selected().unwrap_or(0);
+                let next = if current + page_size >= spell_count {
+                    0
+                } else {
+                    current + page_size
+                };
+                ui.spell_list_state.select(Some(next));
+            }
+            return false;
+        }
+
         return false;
     }
 
@@ -180,34 +441,53 @@ fn handle_search(key: KeyCode, state: &State, ui: &mut UiState) -> bool {
     if ui.search_query.is_empty() && ui.search_showing_spellbooks {
         let spellbook_count = state.codex.spellbooks.len();
 
-        // Enter opens the selected spellbook
+        // Enter opens the selected spellbook - stay in search overlay
         if key == KeyCode::Enter {
             if let Some(idx) = ui.search_spellbook_index {
                 if idx < spellbook_count {
                     ui.selected_spellbook = Some(idx);
                     ui.spell_list_state.select(Some(0));
-                    ui.screen = Screen::SpellList;
-                    ui.exit_typing_mode();
+                    ui.search_mode = SearchMode::BrowseSpells;
                     return false;
                 }
             }
         }
 
-        let spines_per_row = ui.search_spines_per_row.max(1);
+        let spines_per_row = ui.search_items_per_row.max(1);
         let scroll = ui.search_spellbook_scroll;
 
         // Navigate with arrow keys - Left/Right scroll, Up/Down wrap
         if key == KeyCode::Right || key == KeyCode::Char('l') {
             if spellbook_count > 0 {
                 let current = ui.search_spellbook_index.unwrap_or(0);
-                if current < spellbook_count - 1 {
-                    let next = current + 1;
-                    ui.search_spellbook_index = Some(next);
-                    // Auto-scroll to keep selection visible
-                    let visible_end = scroll + spines_per_row;
-                    if next >= visible_end {
-                        ui.search_spellbook_scroll = (next + 1).saturating_sub(spines_per_row);
-                    }
+                let spines_per_row = ui.search_items_per_row.max(1);
+
+                // Calculate current position
+                let current_row = current / spines_per_row;
+                let current_col = current % spines_per_row;
+                let total_rows = (spellbook_count + spines_per_row - 1) / spines_per_row;
+
+                // Find max column in current row (handle partial last row)
+                let max_col_in_row = if current_row == total_rows - 1 {
+                    let items_in_last_row = spellbook_count - (current_row * spines_per_row);
+                    items_in_last_row - 1
+                } else {
+                    spines_per_row - 1
+                };
+
+                // Move within row, wrap to first column if at end
+                let next = if current_col >= max_col_in_row {
+                    current_row * spines_per_row // first column in same row
+                } else {
+                    current + 1
+                };
+
+                ui.search_spellbook_index = Some(next);
+
+                // Auto-scroll to keep selection visible
+                let visible_end = scroll + spines_per_row;
+                if next >= visible_end {
+                    ui.search_spellbook_scroll = (next + 1).saturating_sub(spines_per_row);
                 }
             }
             return false;
@@ -216,13 +496,32 @@ fn handle_search(key: KeyCode, state: &State, ui: &mut UiState) -> bool {
         if key == KeyCode::Left || key == KeyCode::Char('h') {
             if spellbook_count > 0 {
                 let current = ui.search_spellbook_index.unwrap_or(0);
-                if current > 0 {
-                    let prev = current - 1;
-                    ui.search_spellbook_index = Some(prev);
-                    // Auto-scroll to keep selection visible
-                    if prev < scroll {
-                        ui.search_spellbook_scroll = prev;
-                    }
+                let spines_per_row = ui.search_items_per_row.max(1);
+
+                // Calculate current position
+                let current_row = current / spines_per_row;
+                let current_col = current % spines_per_row;
+
+                // Move within row, wrap to last column if at start
+                let prev = if current_col == 0 {
+                    // At first column - wrap to last column in same row
+                    let total_rows = (spellbook_count + spines_per_row - 1) / spines_per_row;
+                    let max_col_in_row = if current_row == total_rows - 1 {
+                        let items_in_last_row = spellbook_count - (current_row * spines_per_row);
+                        items_in_last_row - 1
+                    } else {
+                        spines_per_row - 1
+                    };
+                    current_row * spines_per_row + max_col_in_row
+                } else {
+                    current - 1
+                };
+
+                ui.search_spellbook_index = Some(prev);
+
+                // Auto-scroll to keep selection visible
+                if prev < scroll {
+                    ui.search_spellbook_scroll = prev;
                 }
             }
             return false;
@@ -231,7 +530,38 @@ fn handle_search(key: KeyCode, state: &State, ui: &mut UiState) -> bool {
         if key == KeyCode::Down || key == KeyCode::Char('j') {
             if spellbook_count > 0 {
                 let current = ui.search_spellbook_index.unwrap_or(0);
-                ui.search_spellbook_index = Some((current + 1) % spellbook_count);
+                let spines_per_row = ui.search_items_per_row.max(1);
+
+                // Calculate current position
+                let current_row = current / spines_per_row;
+                let current_col = current % spines_per_row;
+                let total_rows = (spellbook_count + spines_per_row - 1) / spines_per_row;
+
+                // Move to next row, wrap to first row if at end
+                let next_row = if current_row + 1 >= total_rows {
+                    0 // Wrap to first row
+                } else {
+                    current_row + 1
+                };
+
+                // Handle partial last row
+                let next_index = if next_row == total_rows - 1 {
+                    let items_in_last_row = spellbook_count - (next_row * spines_per_row);
+                    let col = current_col.min(items_in_last_row.saturating_sub(1));
+                    next_row * spines_per_row + col
+                } else {
+                    next_row * spines_per_row + current_col
+                };
+
+                ui.search_spellbook_index = Some(next_index);
+
+                // Auto-scroll
+                let scroll = ui.search_spellbook_scroll;
+                let visible_rows =
+                    (spellbook_count.saturating_sub(scroll) + spines_per_row - 1) / spines_per_row;
+                if next_index >= scroll + visible_rows * spines_per_row {
+                    ui.search_spellbook_scroll = scroll + spines_per_row;
+                }
             }
             return false;
         }
@@ -239,22 +569,45 @@ fn handle_search(key: KeyCode, state: &State, ui: &mut UiState) -> bool {
         if key == KeyCode::Up || key == KeyCode::Char('k') {
             if spellbook_count > 0 {
                 let current = ui.search_spellbook_index.unwrap_or(0);
-                ui.search_spellbook_index = Some(if current == 0 {
-                    spellbook_count - 1
+                let spines_per_row = ui.search_items_per_row.max(1);
+
+                // Calculate current position
+                let current_row = current / spines_per_row;
+                let current_col = current % spines_per_row;
+                let total_rows = (spellbook_count + spines_per_row - 1) / spines_per_row;
+
+                // Move to previous row, wrap to last row if at start
+                let prev_row = if current_row == 0 {
+                    total_rows - 1 // Wrap to last row
                 } else {
-                    current - 1
-                });
+                    current_row - 1
+                };
+
+                // Handle partial last row
+                let prev_index = if prev_row == total_rows - 1 {
+                    let items_in_last_row = spellbook_count - (prev_row * spines_per_row);
+                    let col = current_col.min(items_in_last_row.saturating_sub(1));
+                    prev_row * spines_per_row + col
+                } else {
+                    prev_row * spines_per_row + current_col
+                };
+
+                ui.search_spellbook_index = Some(prev_index);
+
+                // Auto-scroll
+                let scroll = ui.search_spellbook_scroll;
+                if prev_index < scroll {
+                    ui.search_spellbook_scroll = scroll.saturating_sub(spines_per_row);
+                }
             }
             return false;
         }
 
         // Any character input switches to search mode
         if let KeyCode::Char(c) = key {
-            if c != '/' {
-                ui.search_showing_spellbooks = false;
-                ui.search_query.push(c);
-                update_search_filter(state, ui);
-            }
+            ui.search_showing_spellbooks = false;
+            ui.search_query.push(c);
+            update_search_filter(state, ui);
             return false;
         }
 
@@ -263,37 +616,87 @@ fn handle_search(key: KeyCode, state: &State, ui: &mut UiState) -> bool {
 
     // Search mode (when there's a query or we've switched to it)
 
-    // Enter copies selected search result
+    // Check if we're in command mode (query starts with :)
+    let is_command_mode = ui.search_query.starts_with(':');
+
+    // Enter - execute command if in command mode, otherwise copy result
     if key == KeyCode::Enter {
+        if is_command_mode && ui.search_query.len() > 1 {
+            // Execute the selected command from filtered commands
+            let query_after_colon = &ui.search_query[1..];
+            let filtered = filter_commands(query_after_colon);
+            if let Some(selected) = ui.search_list_state.selected() {
+                if let Some((cmd_idx, _, _)) = filtered.get(selected) {
+                    execute_command_by_index(*cmd_idx, state, ui);
+                    ui.search_query.clear();
+                    ui.search_in_command_mode = false;
+                    return false;
+                }
+            }
+            // If no selection, try to execute by exact match
+            let cmd = query_after_colon.trim().to_string();
+            if !cmd.is_empty() {
+                execute_command_legacy(&cmd, state, ui);
+                ui.search_query.clear();
+                ui.search_in_command_mode = false;
+            }
+            return false;
+        }
+        // Not a command - copy result as before
         copy_search_result(state, ui);
         return false;
     }
 
-    // Navigate search results
-    if key == KeyCode::Down || key == KeyCode::Char('k') {
-        let count = ui.filtered_indices.len();
-        if count > 0 {
-            let current = ui.search_list_state.selected().unwrap_or(0);
-            let next = if current >= count - 1 { 0 } else { current + 1 };
-            ui.search_list_state.select(Some(next));
+    // Navigate command list or search results
+    if key == KeyCode::Down || key == KeyCode::Char('j') {
+        if is_command_mode {
+            let query_after_colon = &ui.search_query[1..];
+            let filtered = filter_commands(query_after_colon);
+            let count = filtered.len();
+            if count > 0 {
+                let current = ui.search_list_state.selected().unwrap_or(0);
+                let next = if current >= count - 1 { 0 } else { current + 1 };
+                ui.search_list_state.select(Some(next));
+            }
+        } else {
+            let count = ui.filtered_indices.len();
+            if count > 0 {
+                let current = ui.search_list_state.selected().unwrap_or(0);
+                let next = if current >= count - 1 { 0 } else { current + 1 };
+                ui.search_list_state.select(Some(next));
+            }
         }
         return false;
     }
 
-    if key == KeyCode::Up || key == KeyCode::Char('j') {
-        let count = ui.filtered_indices.len();
-        if count > 0 {
-            let current = ui.search_list_state.selected().unwrap_or(0);
-            let prev = if current == 0 { count - 1 } else { current - 1 };
-            ui.search_list_state.select(Some(prev));
+    if key == KeyCode::Up || key == KeyCode::Char('k') {
+        if is_command_mode {
+            let query_after_colon = &ui.search_query[1..];
+            let filtered = filter_commands(query_after_colon);
+            let count = filtered.len();
+            if count > 0 {
+                let current = ui.search_list_state.selected().unwrap_or(0);
+                let prev = if current == 0 { count - 1 } else { current - 1 };
+                ui.search_list_state.select(Some(prev));
+            }
+        } else {
+            let count = ui.filtered_indices.len();
+            if count > 0 {
+                let current = ui.search_list_state.selected().unwrap_or(0);
+                let prev = if current == 0 { count - 1 } else { current - 1 };
+                ui.search_list_state.select(Some(prev));
+            }
         }
         return false;
     }
 
-    // Handle character input for search query (ignore '/' since it's the search key)
+    // Handle character input for search/query
     if let KeyCode::Char(c) = key {
-        if c != '/' {
-            ui.search_query.push(c);
+        ui.search_query.push(c);
+        ui.search_in_command_mode = ui.search_query.starts_with(':');
+        if ui.search_in_command_mode {
+            update_command_filter(ui);
+        } else {
             update_search_filter(state, ui);
         }
         return false;
@@ -302,11 +705,15 @@ fn handle_search(key: KeyCode, state: &State, ui: &mut UiState) -> bool {
     // Handle backspace
     if key == KeyCode::Backspace {
         ui.search_query.pop();
+        ui.search_in_command_mode = ui.search_query.starts_with(':');
         if ui.search_query.is_empty() {
             ui.filtered_indices.clear();
             ui.search_list_state.select(None);
             ui.search_showing_spellbooks = true;
             ui.search_spellbook_index = Some(0);
+            ui.search_in_command_mode = false;
+        } else if ui.search_in_command_mode {
+            update_command_filter(ui);
         } else {
             update_search_filter(state, ui);
         }
@@ -623,5 +1030,86 @@ fn handle_add_spell(
             false
         }
         _ => false,
+    }
+}
+
+/// Update filtered commands based on current query after ":"
+fn update_command_filter(ui: &mut UiState) {
+    let query_after_colon = ui.search_query.strip_prefix(':').unwrap_or("");
+    let filtered = filter_commands(query_after_colon);
+    ui.filtered_indices = filtered.iter().map(|(idx, _, _)| *idx).collect();
+
+    if !ui.filtered_indices.is_empty() {
+        ui.search_list_state.select(Some(0));
+    } else {
+        ui.search_list_state.select(None);
+    }
+}
+
+/// Execute a command from the search/command bar (legacy, for exact match)
+/// Commands are entered without the leading ":" (e.g., "new spell" not ":new spell")
+fn execute_command_legacy(cmd: &str, state: &mut State, ui: &mut UiState) {
+    let cmd_lower = cmd.to_lowercase();
+
+    match cmd_lower.as_str() {
+        // Add new spell
+        "n" | "new" | "new spell" | "add spell" => {
+            ui.search_mode = SearchMode::AddSpell;
+            ui.add_spell_field = AddSpellField::Name;
+            ui.is_typing = true;
+            log_info!("Command: new spell");
+        }
+        // Add new spellbook
+        "N" | "new book" | "new spellbook" | "add spellbook" | "add book" => {
+            ui.search_mode = SearchMode::AddSpellbook;
+            ui.is_typing = true;
+            log_info!("Command: new spellbook");
+        }
+        // Switch to browse spellbooks
+        "b" | "books" | "browse" | "spellbooks" => {
+            ui.search_mode = SearchMode::BrowseSpellbooks;
+            ui.search_showing_spellbooks = true;
+            ui.selected_spellbook = None;
+            log_info!("Command: browse");
+        }
+        // Switch to spells in selected book
+        "s" | "spells" => {
+            if let Some(idx) = ui.selected_spellbook {
+                ui.search_mode = SearchMode::BrowseSpells;
+                ui.spell_list_state.select(Some(0));
+                log_info!("Command: spells");
+            } else {
+                ui.copy_feedback = Some("Select a spellbook first".to_string());
+            }
+        }
+        // View modes
+        "c" | "cards" => {
+            state.user_settings.view_mode = ViewMode::Cards;
+            let _ = Archivist::save_user_settings("theme.toml", &state.user_settings);
+            ui.view_mode = ViewMode::Cards;
+            log_info!("Command: cards view");
+        }
+        "p" | "spines" => {
+            state.user_settings.view_mode = ViewMode::Spines;
+            let _ = Archivist::save_user_settings("theme.toml", &state.user_settings);
+            ui.view_mode = ViewMode::Spines;
+            log_info!("Command: spines view");
+        }
+        // Theme commands
+        "t" | "theme" | "next theme" => {
+            state.cycle_theme();
+            ui.view_mode = state.user_settings.view_mode;
+            log_info!("Command: cycle theme");
+        }
+        // Help
+        "?" | "help" | "commands" => {
+            ui.copy_feedback = Some("Commands: :n/new spell, :N/new book, :b/browse, :s/spells, :c/cards, :p/spines, :a/auto, :t/theme".to_string());
+            log_info!("Command: help");
+        }
+        // Unknown command
+        _ => {
+            ui.copy_feedback = Some(format!("Unknown command: {}", cmd));
+            log_info!("Unknown command: {}", cmd);
+        }
     }
 }

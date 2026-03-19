@@ -188,6 +188,44 @@ impl Archivist {
         }
         Ok(())
     }
+
+    /// Appends a new spellbook to the codex file.
+    pub fn append_spellbook(
+        path: &str,
+        name: &str,
+        cover: Option<&str>,
+        sigil: Option<&str>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        log_info!("Creating spellbook: {}", name);
+
+        // Read existing content
+        let contents = fs::read_to_string(path)?;
+
+        // Build the new spellbook section
+        let mut new_spellbook = format!("\n[[spellbooks]]\nname = \"{}\"\n", name);
+
+        if let Some(c) = cover {
+            if !c.is_empty() {
+                new_spellbook.push_str(&format!("cover = \"{}\"\n", c));
+            }
+        }
+
+        if let Some(s) = sigil {
+            if !s.is_empty() {
+                new_spellbook.push_str(&format!("sigil = \"{}\"\n", s));
+            }
+        }
+
+        // Append to file
+        fs::write(path, &contents)?;
+        std::io::Write::write_all(
+            &mut std::fs::OpenOptions::new().append(true).open(path)?,
+            new_spellbook.as_bytes(),
+        )?;
+
+        log_info!("Spellbook '{}' created successfully", name);
+        Ok(())
+    }
 }
 
 /// Validates a Codex for data integrity issues.

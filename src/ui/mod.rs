@@ -1,6 +1,6 @@
 use ratatui::widgets::ListState;
 
-use crate::models::ViewMode;
+pub use crate::models::ViewMode;
 
 pub mod add_spell;
 pub mod events;
@@ -9,6 +9,7 @@ pub mod search_overlay;
 pub mod spell_list;
 pub mod spellbook_list;
 
+pub use events::filter_commands;
 pub use events::handle_event;
 pub use render::render;
 
@@ -24,6 +25,16 @@ pub enum Screen {
 pub enum SearchContext {
     SpellbookList,
     SpellList,
+}
+
+/// Tracks the current mode within SearchOverlay
+#[derive(PartialEq, Clone, Copy, Default)]
+pub enum SearchMode {
+    #[default]
+    BrowseSpellbooks, // Default - show cards/spines
+    BrowseSpells, // Show spells in selected spellbook
+    AddSpell,     // Add new spell form
+    AddSpellbook, // Add new spellbook form
 }
 
 /// Tracks the current input field in AddSpell screen
@@ -82,6 +93,16 @@ pub struct UiState {
     pub search_last_height: u16,
     /// View mode for spellbook browser (auto/cards/spines)
     pub view_mode: ViewMode,
+    /// Current mode within SearchOverlay
+    pub search_mode: SearchMode,
+    /// Unified items per row (used for navigation - cards or spines based on current view)
+    pub search_items_per_row: usize,
+    /// Add spellbook form fields
+    pub add_spellbook_name: String,
+    pub add_spellbook_cover: String,
+    pub add_spellbook_sigil: String,
+    /// Whether we're in command palette mode (searching commands after :)
+    pub search_in_command_mode: bool,
 }
 
 impl UiState {
@@ -128,6 +149,12 @@ impl UiState {
             search_last_width: 0,
             search_last_height: 0,
             view_mode: ViewMode::default(),
+            search_mode: SearchMode::BrowseSpellbooks,
+            search_items_per_row: 1,
+            add_spellbook_name: String::new(),
+            add_spellbook_cover: String::new(),
+            add_spellbook_sigil: String::new(),
+            search_in_command_mode: false,
         }
     }
 
