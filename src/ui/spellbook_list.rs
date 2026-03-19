@@ -20,22 +20,30 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
         .map(|sb| ListItem::new(format!("{}", sb.name)).style(Style::new().fg(theme.fg)))
         .collect();
 
-    let list = List::new(spellbooks)
-        .block(
-            Block::bordered()
-                .title("spellbook")
-                .border_style(Style::new().fg(theme.border))
-                .title_style(Style::new().fg(theme.accent)),
-        )
-        .highlight_style(
-            Style::new()
-                .fg(theme.selection)
-                .add_modifier(ratatui::style::Modifier::BOLD),
-        )
-        .highlight_symbol(">")
-        .style(Style::new().bg(theme.bg).fg(theme.fg));
+    let list_block = Block::bordered()
+        .title("spellbook")
+        .border_style(Style::new().fg(theme.border))
+        .title_style(Style::new().fg(theme.accent));
 
-    frame.render_stateful_widget(list, chunks[0], &mut ui.spellbook_list_state);
+    if spellbooks.is_empty() {
+        let inner = list_block.inner(chunks[0]);
+        frame.render_widget(list_block, chunks[0]);
+        let empty_message = Paragraph::new("No spellbooks yet\n\nRun: spellbook --add")
+            .style(Style::new().fg(theme.muted).bg(theme.bg));
+        frame.render_widget(empty_message, inner);
+    } else {
+        let list = List::new(spellbooks)
+            .block(list_block)
+            .highlight_style(
+                Style::new()
+                    .fg(theme.selection)
+                    .add_modifier(ratatui::style::Modifier::BOLD),
+            )
+            .highlight_symbol(">")
+            .style(Style::new().bg(theme.bg).fg(theme.fg));
+
+        frame.render_stateful_widget(list, chunks[0], &mut ui.spellbook_list_state);
+    }
 
     let footer = Paragraph::new(format!(
         " / search  ↑↓ navigate  enter select  t {}  q quit",

@@ -5,5 +5,5 @@ mod theme;
 
 pub use codex::Codex;
 pub use spell::Spell;
-pub use spellbook::Spellbook;
+pub use spellbook::{Spellbook, SpineStyle};
 pub use theme::{RatatuiColors, ThemeConfig};

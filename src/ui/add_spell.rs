@@ -136,11 +136,6 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
     ]));
     frame.render_widget(tags_line, form_chunks[4]);
 
-    let divider = Paragraph::new("-".repeat(30))
-        .alignment(Alignment::Center)
-        .style(Style::new().fg(theme.border));
-    frame.render_widget(divider, form_chunks[5]);
-
     let spellbook_is_active = ui.add_spell_field == AddSpellField::Spellbook;
     let current_selection = if ui.add_spell_skip_spellbook {
         "Skip - just create spell".to_string()
@@ -208,11 +203,41 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
         }
     }
 
-    let footer = Paragraph::new(format!(
-        "tab/↑↓ navigate  Enter next  Ctrl+S save  Esc cancel  t {}",
-        state.theme_names[state.current_theme_index]
-    ))
-    .style(Style::new().fg(theme.muted).bg(theme.bg));
+    // Show message if present
+    if let Some((message, is_error)) = &ui.add_spell_message {
+        let msg_style = if *is_error {
+            Style::new().fg(ratatui::style::Color::Red).bg(theme.bg)
+        } else {
+            Style::new().fg(ratatui::style::Color::Green).bg(theme.bg)
+        };
+        let message_line = Paragraph::new(message.as_str())
+            .style(msg_style)
+            .alignment(Alignment::Center);
+        frame.render_widget(message_line, form_chunks[5]);
+    } else {
+        let divider = Paragraph::new("-".repeat(30))
+            .alignment(Alignment::Center)
+            .style(Style::new().fg(theme.border));
+        frame.render_widget(divider, form_chunks[5]);
+    }
+
+    let footer_text = if ui.is_typing {
+        format!(
+            "tab/{} navigate  Enter next  Ctrl+S save  Esc cancel",
+            if ui.add_spell_dropdown_open {
+                ""
+            } else {
+                "↑↓"
+            }
+        )
+    } else {
+        format!(
+            "tab/↑↓ navigate  Enter next  Ctrl+S save  Esc cancel  t {}",
+            state.theme_names[state.current_theme_index]
+        )
+    };
+
+    let footer = Paragraph::new(footer_text).style(Style::new().fg(theme.muted).bg(theme.bg));
 
     frame.render_widget(footer, chunks[1]);
 }

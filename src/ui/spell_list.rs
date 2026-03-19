@@ -32,22 +32,30 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
         .map(|spell| ListItem::new(spell.name.clone()).style(Style::new().fg(theme.fg)))
         .collect();
 
-    let list = List::new(spells)
-        .block(
-            Block::bordered()
-                .title(spellbook.name.clone())
-                .border_style(Style::new().fg(theme.border))
-                .title_style(Style::new().fg(theme.accent)),
-        )
-        .highlight_style(
-            Style::new()
-                .fg(theme.selection)
-                .add_modifier(ratatui::style::Modifier::BOLD),
-        )
-        .highlight_symbol(">")
-        .style(Style::new().bg(theme.bg).fg(theme.fg));
+    let list_block = Block::bordered()
+        .title(spellbook.name.clone())
+        .border_style(Style::new().fg(theme.border))
+        .title_style(Style::new().fg(theme.accent));
 
-    frame.render_stateful_widget(list, chunks[0], &mut ui.spell_list_state);
+    if spells.is_empty() {
+        let inner = list_block.inner(chunks[0]);
+        frame.render_widget(list_block, chunks[0]);
+        let empty_message = Paragraph::new("No spells in this spellbook\n\nRun: spellbook --add")
+            .style(Style::new().fg(theme.muted).bg(theme.bg));
+        frame.render_widget(empty_message, inner);
+    } else {
+        let list = List::new(spells)
+            .block(list_block)
+            .highlight_style(
+                Style::new()
+                    .fg(theme.selection)
+                    .add_modifier(ratatui::style::Modifier::BOLD),
+            )
+            .highlight_symbol(">")
+            .style(Style::new().bg(theme.bg).fg(theme.fg));
+
+        frame.render_stateful_widget(list, chunks[0], &mut ui.spell_list_state);
+    }
 
     let selected_spell = ui.spell_list_state.selected().and_then(|idx| {
         spellbook
@@ -98,10 +106,15 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
 
     frame.render_widget(details_block, chunks[1]);
 
-    let footer = Paragraph::new(format!(
-        "↑↓ navigate  enter copy  / search  t {}  esc back  q quit",
-        state.theme_names[state.current_theme_index]
-    ))
-    .style(Style::new().fg(theme.muted).bg(theme.bg));
+    let footer = if let Some(ref msg) = ui.copy_feedback {
+        Paragraph::new(msg.clone())
+            .style(Style::new().fg(ratatui::style::Color::Green).bg(theme.bg))
+    } else {
+        Paragraph::new(format!(
+            "↑↓ navigate  enter copy  / search  t {}  esc back  q quit",
+            state.theme_names[state.current_theme_index]
+        ))
+        .style(Style::new().fg(theme.muted).bg(theme.bg))
+    };
     frame.render_widget(footer, chunks[2]);
 }

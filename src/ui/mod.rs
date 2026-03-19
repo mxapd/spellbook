@@ -61,6 +61,23 @@ pub struct UiState {
     pub add_spell_dropdown_open: bool,
     /// Whether user is currently typing in a text field (disables theme toggle)
     pub is_typing: bool,
+    /// Feedback message to display in AddSpell form
+    pub add_spell_message: Option<(String, bool)>, // (message, is_error)
+    /// Tracks whether there are unsaved changes in the form
+    pub add_spell_has_unsaved: bool,
+    /// Temporary feedback message (e.g., "Copied!")
+    pub copy_feedback: Option<String>,
+    /// Whether showing spellbook browser (true) or search results (false)
+    pub search_showing_spellbooks: bool,
+    /// Selected spellbook index when browsing spellbooks in search
+    pub search_spellbook_index: Option<usize>,
+    /// Horizontal scroll offset for spellbook spine view
+    pub search_spellbook_scroll: usize,
+    /// Spines per row calculated during render
+    pub search_spines_per_row: usize,
+    /// Last render dimensions (for resize detection)
+    pub search_last_width: u16,
+    pub search_last_height: u16,
 }
 
 impl UiState {
@@ -97,6 +114,15 @@ impl UiState {
             add_spell_dropdown_index: 0,
             add_spell_dropdown_open: false,
             is_typing: false,
+            add_spell_message: None,
+            add_spell_has_unsaved: false,
+            copy_feedback: None,
+            search_showing_spellbooks: true,
+            search_spellbook_index: Some(0),
+            search_spellbook_scroll: 0,
+            search_spines_per_row: 1,
+            search_last_width: 0,
+            search_last_height: 0,
         }
     }
 
@@ -109,11 +135,34 @@ impl UiState {
         self.search_return_to = return_to.clone();
         self.screen = Screen::SearchOverlay { return_to };
         self.is_typing = true;
+        self.search_showing_spellbooks = true;
+        self.search_spellbook_index = Some(0);
+        self.search_spellbook_scroll = 0;
+        self.search_spines_per_row = 1;
+        self.search_last_width = 0;
+        self.search_last_height = 0;
     }
 
     /// Call when leaving text fields (typing mode disabled)
     pub fn exit_typing_mode(&mut self) {
         self.is_typing = false;
+    }
+
+    /// Clears all form state and resets to spellbook list
+    pub fn clear_add_spell_form(&mut self) {
+        self.add_spell_name.clear();
+        self.add_spell_command.clear();
+        self.add_spell_lore.clear();
+        self.add_spell_school.clear();
+        self.add_spell_tags.clear();
+        self.add_spell_spellbook = None;
+        self.add_spell_skip_spellbook = false;
+        self.add_spell_dropdown_open = false;
+        self.add_spell_message = None;
+        self.add_spell_has_unsaved = false;
+        self.add_spell_field = AddSpellField::Name;
+        self.screen = Screen::SpellbookList;
+        self.exit_typing_mode();
     }
 
     /// Updates is_typing based on the current AddSpell field

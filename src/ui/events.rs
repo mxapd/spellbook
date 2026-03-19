@@ -1,8 +1,8 @@
 use crate::clipboard;
-use crate::log_debug;
 use crate::persistence::Archivist;
 use crate::state::State;
 use crate::ui::{AddSpellField, Screen, SearchContext, UiState};
+use crate::{log_debug, log_error, log_info};
 use crossterm::event::{KeyCode, KeyModifiers};
 
 /// Main event handler - routes key events to the appropriate screen handler.
@@ -98,6 +98,8 @@ fn handle_spellbook_list(key: KeyCode, state: &State, ui: &mut UiState) -> bool 
 
 /// Handles key events on the spell list (inside a spellbook).
 fn handle_spell_list(key: KeyCode, state: &State, ui: &mut UiState) -> bool {
+    ui.copy_feedback = None;
+
     let spellbook_index = match ui.selected_spellbook {
         Some(index) => index,
         None => return false,
@@ -153,6 +155,8 @@ fn handle_spell_list(key: KeyCode, state: &State, ui: &mut UiState) -> bool {
 
 /// Handles key events in the search overlay.
 fn handle_search(key: KeyCode, state: &State, ui: &mut UiState) -> bool {
+    ui.copy_feedback = None;
+
     // Close search on Escape - return to the screen we came from
     if key == KeyCode::Esc {
         ui.screen = match ui.search_return_to {
@@ -163,7 +167,94 @@ fn handle_search(key: KeyCode, state: &State, ui: &mut UiState) -> bool {
         return false;
     }
 
-    // Copy selected search result to clipboard
+    // Handle spellbook browser navigation
+    if ui.search_query.is_empty() && ui.search_showing_spellbooks {
+        let spellbook_count = state.codex.spellbooks.len();
+
+        // Enter opens the selected spellbook
+        if key == KeyCode::Enter {
+            if let Some(idx) = ui.search_spellbook_index {
+                if idx < spellbook_count {
+                    ui.selected_spellbook = Some(idx);
+                    ui.spell_list_state.select(Some(0));
+                    ui.screen = Screen::SpellList;
+                    ui.exit_typing_mode();
+                    return false;
+                }
+            }
+        }
+
+        let spines_per_row = ui.search_spines_per_row.max(1);
+        let scroll = ui.search_spellbook_scroll;
+
+        // Navigate with arrow keys - Left/Right scroll, Up/Down wrap
+        if key == KeyCode::Right || key == KeyCode::Char('l') {
+            if spellbook_count > 0 {
+                let current = ui.search_spellbook_index.unwrap_or(0);
+                if current < spellbook_count - 1 {
+                    let next = current + 1;
+                    ui.search_spellbook_index = Some(next);
+                    // Auto-scroll to keep selection visible
+                    let visible_end = scroll + spines_per_row;
+                    if next >= visible_end {
+                        ui.search_spellbook_scroll = (next + 1).saturating_sub(spines_per_row);
+                    }
+                }
+            }
+            return false;
+        }
+
+        if key == KeyCode::Left || key == KeyCode::Char('h') {
+            if spellbook_count > 0 {
+                let current = ui.search_spellbook_index.unwrap_or(0);
+                if current > 0 {
+                    let prev = current - 1;
+                    ui.search_spellbook_index = Some(prev);
+                    // Auto-scroll to keep selection visible
+                    if prev < scroll {
+                        ui.search_spellbook_scroll = prev;
+                    }
+                }
+            }
+            return false;
+        }
+
+        if key == KeyCode::Down || key == KeyCode::Char('j') {
+            if spellbook_count > 0 {
+                let current = ui.search_spellbook_index.unwrap_or(0);
+                ui.search_spellbook_index = Some((current + 1) % spellbook_count);
+            }
+            return false;
+        }
+
+        if key == KeyCode::Up || key == KeyCode::Char('k') {
+            if spellbook_count > 0 {
+                let current = ui.search_spellbook_index.unwrap_or(0);
+                ui.search_spellbook_index = Some(if current == 0 {
+                    spellbook_count - 1
+                } else {
+                    current - 1
+                });
+            }
+            return false;
+        }
+
+        // Any character input switches to search mode
+        if let KeyCode::Char(c) = key {
+            if c != '/' {
+                ui.search_showing_spellbooks = false;
+                ui.search_query.push(c);
+                update_search_filter(state, ui);
+            }
+            return false;
+        }
+
+        return false;
+    }
+
+    // Search mode (when there's a query or we've switched to it)
+
+    // Enter copies selected search result
     if key == KeyCode::Enter {
         copy_search_result(state, ui);
         return false;
@@ -202,7 +293,14 @@ fn handle_search(key: KeyCode, state: &State, ui: &mut UiState) -> bool {
     // Handle backspace
     if key == KeyCode::Backspace {
         ui.search_query.pop();
-        update_search_filter(state, ui);
+        if ui.search_query.is_empty() {
+            ui.filtered_indices.clear();
+            ui.search_list_state.select(None);
+            ui.search_showing_spellbooks = true;
+            ui.search_spellbook_index = Some(0);
+        } else {
+            update_search_filter(state, ui);
+        }
         return false;
     }
 
@@ -267,7 +365,11 @@ fn copy_selected_spell(state: &State, ui: &mut UiState) {
         None => return,
     };
 
-    let _ = clipboard::copy_to_clipboard(&spell.incantation);
+    if clipboard::copy_to_clipboard(&spell.incantation) {
+        ui.copy_feedback = Some("Copied!".to_string());
+    } else {
+        ui.copy_feedback = Some("Copy failed".to_string());
+    }
 }
 
 /// Copies the selected search result to the clipboard.
@@ -287,51 +389,62 @@ fn copy_search_result(state: &State, ui: &mut UiState) {
         None => return,
     };
 
-    let _ = clipboard::copy_to_clipboard(&spell.incantation);
+    if clipboard::copy_to_clipboard(&spell.incantation) {
+        ui.copy_feedback = Some("Copied!".to_string());
+    } else {
+        ui.copy_feedback = Some("Copy failed".to_string());
+    }
 }
 
 /// Saves the current spell and returns to the spellbook list.
 fn save_spell(state: &State, ui: &mut UiState) {
-    if !ui.add_spell_name.is_empty() && !ui.add_spell_command.is_empty() {
-        let tags: Vec<String> = ui
-            .add_spell_tags
-            .split(',')
-            .map(|s| s.trim().to_string())
-            .filter(|s| !s.is_empty())
-            .collect();
+    if ui.add_spell_name.trim().is_empty() {
+        ui.add_spell_message = Some(("Name is required".to_string(), true));
+        return;
+    }
+    if ui.add_spell_command.trim().is_empty() {
+        ui.add_spell_message = Some(("Command is required".to_string(), true));
+        return;
+    }
 
-        let spell = crate::models::Spell {
-            id: 0,
-            name: ui.add_spell_name.clone(),
-            incantation: ui.add_spell_command.clone(),
-            lore: ui.add_spell_lore.clone(),
-            school: ui.add_spell_school.clone(),
-            glyphs: tags,
-        };
+    let tags: Vec<String> = ui
+        .add_spell_tags
+        .split(',')
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+        .collect();
 
-        let spellbook_name = if ui.add_spell_skip_spellbook {
-            None
-        } else {
-            ui.add_spell_spellbook
-                .and_then(|i| state.codex.spellbooks.get(i))
-                .map(|b| b.name.clone())
-        };
+    let spell = crate::models::Spell {
+        id: 0,
+        name: ui.add_spell_name.clone(),
+        incantation: ui.add_spell_command.clone(),
+        lore: ui.add_spell_lore.clone(),
+        school: ui.add_spell_school.clone(),
+        glyphs: tags,
+    };
 
-        if let Err(e) = Archivist::append_spell("codex.toml", &spell, spellbook_name.as_deref()) {
-            eprintln!("Error saving spell: {}", e);
+    let spellbook_name = if ui.add_spell_skip_spellbook {
+        None
+    } else {
+        ui.add_spell_spellbook
+            .and_then(|i| state.codex.spellbooks.get(i))
+            .map(|b| b.name.clone())
+    };
+
+    match Archivist::append_spell("codex.toml", &spell, spellbook_name.as_deref()) {
+        Ok(_) => {
+            ui.add_spell_message = Some(("Spell saved!".to_string(), false));
+            ui.add_spell_has_unsaved = false;
+            log_info!("Spell saved: {}", spell.name);
+        }
+        Err(e) => {
+            ui.add_spell_message = Some((format!("Save failed: {}", e), true));
+            log_error!("Save failed: {}", e);
+            return;
         }
     }
 
-    ui.add_spell_name.clear();
-    ui.add_spell_command.clear();
-    ui.add_spell_lore.clear();
-    ui.add_spell_school.clear();
-    ui.add_spell_tags.clear();
-    ui.add_spell_spellbook = None;
-    ui.add_spell_skip_spellbook = false;
-    ui.add_spell_dropdown_open = false;
-    ui.screen = Screen::SpellbookList;
-    ui.exit_typing_mode();
+    ui.clear_add_spell_form();
 }
 
 /// Handles key events in the Add Spell screen.
@@ -350,9 +463,13 @@ fn handle_add_spell(
         KeyCode::Esc => {
             if ui.add_spell_field == AddSpellField::Spellbook && ui.add_spell_dropdown_open {
                 ui.add_spell_dropdown_open = false;
+            } else if ui.add_spell_has_unsaved {
+                ui.add_spell_message = Some((
+                    "Unsaved changes - press Esc again to discard".to_string(),
+                    true,
+                ));
             } else {
-                ui.screen = Screen::SpellbookList;
-                ui.exit_typing_mode();
+                ui.clear_add_spell_form();
             }
             false
         }
@@ -469,6 +586,8 @@ fn handle_add_spell(
                 }
                 _ => {}
             }
+            ui.add_spell_message = None;
+            ui.add_spell_has_unsaved = true;
             false
         }
         KeyCode::Char(c) => {
@@ -490,6 +609,8 @@ fn handle_add_spell(
                 }
                 _ => {}
             }
+            ui.add_spell_message = None;
+            ui.add_spell_has_unsaved = true;
             false
         }
         _ => false,

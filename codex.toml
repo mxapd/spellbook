@@ -211,41 +211,48 @@ glyphs = ["nix", "develop", "shell", "flake", "dev"]
 [[spellbooks]]
 name = "System"
 cover = "System monitoring and process management."
-sigil = "💻"
+sigil = "⌬"
+style = "stars_and_diamonds"
 spells = ["List Processes", "Kill Process", "Follow Service Logs", "Current User"]
 
 [[spellbooks]]
 name = "Network"
 cover = "Network and port commands."
-sigil = "🌐"
+sigil = "⊕"
+style = "celestial"
 spells = ["List Network Ports", "HTTP Request"]
 
 [[spellbooks]]
 name = "Docker"
 cover = "Container management."
-sigil = "🐳"
+sigil = "⊙"
+style = "dots_and_therefore"
 spells = ["Run Docker Container", "Run Container with Port"]
 
 [[spellbooks]]
 name = "Files"
 cover = "File and directory operations."
-sigil = "📁"
+sigil = "⊂"
+style = "alchemy"
 spells = ["List Files Detailed", "Make File Executable", "Change Directory", "Read File", "Find Files", "Count Lines"]
 
 [[spellbooks]]
 name = "Git"
 cover = "Version control commands."
-sigil = "📂"
+sigil = "⊛"
+style = "geometric"
 spells = ["Git Status", "Git Commit", "Git Pull"]
 
 [[spellbooks]]
 name = "Node"
 cover = "Node.js package management."
-sigil = "📦"
+sigil = "∪"
+style = "minimal"
 spells = ["NPM Uninstall", "NPM Install"]
 
 [[spellbooks]]
 name = "NixOS"
 cover = "NixOS system management and Nix commands."
-sigil = "❄️"
+sigil = "∇"
+style = "stars_and_diamonds"
 spells = ["Rebuild NixOS", "Update Nix Channels", "Collect Garbage", "Search Nix Packages", "Install Package Temporarily", "Edit NixOS Config", "List NixOS Generations", "Rollback NixOS", "Build Nix Package", "Shell into Dev Environment"]
