@@ -11,6 +11,12 @@ Spellbook is a TUI (Terminal User Interface) application for managing and quickl
 - **Terminal I/O**: crossterm
 - **Serialization**: serde + toml
 
+## Data Storage Conventions
+
+- **TOML is preferred** over JSON for all persistent data
+- Only use JSON if required by external tools (e.g., LSP servers)
+- Human-editable configs should always use TOML
+
 ## Directory Structure
 
 ```
@@ -44,7 +50,7 @@ theme.toml            # Theme and view mode configuration
 ## Data Flow
 
 1. **Load**: `main.rs` calls `Archivist::load("codex.toml")` to deserialize TOML into `Codex`
-2. **Settings Load**: Theme and view mode loaded from `theme.toml` via `Archivist::load_theme()` and `load_theme_index()`
+2. **Settings Load**: Theme and view mode loaded from `theme.toml` via `Archivist::load_theme()` and `Archivist::load_user_settings()`
 3. **ID Generation**: Spells get auto-generated IDs (1, 2, 3...) on load
 4. **Resolution**: Spellbook spell references are resolved from names to IDs
 5. **State**: `Codex` + settings wrapped in `State` and passed through the app
@@ -153,3 +159,69 @@ The SearchOverlay supports a command palette (triggered with `:`):
 | `:?` | Show help |
 
 Commands are defined in `src/ui/events.rs` with aliases for flexible matching.
+
+## Job Execution System
+
+Spellbook supports detached job execution for long-running commands.
+
+### Overview
+
+Jobs run in the background, detached from the TUI:
+- The TUI can be closed while jobs are running
+- Jobs continue executing independently
+- Notifications are sent via D-Bus when jobs complete
+- Job state is persisted to `~/.spellbook/jobs.toml`
+
+### Components
+
+```
+src/
+├── executor.rs          # JobManager, job spawning, notifications
+├── ui/jobs.rs           # JobsPanel UI component
+└── ui/confirm.rs        # Confirmation dialog for elevated/dangerous commands
+~/.spellbook/            # Created on first run
+  jobs.toml              # Job registry
+  job_001.out           # stdout
+  job_001.err           # stderr
+```
+
+### Job Lifecycle
+
+```
+Queued → Running → Completed
+                   ↘ Failed
+                   ↘ Cancelled
+```
+
+### Job States
+
+| State | Description |
+|-------|-------------|
+| `Queued` | Waiting to run (respects 10-job limit) |
+| `Running` | Currently executing |
+| `Completed` | Exited with code 0 |
+| `Failed` | Exited with non-zero code |
+| `Cancelled` | Killed by user |
+
+### JobManager
+
+Handles job lifecycle:
+- Spawns detached child processes
+- Tracks job state via PID polling
+- Persists job registry to TOML
+- Sends D-Bus notifications on completion
+- Enforces 10 concurrent job limit
+
+### Commands
+
+| Command | Action |
+|---------|--------|
+| `:jobs` | Open Jobs panel |
+| `:kill <id>` | Kill a running job |
+| `:cancel <id>` | Cancel a queued job |
+
+### Notifications
+
+D-Bus notifications via `notify-send`:
+- Success: `"<spell_name> completed"`
+- Failure: `"<spell_name> failed (exit <code>)"`

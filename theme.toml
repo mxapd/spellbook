@@ -1,4 +1,5 @@
-selected_theme = 7
+selected_theme = "OneDark"
 
 [settings]
 view_mode = "Cards"
+experimental_mode = true

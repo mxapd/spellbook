@@ -43,16 +43,16 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
         ])
         .split(inner_area);
 
-    let name_value = if ui.add_spell_name.is_empty() {
+    let name_value = if ui.add_spell.name.is_empty() {
         "[...]".to_string()
     } else {
-        format!("[{}]", ui.add_spell_name)
+        format!("[{}]", ui.add_spell.name)
     };
     let name_line = Paragraph::new(Line::from(vec![
         Span::styled("* Name:    ", label_style),
         Span::styled(
             name_value,
-            if ui.add_spell_field == AddSpellField::Name {
+            if ui.add_spell.field == AddSpellField::Name {
                 active_style
             } else {
                 normal_style
@@ -61,16 +61,16 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
     ]));
     frame.render_widget(name_line, form_chunks[0]);
 
-    let cmd_value = if ui.add_spell_command.is_empty() {
+    let cmd_value = if ui.add_spell.command.is_empty() {
         "[...]".to_string()
     } else {
-        format!("[{}]", ui.add_spell_command)
+        format!("[{}]", ui.add_spell.command)
     };
     let cmd_line = Paragraph::new(Line::from(vec![
         Span::styled("> Command: ", label_style),
         Span::styled(
             cmd_value,
-            if ui.add_spell_field == AddSpellField::Command {
+            if ui.add_spell.field == AddSpellField::Command {
                 active_style
             } else {
                 normal_style
@@ -79,16 +79,16 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
     ]));
     frame.render_widget(cmd_line, form_chunks[1]);
 
-    let lore_value = if ui.add_spell_lore.is_empty() {
+    let lore_value = if ui.add_spell.lore.is_empty() {
         "[...]".to_string()
     } else {
-        format!("[{}]", ui.add_spell_lore)
+        format!("[{}]", ui.add_spell.lore)
     };
     let lore_line = Paragraph::new(Line::from(vec![
         Span::styled(":: Lore:   ", label_style),
         Span::styled(
             lore_value,
-            if ui.add_spell_field == AddSpellField::Lore {
+            if ui.add_spell.field == AddSpellField::Lore {
                 active_style
             } else {
                 normal_style
@@ -97,16 +97,16 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
     ]));
     frame.render_widget(lore_line, form_chunks[2]);
 
-    let school_value = if ui.add_spell_school.is_empty() {
+    let school_value = if ui.add_spell.school.is_empty() {
         "[...]".to_string()
     } else {
-        format!("[{}]", ui.add_spell_school)
+        format!("[{}]", ui.add_spell.school)
     };
     let school_line = Paragraph::new(Line::from(vec![
         Span::styled("^ School:  ", label_style),
         Span::styled(
             school_value,
-            if ui.add_spell_field == AddSpellField::School {
+            if ui.add_spell.field == AddSpellField::School {
                 active_style
             } else {
                 normal_style
@@ -116,16 +116,16 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
     frame.render_widget(school_line, form_chunks[3]);
 
     let tags_hint = "(comma separated)";
-    let tags_value = if ui.add_spell_tags.is_empty() {
+    let tags_value = if ui.add_spell.tags.is_empty() {
         "[...]".to_string()
     } else {
-        format!("[{}]", ui.add_spell_tags)
+        format!("[{}]", ui.add_spell.tags)
     };
     let tags_line = Paragraph::new(Line::from(vec![
         Span::styled("# Tags:    ", label_style),
         Span::styled(
             tags_value,
-            if ui.add_spell_field == AddSpellField::Tags {
+            if ui.add_spell.field == AddSpellField::Tags {
                 active_style
             } else {
                 normal_style
@@ -136,11 +136,11 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
     ]));
     frame.render_widget(tags_line, form_chunks[4]);
 
-    let spellbook_is_active = ui.add_spell_field == AddSpellField::Spellbook;
-    let current_selection = if ui.add_spell_skip_spellbook {
+    let spellbook_is_active = ui.add_spell.field == AddSpellField::Spellbook;
+    let current_selection = if ui.add_spell.skip_spellbook {
         "Skip - just create spell".to_string()
     } else {
-        let selected = ui.add_spell_spellbook.unwrap_or(0);
+        let selected = ui.add_spell.spellbook_index.unwrap_or(0);
         state
             .codex
             .spellbooks
@@ -149,7 +149,7 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
             .unwrap_or_else(|| "None".to_string())
     };
 
-    let spellbook_indicator = if spellbook_is_active && ui.add_spell_dropdown_open {
+    let spellbook_indicator = if spellbook_is_active && ui.add_spell.dropdown_open {
         "▼"
     } else {
         " "
@@ -169,7 +169,7 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
     frame.render_widget(spellbook_line, form_chunks[6]);
 
     // Show dropdown only when Spellbook field is active AND dropdown is open
-    if spellbook_is_active && ui.add_spell_dropdown_open {
+    if spellbook_is_active && ui.add_spell.dropdown_open {
         let dropdown_items: Vec<ListItem> = state
             .codex
             .spellbooks
@@ -195,7 +195,7 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
             .highlight_symbol("> ");
 
         let mut dropdown_state = ListState::default();
-        dropdown_state.select(Some(ui.add_spell_dropdown_index));
+        dropdown_state.select(Some(ui.add_spell.dropdown_index));
 
         // Calculate dropdown position - show below the spellbook field
         if form_chunks.len() > 7 {
@@ -204,7 +204,7 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
     }
 
     // Show message if present
-    if let Some((message, is_error)) = &ui.add_spell_message {
+    if let Some((message, is_error)) = &ui.add_spell.message {
         let msg_style = if *is_error {
             Style::new().fg(ratatui::style::Color::Red).bg(theme.bg)
         } else {
@@ -224,7 +224,7 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
     let footer_text = if ui.is_typing {
         format!(
             "tab/{} navigate  Enter next  Ctrl+S save  Esc cancel",
-            if ui.add_spell_dropdown_open {
+            if ui.add_spell.dropdown_open {
                 ""
             } else {
                 "↑↓"
@@ -233,7 +233,7 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
     } else {
         format!(
             "tab/↑↓ navigate  Enter next  Ctrl+S save  Esc cancel  t {}",
-            state.theme_names[state.current_theme_index]
+            state.current_theme.name()
         )
     };
 

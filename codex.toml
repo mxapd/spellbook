@@ -1,4 +1,5 @@
 [[spells]]
+background = true
 name = "List Processes"
 incantation = "ps aux"
 lore = "Shows all running processes."
@@ -144,6 +145,9 @@ incantation = "sudo nixos-rebuild switch"
 lore = "Rebuilds the NixOS system and switches to new configuration."
 school = "NixOS"
 glyphs = ["nixos", "rebuild", "switch", "system"]
+elevated = true
+confirm = true
+background = false
 
 [[spells]]
 name = "Update Nix Channels"
@@ -151,6 +155,8 @@ incantation = "sudo nix-channel --update"
 lore = "Updates Nix channels to latest versions."
 school = "NixOS"
 glyphs = ["nix", "channel", "update", "upgrade"]
+elevated = true
+background = false
 
 [[spells]]
 name = "Collect Garbage"
@@ -158,6 +164,9 @@ incantation = "sudo nix-collect-garbage -d"
 lore = "Removes unused Nix store entries."
 school = "NixOS"
 glyphs = ["nix", "garbage", "cleanup", "remove"]
+elevated = true
+confirm = true
+background = false
 
 [[spells]]
 name = "Search Nix Packages"
@@ -179,6 +188,8 @@ incantation = "sudo nano /etc/nixos/configuration.nix"
 lore = "Opens the NixOS configuration file for editing."
 school = "NixOS"
 glyphs = ["nixos", "config", "edit", "nano"]
+elevated = true
+background = false
 
 [[spells]]
 name = "List NixOS Generations"
@@ -186,6 +197,8 @@ incantation = "sudo nix-env -p /nix/var/nix/profiles/system --list-generations"
 lore = "Lists all system generations."
 school = "NixOS"
 glyphs = ["nixos", "generations", "list", "rollback"]
+elevated = true
+background = false
 
 [[spells]]
 name = "Rollback NixOS"
@@ -193,6 +206,10 @@ incantation = "sudo nixos-rebuild switch --rollback"
 lore = "Rolls back to the previous NixOS generation."
 school = "NixOS"
 glyphs = ["nixos", "rollback", "previous", "switch"]
+elevated = true
+confirm = true
+dangerous = true
+background = false
 
 [[spells]]
 name = "Build Nix Package"

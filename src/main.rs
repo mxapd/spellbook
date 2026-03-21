@@ -1,41 +1,28 @@
 mod clipboard;
+mod cli;
+mod executor;
 mod logging;
 mod models;
 mod persistence;
 mod state;
 mod ui;
+mod validation;
 
+use crate::cli::{AppMode, CliArgs};
 use crossterm::{
     event::{self, Event, KeyEventKind, KeyboardEnhancementFlags, PushKeyboardEnhancementFlags},
     execute,
 };
 use ratatui::DefaultTerminal;
-use std::env;
 use std::io;
 
 fn main() -> io::Result<()> {
     ratatui::run(run)
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum AppMode {
-    Browse,
-    AddSpell,
-}
-
-impl Default for AppMode {
-    fn default() -> Self {
-        Self::Browse
-    }
-}
-
 fn run(terminal: &mut DefaultTerminal) -> io::Result<()> {
-    let args: Vec<String> = env::args().collect();
-    let mode = if args.iter().any(|a| a == "--add") {
-        AppMode::AddSpell
-    } else {
-        AppMode::Browse
-    };
+    let args = CliArgs::parse();
+    let mode = args.mode;
 
     let codex = match persistence::Archivist::load("codex.toml") {
         Ok(c) => c,
@@ -51,15 +38,22 @@ fn run(terminal: &mut DefaultTerminal) -> io::Result<()> {
 
     // Start on SearchOverlay by default (unless --add is passed for AddSpell screen)
     if mode == AppMode::Browse {
-        ui_state.open_search(ui::SearchContext::SpellbookList);
+        ui_state.open_search();
     }
 
     logging::init_logging();
     log_info!("Spellbook started (mode: {:?})", mode);
 
+    // Initialize job manager (starts background polling thread)
+    let _ = executor::get_job_manager();
+    log_info!("Job manager initialized");
+
     let _ = execute!(
         io::stdout(),
-        PushKeyboardEnhancementFlags(KeyboardEnhancementFlags::DISAMBIGUATE_ESCAPE_CODES)
+        PushKeyboardEnhancementFlags(
+            KeyboardEnhancementFlags::DISAMBIGUATE_ESCAPE_CODES
+                | KeyboardEnhancementFlags::REPORT_ALL_KEYS_AS_ESCAPE_CODES
+        )
     );
 
     loop {
@@ -80,6 +74,14 @@ fn run(terminal: &mut DefaultTerminal) -> io::Result<()> {
             if should_quit {
                 log_info!("Spellbook exiting");
                 return Ok(());
+            }
+
+            // Force redraw if requested (e.g., after Alt+R)
+            if ui_state.needs_redraw {
+                terminal.draw(|frame| {
+                    ui::render(frame, &state, &mut ui_state);
+                })?;
+                let _ = ui_state.clear_redraw_flag();
             }
         }
     }

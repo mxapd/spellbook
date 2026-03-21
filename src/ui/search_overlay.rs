@@ -1,11 +1,11 @@
 use crate::models::{SpineStyle, ViewMode};
 use crate::state::State;
 use crate::ui::{SearchMode, UiState};
-use ratatui::Frame;
 use ratatui::layout::{Alignment, Constraint, Direction, Layout};
 use ratatui::style::{Modifier, Style};
 use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Block, Borders, List, ListItem, Paragraph, Wrap};
+use ratatui::Frame;
 
 fn build_spine_decorations(
     style: SpineStyle,
@@ -123,7 +123,7 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
         ])
         .split(area);
 
-    let input_text = format!("/{}", ui.search_query);
+    let input_text = format!("/{}", ui.search_query());
     let input_block = Paragraph::new(input_text)
         .block(
             Block::default()
@@ -141,13 +141,13 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
         SearchMode::BrowseSpellbooks | SearchMode::BrowseSpells => {
             if ui.search_mode == SearchMode::BrowseSpells {
                 render_spellbook_spells(frame, state, ui, chunks[1]);
-            } else if ui.search_query.is_empty() && ui.search_showing_spellbooks {
+            } else if ui.search_query().is_empty() && ui.showing_spellbooks() {
                 render_spellbook_browser(frame, state, ui, chunks[1]);
-            } else if ui.search_query.starts_with(':') {
+            } else if ui.search_query().starts_with(':') {
                 // Command mode - show filtered commands
                 render_command_list(frame, state, ui, chunks[1]);
-            } else if ui.filtered_indices.is_empty() {
-                let message = if ui.search_query.is_empty() {
+            } else if ui.filtered_indices().is_empty() {
+                let message = if ui.search_query().is_empty() {
                     "Type to search all spells..."
                 } else {
                     "No spells found"
@@ -172,9 +172,9 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
         }
     }
 
-    let details = if ui.search_query.is_empty() && ui.search_showing_spellbooks {
+    let details = if ui.search_query().is_empty() && ui.showing_spellbooks() {
         render_spellbook_details(state, ui)
-    } else if !ui.filtered_indices.is_empty() {
+    } else if !ui.filtered_indices().is_empty() {
         render_spell_details(state, ui)
     } else {
         vec![Line::from("")]
@@ -194,20 +194,22 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
     frame.render_widget(details_block, chunks[2]);
 
     let hint = if let Some(ref msg) = ui.copy_feedback {
-        Paragraph::new(msg.clone())
+        let single_line = msg.lines().next().unwrap_or(msg).to_string();
+        Paragraph::new(single_line)
             .style(Style::new().fg(ratatui::style::Color::Green).bg(theme.bg))
+            .alignment(ratatui::layout::Alignment::Center)
     } else {
         let hint_text = match ui.search_mode {
             SearchMode::BrowseSpellbooks
-                if ui.search_query.is_empty() && ui.search_showing_spellbooks =>
+                if ui.search_query().is_empty() && ui.showing_spellbooks() =>
             {
                 "←→↑↓ navigate  enter open  : cmd".to_string()
             }
             SearchMode::BrowseSpells => "↑↓ navigate  enter copy  ← back".to_string(),
             _ => {
-                if ui.search_query.starts_with(':') {
+                if ui.search_query().starts_with(':') {
                     "↑↓ navigate  enter run  esc cancel".to_string()
-                } else if ui.filtered_indices.is_empty() && ui.search_query.is_empty() {
+                } else if ui.filtered_indices().is_empty() && ui.search_query().is_empty() {
                     "type to search".to_string()
                 } else {
                     "↑↓ navigate  enter copy  esc clear".to_string()
@@ -249,22 +251,22 @@ fn render_spellbook_browser(
     let spines_per_row = ((area.width as usize) / (min_spine_width + 1)).max(1);
 
     // Store spines_per_row for use in event handling
-    ui.search_spines_per_row = spines_per_row;
+    ui.set_search_spines_per_row(spines_per_row);
 
     // Handle resize - clamp scroll and selection when dimensions change
-    let resized = area.width != ui.search_last_width || area.height != ui.search_last_height;
+    let resized = area.width != ui.search_last_width() || area.height != ui.search_last_height();
     if resized {
-        ui.search_last_width = area.width;
-        ui.search_last_height = area.height;
+        ui.set_search_last_width(area.width);
+        ui.set_search_last_height(area.height);
 
         // Clamp scroll to valid range
         let max_scroll = spellbooks.len().saturating_sub(spines_per_row);
-        ui.search_spellbook_scroll = ui.search_spellbook_scroll.min(max_scroll);
+        ui.set_search_spellbook_scroll(ui.search_spellbook_scroll().min(max_scroll));
 
         // Clamp selection to visible range
-        if let Some(idx) = ui.search_spellbook_index {
+        if let Some(idx) = ui.search_spellbook_index() {
             if idx >= spellbooks.len() {
-                ui.search_spellbook_index = Some(spellbooks.len().saturating_sub(1));
+                ui.set_search_spellbook_index(Some(spellbooks.len().saturating_sub(1)));
             }
         }
     }
@@ -292,11 +294,11 @@ fn render_spellbook_browser(
     // Store unified items_per_row for navigation
     match show_as {
         ShowAs::List => {
-            ui.search_items_per_row = 1;
+            ui.set_search_items_per_row(1);
             render_spellbook_list(frame, state, ui, inner);
         }
         ShowAs::Cards => {
-            ui.search_items_per_row = cards_per_row;
+            ui.set_search_items_per_row(cards_per_row);
             render_spellbook_cards(
                 frame,
                 state,
@@ -309,7 +311,7 @@ fn render_spellbook_browser(
             );
         }
         ShowAs::Spines => {
-            ui.search_items_per_row = spines_per_row;
+            ui.set_search_items_per_row(spines_per_row);
             render_spellbook_spines(frame, state, ui, inner, min_spine_width, spines_per_row);
         }
     }
@@ -319,6 +321,80 @@ enum ShowAs {
     List,
     Cards,
     Spines,
+}
+
+#[derive(Clone, Copy, PartialEq)]
+pub enum CardDirection {
+    Up,
+    Down,
+    Left,
+    Right,
+}
+
+pub fn find_nearest_card(
+    current: usize,
+    direction: CardDirection,
+    spellbook_count: usize,
+    cards_per_row: usize,
+    card_width: usize,
+    card_height: usize,
+    card_gap: usize,
+    grid_offset: u16,
+) -> usize {
+    if spellbook_count == 0 {
+        return 0;
+    }
+
+    let current_col = current % cards_per_row;
+    let current_row = current / cards_per_row;
+
+    let current_x = (grid_offset as i32) + (current_col as i32) * ((card_width + card_gap) as i32);
+    let current_y = (current_row as i32) * ((card_height + 1) as i32);
+
+    let mut best_index = current;
+    let mut best_distance = i32::MAX;
+
+    for i in 0..spellbook_count {
+        if i == current {
+            continue;
+        }
+
+        let col = i % cards_per_row;
+        let row = i / cards_per_row;
+
+        let x = (grid_offset as i32) + (col as i32) * ((card_width + card_gap) as i32);
+        let y = (row as i32) * ((card_height + 1) as i32);
+
+        let dx = x - current_x;
+        let dy = y - current_y;
+
+        let is_valid = match direction {
+            CardDirection::Right => dx > 0,
+            CardDirection::Left => dx < 0,
+            CardDirection::Down => dy > 0,
+            CardDirection::Up => dy < 0,
+        };
+
+        if !is_valid {
+            continue;
+        }
+
+        let distance = match direction {
+            CardDirection::Right | CardDirection::Left => dx.abs() + dy.abs() * 3,
+            CardDirection::Down | CardDirection::Up => dx.abs() * 3 + dy.abs(),
+        };
+
+        if distance < best_distance {
+            best_distance = distance;
+            best_index = i;
+        }
+    }
+
+    if best_index == current {
+        current
+    } else {
+        best_index
+    }
 }
 
 fn render_spellbook_cards(
@@ -335,15 +411,20 @@ fn render_spellbook_cards(
     let spellbooks = &state.codex.spellbooks;
 
     let selected = ui
-        .search_spellbook_index
+        .search_spellbook_index()
         .unwrap_or(0)
         .min(spellbooks.len() - 1);
+
+    let card_unit = card_width as u16 + card_gap as u16;
+
+    let grid_width = cards_per_row as u16 * card_unit - card_gap as u16;
+    let grid_offset = ((area.width as i32 - grid_width as i32) / 2).max(0) as u16;
 
     for (i, spellbook) in spellbooks.iter().enumerate() {
         let row = i / cards_per_row;
         let col = i % cards_per_row;
 
-        let x = area.x + (col as u16) * (card_width as u16 + card_gap as u16);
+        let x = area.x + grid_offset + (col as u16) * card_unit;
         let y = area.y + (row as u16) * (card_height as u16 + 1);
 
         if y >= area.y + area.height || x >= area.x + area.width {
@@ -431,11 +512,11 @@ fn render_spellbook_spines(
     let spellbooks = &state.codex.spellbooks;
 
     let selected = ui
-        .search_spellbook_index
+        .search_spellbook_index()
         .unwrap_or(0)
         .min(spellbooks.len().saturating_sub(1));
 
-    let scroll = ui.search_spellbook_scroll;
+    let scroll = ui.search_spellbook_scroll();
     let visible_count = spellbooks.len().saturating_sub(scroll);
     let show_right_indicator = visible_count > spines_per_row;
     let visible_items = visible_count.min(spines_per_row);
@@ -450,6 +531,7 @@ fn render_spellbook_spines(
     let visible_rows = (actual_visible + spines_per_row - 1) / spines_per_row;
     let spine_height = (area.height.saturating_sub(1) as usize) / visible_rows.max(1);
     let actual_spine_width = ((area.width as usize) / spines_per_row).saturating_sub(1);
+    let spine_unit = actual_spine_width as u16 + 1;
 
     // Draw indicator row at the bottom
     let indicator_y = area.y + area.height - 1;
@@ -486,7 +568,7 @@ fn render_spellbook_spines(
         let row = local_idx / spines_per_row;
         let col = local_idx % spines_per_row;
 
-        let x = area.x + (col as u16) * (actual_spine_width as u16 + 1);
+        let x = area.x + (col as u16) * spine_unit;
         let y = area.y + (row as u16) * (spine_height as u16);
 
         if y >= area.y + area.height - 1 || x >= area.x + area.width {
@@ -544,7 +626,7 @@ fn render_spellbook_spines(
         let spine = Paragraph::new(spine_text)
             .block(spine_block)
             .style(Style::new().bg(spine_bg).fg(theme.fg))
-            .alignment(Alignment::Center)
+            .alignment(Alignment::Left)
             .wrap(Wrap { trim: true });
 
         frame.render_widget(spine, spine_area);
@@ -556,7 +638,11 @@ fn render_spellbook_spines(
         let total_in_view = display_end_idx - start_idx;
         let items_in_last_row = if total_in_view > 0 {
             let items = total_in_view % spines_per_row;
-            if items == 0 { spines_per_row } else { items }
+            if items == 0 {
+                spines_per_row
+            } else {
+                items
+            }
         } else {
             0
         };
@@ -612,7 +698,7 @@ fn render_spellbook_list(
         return;
     }
 
-    let selected = ui.search_spellbook_index.unwrap_or(0);
+    let selected = ui.search_spellbook_index().unwrap_or(0);
 
     let items: Vec<ListItem> = spellbooks
         .iter()
@@ -632,7 +718,7 @@ fn render_spellbook_list(
         )
         .style(Style::new().bg(theme.bg).fg(theme.fg));
 
-    frame.render_stateful_widget(list, area, &mut ui.search_list_state);
+    frame.render_stateful_widget(list, area, ui.search_results_state());
 }
 
 fn wrap_text_for_spine(text: &str, max_width: usize) -> Vec<String> {
@@ -688,7 +774,7 @@ fn render_command_list(
     use crate::ui::events::filter_commands;
 
     let theme = &state.theme;
-    let query_after_colon = ui.search_query.strip_prefix(':').unwrap_or("");
+    let query_after_colon = ui.search_query().strip_prefix(':').unwrap_or("");
     let filtered = filter_commands(query_after_colon);
 
     if filtered.is_empty() {
@@ -725,7 +811,7 @@ fn render_command_list(
         .highlight_symbol(">")
         .style(Style::new().bg(theme.bg).fg(theme.fg));
 
-    frame.render_stateful_widget(list, area, &mut ui.search_list_state);
+    frame.render_stateful_widget(list, area, ui.search_results_state());
 }
 
 fn render_search_results(
@@ -737,7 +823,7 @@ fn render_search_results(
     let theme = &state.theme;
 
     let results: Vec<ListItem> = ui
-        .filtered_indices
+        .filtered_indices()
         .iter()
         .filter_map(|&idx| state.codex.spells.get(idx))
         .map(|spell| {
@@ -758,14 +844,14 @@ fn render_search_results(
         .highlight_symbol(">")
         .style(Style::new().bg(theme.bg).fg(theme.fg));
 
-    frame.render_stateful_widget(list, area, &mut ui.search_list_state);
+    frame.render_stateful_widget(list, area, ui.search_results_state());
 }
 
 fn render_spellbook_details<'a>(state: &'a State, ui: &mut UiState) -> Vec<Line<'a>> {
     let theme = &state.theme;
 
     let spellbooks = &state.codex.spellbooks;
-    let selected = match ui.search_spellbook_index {
+    let selected = match ui.search_spellbook_index() {
         Some(i) if i < spellbooks.len() => i,
         _ => return vec![Line::from("")],
     };
@@ -829,9 +915,9 @@ fn render_spellbook_details<'a>(state: &'a State, ui: &mut UiState) -> Vec<Line<
 fn render_spell_details<'a>(state: &'a State, ui: &mut UiState) -> Vec<Line<'a>> {
     let theme = &state.theme;
 
-    let selected_idx = ui.search_list_state.selected().unwrap_or(0);
+    let selected_idx = ui.search_results_state().selected().unwrap_or(0);
 
-    let spell_opt = ui.filtered_indices.get(selected_idx).copied();
+    let spell_opt = ui.filtered_indices().get(selected_idx).copied();
 
     match spell_opt {
         Some(spell_idx) if spell_idx < state.codex.spells.len() => {
@@ -929,10 +1015,10 @@ fn render_add_spell_form(
         height: area.height.saturating_sub(2),
     };
 
-    let name_value = if ui.add_spell_name.is_empty() {
+    let name_value = if ui.add_spell.name.is_empty() {
         "[...]".to_string()
     } else {
-        format!("[{}]", ui.add_spell_name)
+        format!("[{}]", ui.add_spell.name)
     };
 
     let content = vec![
@@ -975,10 +1061,10 @@ fn render_add_spellbook_form(
         height: area.height.saturating_sub(2),
     };
 
-    let name_value = if ui.add_spellbook_name.is_empty() {
+    let name_value = if ui.add_spellbook.name.is_empty() {
         "[...]".to_string()
     } else {
-        format!("[{}]", ui.add_spellbook_name)
+        format!("[{}]", ui.add_spellbook.name)
     };
 
     let content = vec![

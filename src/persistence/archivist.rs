@@ -1,6 +1,6 @@
-use crate::models::{Codex, ThemeConfig, UserSettings};
+use crate::models::{Codex, Theme, ThemeConfig, UserSettings};
+use crate::validation::validate_codex;
 use crate::{log_debug, log_info};
-use std::collections::HashSet;
 use std::fs;
 
 pub struct Archivist;
@@ -29,9 +29,6 @@ impl Archivist {
             spell.id = (i + 1) as u64;
         }
 
-        // Build set of valid spell names for validation
-        let spell_names: HashSet<&String> = codex.spells.iter().map(|s| &s.name).collect();
-
         // Resolve spell names to IDs in spellbooks
         for spellbook in &mut codex.spellbooks {
             let resolved_ids: Vec<u64> = spellbook
@@ -43,7 +40,7 @@ impl Archivist {
         }
 
         // Validate the loaded data
-        validate_codex(&codex, &spell_names)?;
+        validate_codex(&codex)?;
 
         log_info!(
             "Loaded {} spells and {} spellbooks",
@@ -53,28 +50,28 @@ impl Archivist {
         Ok(codex)
     }
 
-    /// Loads the selected theme index from config file.
-    pub fn load_theme_index(path: &str) -> usize {
+    /// Loads the selected theme from config file.
+    pub fn load_theme(path: &str) -> Theme {
         let contents = match fs::read_to_string(path) {
             Ok(c) => c,
-            Err(_) => return 0,
+            Err(_) => return Theme::default(),
         };
 
         let config: ThemeConfig = match toml::from_str(&contents) {
             Ok(c) => c,
-            Err(_) => return 0,
+            Err(_) => return Theme::default(),
         };
 
         config.selected_theme
     }
 
-    /// Saves the selected theme index to config file.
-    pub fn save_theme_index(path: &str, index: usize) -> Result<(), Box<dyn std::error::Error>> {
+    /// Saves the selected theme to config file.
+    pub fn save_theme(path: &str, theme: Theme) -> Result<(), Box<dyn std::error::Error>> {
         let contents = match fs::read_to_string(path) {
             Ok(c) => c,
             Err(_) => {
                 let config = ThemeConfig {
-                    selected_theme: index,
+                    selected_theme: theme,
                     ..Default::default()
                 };
                 let new_content = toml::to_string_pretty(&config)?;
@@ -84,7 +81,7 @@ impl Archivist {
         };
 
         let mut config: ThemeConfig = toml::from_str(&contents).unwrap_or_default();
-        config.selected_theme = index;
+        config.selected_theme = theme;
 
         let new_content = toml::to_string_pretty(&config)?;
         fs::write(path, new_content)?;
@@ -115,7 +112,7 @@ impl Archivist {
             Ok(c) => c,
             Err(_) => {
                 let config = ThemeConfig {
-                    selected_theme: 0,
+                    selected_theme: Theme::default(),
                     settings: settings.clone(),
                 };
                 let new_content = toml::to_string_pretty(&config)?;
@@ -226,51 +223,74 @@ impl Archivist {
         log_info!("Spellbook '{}' created successfully", name);
         Ok(())
     }
-}
 
-/// Validates a Codex for data integrity issues.
-fn validate_codex(
-    codex: &Codex,
-    spell_names: &HashSet<&String>,
-) -> Result<(), Box<dyn std::error::Error>> {
-    // Check for duplicate spell names
-    let mut seen_spell_names: HashSet<&String> = HashSet::new();
-    for spell in &codex.spells {
-        if seen_spell_names.contains(&spell.name) {
-            return Err(format!("Duplicate spell name: {}", spell.name).into());
-        }
-        seen_spell_names.insert(&spell.name);
+    /// Updates a spell's background preference in the codex file.
+    pub fn update_spell_background(
+        path: &str,
+        spell_name: &str,
+        background: bool,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        log_info!(
+            "Updating spell '{}' background={} in codex",
+            spell_name,
+            background
+        );
 
-        // Check for empty name
-        if spell.name.trim().is_empty() {
-            return Err("Spell name cannot be empty".into());
-        }
-    }
+        let contents = fs::read_to_string(path)?;
+        let mut lines: Vec<String> = contents.lines().map(String::from).collect();
 
-    // Check for duplicate spellbook names
-    let mut seen_spellbook_names: HashSet<&String> = HashSet::new();
-    for spellbook in &codex.spellbooks {
-        if seen_spellbook_names.contains(&spellbook.name) {
-            return Err(format!("Duplicate spellbook name: {}", spellbook.name).into());
-        }
-        seen_spellbook_names.insert(&spellbook.name);
+        let mut in_target_spell = false;
+        let mut spell_start = 0;
+        let mut spell_end = 0;
+        let mut found_background_line = None;
 
-        // Check for empty name
-        if spellbook.name.trim().is_empty() {
-            return Err("Spellbook name cannot be empty".into());
-        }
+        for (i, line) in lines.iter().enumerate() {
+            let trimmed = line.trim();
 
-        // Check all spell names reference valid spells
-        for spell_name in &spellbook.spells {
-            if !spell_names.contains(spell_name) {
-                return Err(format!(
-                    "Spellbook '{}' references non-existent spell: {}",
-                    spellbook.name, spell_name
-                )
-                .into());
+            if trimmed == "[[spells]]" {
+                if in_target_spell {
+                    spell_end = i;
+                    break;
+                }
+                spell_start = i;
+                in_target_spell = true;
+            } else if in_target_spell && trimmed.starts_with("name = ") {
+                let name_value = trimmed
+                    .strip_prefix("name = ")
+                    .and_then(|s| s.strip_prefix('"'))
+                    .and_then(|s| s.strip_suffix('"'))
+                    .unwrap_or("");
+
+                if name_value == spell_name {
+                    continue;
+                } else {
+                    spell_end = i;
+                    break;
+                }
+            } else if in_target_spell && trimmed.starts_with("background = ") {
+                found_background_line = Some(i);
             }
         }
-    }
 
-    Ok(())
+        if !in_target_spell {
+            return Err(format!("Spell '{}' not found in codex", spell_name).into());
+        }
+
+        if spell_end == 0 {
+            spell_end = lines.len();
+        }
+
+        if let Some(line_idx) = found_background_line {
+            lines[line_idx] = format!("background = {}", background);
+        } else {
+            let insert_idx = spell_start + 1;
+            lines.insert(insert_idx, format!("background = {}", background));
+        }
+
+        let new_contents = lines.join("\n");
+        fs::write(path, new_contents)?;
+
+        log_info!("Spell '{}' updated successfully", spell_name);
+        Ok(())
+    }
 }

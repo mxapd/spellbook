@@ -1,0 +1,419 @@
+# Command: ps aux
+# Exit code: Some(0)
+
+# STDOUT:
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0  25248 15820 ?        Ss   12:13   0:01 /run/current-system/systemd/lib/systemd/systemd
+root           2  0.0  0.0      0     0 ?        S    12:13   0:00 [kthreadd]
+root           3  0.0  0.0      0     0 ?        S    12:13   0:00 [pool_workqueue_release]
+root           4  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/R-rcu_gp]
+root           5  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/R-sync_wq]
+root           6  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/R-kvfree_rcu_reclaim]
+root           7  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/R-slub_flushwq]
+root           8  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/R-netns]
+root          10  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/0:0H-events_highpri]
+root          11  0.0  0.0      0     0 ?        I    12:13   0:00 [kworker/0:1-cgroup_release]
+root          13  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/R-mm_percpu_wq]
+root          15  0.0  0.0      0     0 ?        S    12:13   0:00 [ksoftirqd/0]
+root          16  0.0  0.0      0     0 ?        I    12:13   0:10 [rcu_preempt]
+root          17  0.0  0.0      0     0 ?        S    12:13   0:00 [rcu_exp_par_gp_kthread_worker/0]
+root          18  0.0  0.0      0     0 ?        S    12:13   0:00 [rcu_exp_gp_kthread_worker]
+root          19  0.0  0.0      0     0 ?        S    12:13   0:01 [migration/0]
+root          20  0.0  0.0      0     0 ?        S    12:13   0:00 [idle_inject/0]
+root          21  0.0  0.0      0     0 ?        S    12:13   0:00 [cpuhp/0]
+root          22  0.0  0.0      0     0 ?        S    12:13   0:00 [cpuhp/1]
+root          23  0.0  0.0      0     0 ?        S    12:13   0:00 [idle_inject/1]
+root          24  0.0  0.0      0     0 ?        S    12:13   0:00 [migration/1]
+root          25  0.0  0.0      0     0 ?        S    12:13   0:00 [ksoftirqd/1]
+root          27  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/1:0H-events_highpri]
+root          28  0.0  0.0      0     0 ?        S    12:13   0:00 [cpuhp/2]
+root          29  0.0  0.0      0     0 ?        S    12:13   0:00 [idle_inject/2]
+root          30  0.0  0.0      0     0 ?        S    12:13   0:01 [migration/2]
+root          31  0.0  0.0      0     0 ?        S    12:13   0:00 [ksoftirqd/2]
+root          33  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/2:0H-events_highpri]
+root          34  0.0  0.0      0     0 ?        S    12:13   0:00 [cpuhp/3]
+root          35  0.0  0.0      0     0 ?        S    12:13   0:00 [idle_inject/3]
+root          36  0.0  0.0      0     0 ?        S    12:13   0:01 [migration/3]
+root          37  0.0  0.0      0     0 ?        S    12:13   0:00 [ksoftirqd/3]
+root          39  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/3:0H-events_highpri]
+root          40  0.0  0.0      0     0 ?        S    12:13   0:00 [cpuhp/4]
+root          41  0.0  0.0      0     0 ?        S    12:13   0:00 [idle_inject/4]
+root          42  0.0  0.0      0     0 ?        S    12:13   0:02 [migration/4]
+root          43  0.0  0.0      0     0 ?        S    12:13   0:00 [ksoftirqd/4]
+root          45  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/4:0H-events_highpri]
+root          46  0.0  0.0      0     0 ?        S    12:13   0:00 [cpuhp/5]
+root          47  0.0  0.0      0     0 ?        S    12:13   0:00 [idle_inject/5]
+root          48  0.0  0.0      0     0 ?        S    12:13   0:00 [migration/5]
+root          49  0.0  0.0      0     0 ?        S    12:13   0:00 [ksoftirqd/5]
+root          51  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/5:0H-events_highpri]
+root          52  0.0  0.0      0     0 ?        S    12:13   0:00 [cpuhp/6]
+root          53  0.0  0.0      0     0 ?        S    12:13   0:00 [idle_inject/6]
+root          54  0.0  0.0      0     0 ?        S    12:13   0:02 [migration/6]
+root          55  0.0  0.0      0     0 ?        S    12:13   0:00 [ksoftirqd/6]
+root          57  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/6:0H-events_highpri]
+root          58  0.0  0.0      0     0 ?        S    12:13   0:00 [cpuhp/7]
+root          59  0.0  0.0      0     0 ?        S    12:13   0:00 [idle_inject/7]
+root          60  0.0  0.0      0     0 ?        S    12:13   0:01 [migration/7]
+root          61  0.0  0.0      0     0 ?        S    12:13   0:00 [ksoftirqd/7]
+root          63  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/7:0H-events_highpri]
+root          64  0.0  0.0      0     0 ?        S    12:13   0:00 [cpuhp/8]
+root          65  0.0  0.0      0     0 ?        S    12:13   0:00 [idle_inject/8]
+root          66  0.0  0.0      0     0 ?        S    12:13   0:01 [migration/8]
+root          67  0.0  0.0      0     0 ?        S    12:13   0:00 [ksoftirqd/8]
+root          69  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/8:0H-events_highpri]
+root          70  0.0  0.0      0     0 ?        S    12:13   0:00 [cpuhp/9]
+root          71  0.0  0.0      0     0 ?        S    12:13   0:00 [idle_inject/9]
+root          72  0.0  0.0      0     0 ?        S    12:13   0:00 [migration/9]
+root          73  0.0  0.0      0     0 ?        S    12:13   0:00 [ksoftirqd/9]
+root          75  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/9:0H-events_highpri]
+root          76  0.0  0.0      0     0 ?        S    12:13   0:00 [cpuhp/10]
+root          77  0.0  0.0      0     0 ?        S    12:13   0:00 [idle_inject/10]
+root          78  0.0  0.0      0     0 ?        S    12:13   0:01 [migration/10]
+root          79  0.0  0.0      0     0 ?        S    12:13   0:00 [ksoftirqd/10]
+root          81  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/10:0H-events_highpri]
+root          82  0.0  0.0      0     0 ?        S    12:13   0:00 [cpuhp/11]
+root          83  0.0  0.0      0     0 ?        S    12:13   0:00 [idle_inject/11]
+root          84  0.0  0.0      0     0 ?        S    12:13   0:00 [migration/11]
+root          85  0.0  0.0      0     0 ?        S    12:13   0:00 [ksoftirqd/11]
+root          87  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/11:0H-events_highpri]
+root          88  0.0  0.0      0     0 ?        S    12:13   0:00 [cpuhp/12]
+root          89  0.0  0.0      0     0 ?        S    12:13   0:00 [idle_inject/12]
+root          90  0.0  0.0      0     0 ?        S    12:13   0:01 [migration/12]
+root          91  0.0  0.0      0     0 ?        S    12:13   0:00 [ksoftirqd/12]
+root          93  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/12:0H-events_highpri]
+root          94  0.0  0.0      0     0 ?        S    12:13   0:00 [cpuhp/13]
+root          95  0.0  0.0      0     0 ?        S    12:13   0:00 [idle_inject/13]
+root          96  0.0  0.0      0     0 ?        S    12:13   0:00 [migration/13]
+root          97  0.0  0.0      0     0 ?        S    12:13   0:00 [ksoftirqd/13]
+root          99  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/13:0H-events_highpri]
+root         100  0.0  0.0      0     0 ?        S    12:13   0:00 [cpuhp/14]
+root         101  0.0  0.0      0     0 ?        S    12:13   0:00 [idle_inject/14]
+root         102  0.0  0.0      0     0 ?        S    12:13   0:01 [migration/14]
+root         103  0.0  0.0      0     0 ?        S    12:13   0:00 [ksoftirqd/14]
+root         104  0.0  0.0      0     0 ?        I    12:13   0:00 [kworker/14:0-mm_percpu_wq]
+root         105  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/14:0H-events_highpri]
+root         106  0.0  0.0      0     0 ?        S    12:13   0:00 [cpuhp/15]
+root         107  0.0  0.0      0     0 ?        S    12:13   0:00 [idle_inject/15]
+root         108  0.0  0.0      0     0 ?        S    12:13   0:00 [migration/15]
+root         109  0.0  0.0      0     0 ?        S    12:13   0:00 [ksoftirqd/15]
+root         111  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/15:0H-events_highpri]
+root         112  0.0  0.0      0     0 ?        S    12:13   0:00 [kdevtmpfs]
+root         113  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/R-inet_frag_wq]
+root         114  0.0  0.0      0     0 ?        I    12:13   0:00 [rcu_tasks_kthread]
+root         115  0.0  0.0      0     0 ?        I    12:13   0:00 [rcu_tasks_rude_kthread]
+root         116  0.0  0.0      0     0 ?        I    12:13   0:00 [rcu_tasks_trace_kthread]
+root         117  0.0  0.0      0     0 ?        S    12:13   0:00 [kauditd]
+root         118  0.0  0.0      0     0 ?        S    12:13   0:00 [khungtaskd]
+root         119  0.0  0.0      0     0 ?        S    12:13   0:00 [oom_reaper]
+root         121  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/R-writeback]
+root         122  0.0  0.0      0     0 ?        S    12:13   0:00 [kcompactd0]
+root         123  0.0  0.0      0     0 ?        SN   12:13   0:00 [ksmd]
+root         124  0.0  0.0      0     0 ?        SN   12:13   0:00 [khugepaged]
+root         125  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/R-kblockd]
+root         126  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/R-blkcg_punt_bio]
+root         127  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/R-kintegrityd]
+root         128  0.0  0.0      0     0 ?        S    12:13   0:00 [irq/9-acpi]
+root         130  0.0  0.0      0     0 ?        I    12:13   0:00 [kworker/9:1-mm_percpu_wq]
+root         131  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/R-tpm_dev_wq]
+root         132  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/R-devfreq_wq]
+root         133  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/R-quota_events_unbound]
+root         134  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/8:1H-kblockd]
+root         135  0.0  0.0      0     0 ?        S    12:13   0:00 [irq/25-AMD-Vi]
+root         136  0.0  0.0      0     0 ?        I    12:13   0:00 [kworker/1:1-events]
+root         137  0.0  0.0      0     0 ?        S    12:13   0:00 [kswapd0]
+root         138  0.0  0.0      0     0 ?        I    12:13   0:09 [kdamond.0]
+root         139  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/R-kthrotld]
+root         140  0.0  0.0      0     0 ?        I<   12:13   0:28 [kworker/u65:0-hci0]
+root         146  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/R-mld]
+root         147  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/R-ipv6_addrconf]
+root         148  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/R-kstrp]
+root         149  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/9:1H-kblockd]
+root         150  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/0:1H-kblockd]
+root         173  0.0  0.0      0     0 ?        I    12:13   0:00 [kworker/5:1-mm_percpu_wq]
+root         175  0.0  0.0      0     0 ?        I    12:13   0:00 [kworker/3:1-events]
+root         182  0.0  0.0      0     0 ?        I    12:13   0:00 [kworker/10:1-events]
+root         184  0.0  0.0      0     0 ?        I    12:13   0:00 [kworker/15:1-cgroup_release]
+root         201  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/10:1H-kblockd]
+root         202  0.0  0.0      0     0 ?        I    12:13   0:00 [kworker/12:1-mm_percpu_wq]
+root         203  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/5:1H-kblockd]
+root         204  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/7:1H-kblockd]
+root         205  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/1:1H-kblockd]
+root         255  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/2:1H-kblockd]
+root         256  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/3:1H-kblockd]
+root         257  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/4:1H-kblockd]
+root         258  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/6:1H-kblockd]
+root         259  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/11:1H-kblockd]
+root         260  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/12:1H-kblockd]
+root         261  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/13:1H-kblockd]
+root         262  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/14:1H-kblockd]
+root         263  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/15:1H-kblockd]
+root         264  0.0  0.0      0     0 ?        I    12:13   0:00 [kworker/8:2-events]
+root         265  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/R-nvme-wq]
+root         266  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/R-nvme-reset-wq]
+root         267  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/R-nvme-delete-wq]
+root         268  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/R-nvme-auth-wq]
+root         269  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/R-ata_sff]
+root         271  0.0  0.0      0     0 ?        S    12:13   0:00 [scsi_eh_0]
+root         272  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/R-scsi_tmf_0]
+root         273  0.0  0.0      0     0 ?        S    12:13   0:00 [scsi_eh_1]
+root         274  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/R-scsi_tmf_1]
+root         275  0.0  0.0      0     0 ?        S    12:13   0:00 [scsi_eh_2]
+root         276  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/R-scsi_tmf_2]
+root         277  0.0  0.0      0     0 ?        S    12:13   0:00 [scsi_eh_3]
+root         278  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/R-scsi_tmf_3]
+root         279  0.0  0.0      0     0 ?        S    12:13   0:00 [scsi_eh_4]
+root         280  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/R-scsi_tmf_4]
+root         281  0.0  0.0      0     0 ?        S    12:13   0:00 [scsi_eh_5]
+root         282  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/R-scsi_tmf_5]
+root         283  0.0  0.0      0     0 ?        S    12:13   0:00 [kworker/u64:4+iou_exit]
+root         286  0.0  0.0      0     0 ?        S    12:13   0:00 [kworker/u64:7+iou_exit]
+root         296  0.0  0.0      0     0 ?        I    12:13   0:00 [kworker/13:1-events]
+root         297  0.0  0.0      0     0 ?        I    12:13   0:00 [kworker/4:2-events]
+root         354  0.0  0.0      0     0 ?        S    12:13   0:00 [jbd2/nvme0n1p2-8]
+root         355  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/R-ext4-rsv-conversion]
+root         647  0.0  0.0      0     0 ?        S    12:13   0:00 [psimon]
+root         657  0.0  0.0  68248 24264 ?        Ss   12:13   0:00 /nix/store/wxyn8d3m8g4fnn6xazinjwhzhzdg6wib-systemd-259/lib/systemd/systemd-journald
+systemd+     661  0.0  0.0  16496  7412 ?        Ss   12:13   0:00 /nix/store/wxyn8d3m8g4fnn6xazinjwhzhzdg6wib-systemd-259/lib/systemd/systemd-oomd
+systemd+     680  0.0  0.0  95896  9384 ?        Ssl  12:13   0:00 /nix/store/wxyn8d3m8g4fnn6xazinjwhzhzdg6wib-systemd-259/lib/systemd/systemd-timesyncd
+root         684  0.0  0.0  42340 14224 ?        Ss   12:13   0:00 /nix/store/wxyn8d3m8g4fnn6xazinjwhzhzdg6wib-systemd-259/lib/systemd/systemd-udevd
+root         702  0.0  0.0      0     0 ?        S    12:13   0:00 [psimon]
+root         741  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/R-iprt-VBoxWQueue]
+root         753  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/R-led_workqueue]
+root         759  0.0  0.0      0     0 ?        S    12:13   0:00 [iprt-VBoxTscThread]
+root         764  0.0  0.0      0     0 ?        I    12:13   0:00 [kworker/6:2-cgroup_release]
+root         884  0.0  0.0      0     0 ?        S    12:13   0:00 [nv_queue]
+root         885  0.0  0.0      0     0 ?        S    12:13   0:00 [nv_mem_pool_scrubber_queue]
+root         886  0.0  0.0      0     0 ?        S    12:13   0:00 [nv_mem_pool_scrubber_queue]
+root         887  0.0  0.0      0     0 ?        S    12:13   0:00 [nv_mem_pool_scrubber_queue]
+root         888  0.0  0.0      0     0 ?        S    12:13   0:00 [nv_queue]
+root         889  0.0  0.0      0     0 ?        S    12:13   0:00 [nv_open_q]
+root         895  0.0  0.0      0     0 ?        S    12:13   0:00 [watchdogd]
+root         908  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/R-cfg80211]
+root         922  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/R-edac-poller]
+root         930  0.0  0.0      0     0 ?        I    12:13   0:01 [kworker/2:3-events]
+root         939  0.2  0.0      0     0 ?        S    12:13   1:30 [nvidia-modeset/kthread_q]
+root         940  0.0  0.0      0     0 ?        S    12:13   0:00 [nvidia-modeset/deferred_close_kthread_q]
+root         948  0.0  0.0      0     0 ?        S    12:13   0:00 [irq/87-nvidia]
+root         949  0.0  0.0      0     0 ?        S    12:13   0:00 [nvidia]
+root         950  0.0  0.0      0     0 ?        S    12:13   0:00 [nv_queue]
+root         951  0.0  0.0      0     0 ?        S    12:13   0:01 [irq/88-rtw88_pci]
+root         965  0.0  0.0      0     0 ?        S    12:13   0:00 [UVM global queue]
+root         966  0.0  0.0      0     0 ?        S    12:13   0:00 [UVM deferred release queue]
+root         967  0.0  0.0      0     0 ?        S    12:13   0:00 [UVM Tools Event Queue]
+root        1101  0.0  0.0   2708  2040 ?        Ss   12:13   0:01 /nix/store/j3wqdbkfkiqq2938297qmb5jv17fxg4d-acpid-2.0.34/bin/acpid --foreground --netlink --confdir /nix/store/ijpx83y84ycqnxfyd5kr1vfxhzgl1vq8-acpi-events
+root        1102  0.0  0.0  12924  7148 ?        Ss   12:13   0:00 /nix/store/ypxd9dldr1j8lbg7a5ws42gqa2kizgyh-bluez-5.84/libexec/bluetooth/bluetoothd -f /etc/bluetooth/main.conf
+message+    1103  0.0  0.0  19024  9452 ?        Ss   12:13   0:02 /nix/store/c9cnbxhxbagj7gfpc1g5hl4x4f8dzayv-dbus-1.16.2/bin/dbus-daemon --system --address=systemd: --nofork --nopidfile --systemd-activation --syslog-only
+root        1168  0.0  0.0  20060  9848 ?        Ss   12:13   0:00 /nix/store/wxyn8d3m8g4fnn6xazinjwhzhzdg6wib-systemd-259/lib/systemd/systemd-logind
+wpa_sup+    1246  0.0  0.0  19176 11740 ?        Ss   12:13   0:35 wpa_supplicant -s -u -Dnl80211,wext -c /etc/wpa_supplicant/imperative.conf
+root        1406  0.0  0.0 342340 25116 ?        Ssl  12:13   0:07 /nix/store/5q8y4gqcrp6dnwxkkcqsl4xp1nd39q0b-networkmanager-1.56.0/sbin/NetworkManager --no-daemon
+root        1431  0.0  0.0 639952 34160 ?        Ssl  12:13   0:00 nix-daemon --daemon
+root        1587  0.0  0.0      0     0 ?        I    12:13   0:00 [kworker/11:3-events]
+root        1933  0.0  0.0  12372  8084 ?        Ss   12:13   0:00 sshd: /nix/store/vlhrk50xg0lmivk049q8yygbsm86l6m0-openssh-10.2p1/bin/sshd -D -f /etc/ssh/sshd_config [listener] 0 of 10-100 startups
+xam         1934  0.0  0.0 1599960 22452 ?       Ssl  12:13   0:00 /nix/store/qmvjxwbd50z2l38xghff3yi13ca7p0r4-syncthing-2.0.12/bin/syncthing --config=/home/xam/.syncthing/ --data=/home/xam/.syncthing/ --gui-address=0.0.0.0:8384 --no-browser
+root        1936  0.0  0.1 1336144 53092 ?       Ssl  12:13   0:09 /nix/store/mc7ipcvjdr74dnfd16p4kmnispiy4792-tailscale-1.94.2/bin/tailscaled --state=/var/lib/tailscale/tailscaled.state --socket=/run/tailscale/tailscaled.sock --port=41641 --tun tailscale0
+root        1950  0.0  0.0 167352 25568 ?        Ssl  12:13   0:00 /nix/store/q93hdj6c9vw5hkdy9s7hb7d47sygwhmx-sddm-unwrapped-0.21.0/bin/sddm
+postgres    1959  0.0  0.0 223244 29172 ?        Ss   12:13   0:00 /nix/store/zv2qns9cadxxic61715didamlvk2dzkd-postgresql-and-plugins-17.9/bin/postgres
+mysql       1961  0.0  0.2 1429448 113112 ?      Ssl  12:13   0:01 /nix/store/fhjcar6z841y22rb5l0sclfxn11gipmb-mariadb-server-11.4.9/bin/mysqld --defaults-file=/etc/my.cnf --user=mysql --datadir=/var/lib/mysql --basedir=/nix/store/fhjcar6z841y22rb5l0sclfxn11gipmb-mariadb-server-11.4.9
+root        1978  0.0  0.1 25436152 74036 tty2   Ssl+ 12:13   0:00 /nix/store/a86d34l78hd1cm0dg3fw09c0qqr245dw-xorg-server-21.1.21/bin/X -config /nix/store/r79gy0i7wpxd6cy0aazrshaf8j6ljqap-xserver.conf -xkbdir /nix/store/7l9d49jd3c3a9hyqx70frrn616n3il4i-xkeyboard-config-2.46/etc/X11/xkb -logfile /dev/null -verbose 3 -nolisten tcp -terminate -nolisten tcp -background none -seat seat0 vt2 -auth /run/sddm/xauth_vCvvrW -noreset -displayfd 16
+xam         1980  1.7  0.3 2829820 160732 ?      SNl  12:13  11:50 /nix/store/qmvjxwbd50z2l38xghff3yi13ca7p0r4-syncthing-2.0.12/bin/syncthing --config=/home/xam/.syncthing/ --data=/home/xam/.syncthing/ --gui-address=0.0.0.0:8384 --no-browser
+postgres    1989  0.0  0.0 223396  8776 ?        Ss   12:13   0:00 postgres: checkpointer 
+postgres    1990  0.0  0.0 223380  6724 ?        Ss   12:13   0:00 postgres: background writer 
+postgres    1992  0.0  0.0 223380  9976 ?        Ss   12:13   0:00 postgres: walwriter 
+postgres    1993  0.0  0.0 224840  9068 ?        Ss   12:13   0:00 postgres: autovacuum launcher 
+postgres    1994  0.0  0.0 224844  8080 ?        Ss   12:13   0:00 postgres: logical replication launcher 
+root        2033  0.0  0.0      0     0 ?        I<   12:13   0:00 [kworker/R-dio/nvme0n1p2]
+root        2090  0.0  0.0      0     0 ?        S    12:13   0:00 [nvidia-drm/timeline-6]
+nscd        2257  0.0  0.0 693636  8860 ?        Ssl  12:13   0:07 /nix/store/84i462qbgwrjrh2jpywvi3pvf1k5djmc-nsncd-1.5.2/bin/nsncd
+root        2344  0.0  0.0 100532 28264 ?        S    12:14   0:00 /nix/store/q93hdj6c9vw5hkdy9s7hb7d47sygwhmx-sddm-unwrapped-0.21.0/libexec/sddm-helper --socket /tmp/sddm-auth-8e2f9490-a427-46ae-88e8-7eb7a0ac3ff2 --id 1 --start /nix/store/q58vx1g25sip65155fpc23q21i7qd08b-hyprland-0.54.0+date=2026-03-17_7759517/bin/start-hyprland --user xam
+xam         2350  0.0  0.0  23316 13700 ?        Ss   12:14   0:00 /nix/store/wxyn8d3m8g4fnn6xazinjwhzhzdg6wib-systemd-259/lib/systemd/systemd --user
+xam         2353  0.0  0.0  26792  4216 ?        S    12:14   0:00 (sd-pam)
+xam         2378  0.0  0.0  14356  3932 ?        Ssl  12:14   0:00 /nix/store/sd59jlxl105z3xraq6mwn6pf4q0p63m2-gamemode-1.8.2/bin/gamemoded
+xam         2390  0.0  0.0  16004  5012 tty1     Ssl+ 12:14   0:00 /nix/store/q58vx1g25sip65155fpc23q21i7qd08b-hyprland-0.54.0+date=2026-03-17_7759517/bin/start-hyprland
+xam         2394  0.0  0.0   8384  5112 ?        Ss   12:14   0:07 /nix/store/c9cnbxhxbagj7gfpc1g5hl4x4f8dzayv-dbus-1.16.2/bin/dbus-daemon --session --address=systemd: --nofork --nopidfile --systemd-activation --syslog-only
+xam         2401  7.7  0.5 832116 262068 tty1    Sl+  12:14  51:32 /home/xam/.nix-profile/bin/Hyprland --watchdog-fd 4
+root        2419  0.0  0.0      0     0 ?        S    12:14   0:28 [nvidia-drm/timeline-c]
+xam         2423  0.1  0.1 1437576 57212 tty1    Sl+  12:14   0:42 waybar
+xam         2424  0.0  0.0 101692 17924 tty1     Sl+  12:14   0:00 mako
+xam         2428  0.0  0.2 673316 113724 ?       Ssl  12:14   0:01 /nix/store/zjsq2xziskdvvvsvhldz96grlsw9gl8v-hyprpaper-0.8.3/bin/hyprpaper
+xam         2432  0.0  0.3 482164 179552 tty1    S+   12:14   0:01 Xwayland :1 -rootless -core -listenfd 69 -listenfd 70 -displayfd 115 -wm 112
+root        2440  0.0  0.0      0     0 ?        S    12:14   0:00 [nvidia-drm/timeline-d]
+root        2441  0.0  0.0      0     0 ?        S    12:14   0:00 [nvidia-drm/timeline-e]
+xam         2442  0.0  0.0 554436 17264 ?        Ssl  12:14   0:00 /nix/store/f755892i3b95r5yjmgwphxszbqaxp341-xdg-desktop-portal-1.20.3/libexec/xdg-desktop-portal
+xam         2450  0.0  0.0 312724  7328 ?        Ssl  12:14   0:00 /nix/store/f755892i3b95r5yjmgwphxszbqaxp341-xdg-desktop-portal-1.20.3/libexec/xdg-permission-store
+xam         2457  0.0  0.0 543684  7860 ?        Ssl  12:14   0:00 /nix/store/f755892i3b95r5yjmgwphxszbqaxp341-xdg-desktop-portal-1.20.3/libexec/xdg-document-portal
+root        2464  0.0  0.0   2696  2080 ?        Ss   12:14   0:00 /nix/store/afpzn34vw2v99y4djp599qyxyabj0yp4-fuse-3.17.4-bin/bin/fusermount3 -o rw,nosuid,nodev,fsname=portal,auto_unmount,subtype=portal -- /run/user/1000/doc
+rtkit       2470  0.0  0.0  22564  3608 ?        SNsl 12:14   0:00 /nix/store/b3sa6d747x3riwngsljylmlwji2766i9-rtkit-0.14/libexec/rtkit-daemon
+xam         2473  0.0  0.0 340068 19168 ?        SLsl 12:14   0:17 /nix/store/crv15i9jddazy08192axk0aaw9yb96p8-xdg-desktop-portal-hyprland-1.3.11+date=2026-03-05_906d0ac/libexec/xdg-desktop-portal-hyprland
+xam         2475  0.1  0.0 131884 22860 ?        Ssl  12:14   0:58 /nix/store/fcqhn9m2sih0rmhw1j1ffxrkl8vw7248-pipewire-1.4.10/bin/pipewire
+xam         2476  0.1  0.0 722152 34276 ?        Ssl  12:14   1:13 /nix/store/bghrxik70ph8p1qgm9w6882ajvx623wd-wireplumber-0.5.13/bin/wireplumber
+xam         2488  0.3  0.0 130632 26056 ?        SLsl 12:14   2:37 /nix/store/fcqhn9m2sih0rmhw1j1ffxrkl8vw7248-pipewire-1.4.10/bin/pipewire-pulse
+root        2515  0.0  0.0      0     0 ?        S<   12:14   0:00 [krfcommd]
+xam         2522  7.1  4.6 14408644 2268036 tty1 Sl+  12:14  47:27 /run/current-system/sw/bin/firefox
+xam         2527  0.0  0.0 151020  3452 ?        Sl   12:14   0:00 /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/crashhelper 2522 15 /tmp/ 17
+xam         2593  0.0  0.0 452468 31008 tty1     S+   12:14   0:00 /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/firefox -contentproc -ipcHandle 0 -signalPipe 1 -initialChannelId {4b44e806-7f41-4efc-87f0-cc394673f7dd} -parentPid 2522 -greomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/omni.ja -appomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser/omni.ja -appDir /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser 1 forkserver
+root        2594  0.0  0.0      0     0 ?        S    12:14   0:02 [nvidia-drm/timeline-14]
+xam         2596  0.0  0.0 466712 38268 tty1     Sl+  12:14   0:00 /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/firefox -contentproc -parentBuildID 20260309125808 -prefsHandle 0:38509 -prefMapHandle 1:280650 -sandboxReporter 2 -chrootClient 3 -ipcHandle 4 -initialChannelId {f4778a89-9b9f-44ce-9481-6049049cd61a} -parentPid 2522 -crashReporter 5 -crashHelper 6 -appDir /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser 2 socket
+xam         2617  0.0  0.3 2875636 194104 tty1   Sl+  12:14   0:16 /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/firefox -contentproc -isForBrowser -prefsHandle 0:38596 -prefMapHandle 1:280650 -jsInitHandle 2:227672 -parentBuildID 20260309125808 -sandboxReporter 3 -chrootClient 4 -ipcHandle 5 -initialChannelId {52d486c6-3336-4e0e-acca-fabe982cfbfd} -parentPid 2522 -crashReporter 6 -crashHelper 7 -greomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/omni.ja -appomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser/omni.ja -appDir /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser 3 tab
+xam         2627  0.0  0.1 621080 58116 tty1     Sl+  12:14   0:01 /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/firefox -contentproc -parentBuildID 20260309125808 -prefsHandle 0:38596 -prefMapHandle 1:280650 -sandboxReporter 2 -chrootClient 3 -ipcHandle 4 -initialChannelId {504d506a-1db4-472e-a14a-3464d72c461d} -parentPid 2522 -crashReporter 5 -crashHelper 6 -appDir /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser 4 rdd
+polkitu+    2657  0.0  0.0 382448  9828 ?        Ssl  12:14   0:00 /nix/store/zyb7ysf9qn3s2wazv0ww54c12x1qy55h-polkit-127/lib/polkit-1/polkitd --no-debug
+xam         2696  0.1  0.4 19888988 221040 tty1  Sl+  12:14   0:53 /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/firefox -contentproc -isForBrowser -prefsHandle 0:38661 -prefMapHandle 1:280650 -jsInitHandle 2:227672 -parentBuildID 20260309125808 -sandboxReporter 3 -chrootClient 4 -ipcHandle 5 -initialChannelId {f738cce7-3dd2-4114-831d-b4a93406b805} -parentPid 2522 -crashReporter 6 -crashHelper 7 -greomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/omni.ja -appomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser/omni.ja -appDir /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser 5 tab
+xam         2739  0.2  0.1 581436 50980 tty1     Sl+  12:14   1:41 /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/firefox -contentproc -parentBuildID 20260309125808 -sandboxingKind 0 -prefsHandle 0:49400 -prefMapHandle 1:280650 -sandboxReporter 2 -chrootClient 3 -ipcHandle 4 -initialChannelId {bbc0ff5f-3d72-43ee-b1ba-905cc11218a7} -parentPid 2522 -crashReporter 5 -crashHelper 6 -appDir /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser 6 utility
+xam         2778  0.1  0.5 2937276 281200 tty1   Sl+  12:14   1:05 /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/firefox -contentproc -isForBrowser -prefsHandle 0:44467 -prefMapHandle 1:280650 -jsInitHandle 2:227672 -parentBuildID 20260309125808 -sandboxReporter 3 -chrootClient 4 -ipcHandle 5 -initialChannelId {62377556-1385-433f-b214-c0126d742117} -parentPid 2522 -crashReporter 6 -crashHelper 7 -greomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/omni.ja -appomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser/omni.ja -appDir /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser 7 tab
+root        2970  0.0  0.0      0     0 ?        S    12:14   0:00 [nvidia-drm/timeline-21]
+root        2973  0.0  0.0      0     0 ?        S    12:14   0:00 [nvidia-drm/timeline-22]
+xam         3044  0.0  0.0 164704  6208 ?        Ssl  12:14   0:00 /nix/store/35546s9rph83k81mmagfssbr2ml0ai12-dconf-0.49.0-lib/libexec/dconf-service
+xam         3054  0.0  0.0  49620  9388 ?        Ss   12:14   0:00 /nix/store/ypxd9dldr1j8lbg7a5ws42gqa2kizgyh-bluez-5.84/libexec/bluetooth/obexd
+xam         3139  0.0  0.0  11868  2140 ?        Ss   12:14   0:00 ssh-agent -s
+xam         3142  0.2  0.0  20336  9824 ?        Ss   12:14   1:20 tmux
+xam         3145  0.0  0.0  15260  8228 pts/1    Ss   12:14   0:00 -zsh
+xam         3198  0.7  0.0 358236 12024 pts/1    SLl+ 12:14   5:07 wiremix
+xam         3912  0.0  0.3 500168 166312 tty1    Sl+  12:22   0:06 kitty
+root        3913  0.0  0.0      0     0 ?        S    12:22   0:00 [nvidia-drm/timeline-80]
+xam         3914  0.0  0.0 1351180 24220 tty1    Sl+  12:22   0:00 /nix/store/4gsq4shmyxa246wq1ydi3k0lgp60m9lq-kitty-0.46.0/bin/kitten __atexit__
+xam         3920  0.0  0.0  14104  5328 pts/0    Ss+  12:22   0:00 tmux
+xam         3957  0.0  0.0  11868  2144 ?        Ss   12:22   0:00 ssh-agent -s
+xam         3959  0.0  0.0  15768  8912 pts/2    Ss   12:22   0:00 -zsh
+xam         4133  0.2  0.5 1459923068 247448 tty1 Sl+ 12:22   1:29 /run/current-system/sw/bin/DiscordCanary --ozone-platform=wayland --enable-features=WaylandWindowDecorations --enable-wayland-ime=true --enable-speech-dispatcher
+xam         4140  0.0  0.1 34073132 50184 tty1   S+   12:22   0:00 /nix/store/0fj857j050x5flgk26773cwzc0736jl2-discord-canary-0.0.902/opt/DiscordCanary/.DiscordCanary-wrapped --type=zygote --no-zygote-sandbox
+xam         4141  0.0  0.1 34073124 50844 tty1   S+   12:22   0:00 /nix/store/0fj857j050x5flgk26773cwzc0736jl2-discord-canary-0.0.902/opt/DiscordCanary/.DiscordCanary-wrapped --type=zygote
+xam         4143  0.0  0.0 34073148 13212 tty1   S+   12:22   0:00 /nix/store/0fj857j050x5flgk26773cwzc0736jl2-discord-canary-0.0.902/opt/DiscordCanary/.DiscordCanary-wrapped --type=zygote
+xam         4156  0.0  0.0 33576184 3608 ?       Sl   12:22   0:00 /nix/store/0fj857j050x5flgk26773cwzc0736jl2-discord-canary-0.0.902/opt/DiscordCanary/chrome_crashpad_handler --monitor-self-annotation=ptype=crashpad-handler --no-rate-limit --database=/home/xam/.config/discordcanary/Crashpad --url=https://f.a.k/e --annotation=_productName=discord-canary --annotation=_version=0.0.902 --annotation=lsb-release=NixOS 26.05 (Yarara) --annotation=plat=Linux --annotation=prod=Electron --annotation=ver=37.6.0 --initial-client-fd=39 --shared-client-connection
+xam         4178  0.7  0.5 34573936 252464 tty1  Sl+  12:22   5:05 /nix/store/0fj857j050x5flgk26773cwzc0736jl2-discord-canary-0.0.902/opt/DiscordCanary/.DiscordCanary-wrapped --type=zygote --no-zygote-sandbox
+xam         4183  0.0  0.1 33960568 84712 tty1   Sl+  12:22   0:06 /proc/self/exe --type=utility --utility-sub-type=network.mojom.NetworkService --lang=en-US --service-sandbox-type=none --crashpad-handler-pid=4156 --enable-crash-reporter=241b1524-bbb4-4838-bb0d-3cd87fdb5726,no_channel --user-data-dir=/home/xam/.config/discordcanary --standard-schemes=disclip --secure-schemes=disclip,sentry-ipc --bypasscsp-schemes=sentry-ipc --cors-schemes=sentry-ipc --fetch-schemes=disclip,sentry-ipc --streaming-schemes=disclip --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,898870392055745250,13603834303300120528,262144 --enable-features=WaylandWindowDecorations --disable-features=AllowAggressiveThrottlingWithWebSocket,HardwareMediaKeyHandling,IntensiveWakeUpThrottling,MediaSessionService,ScreenAIOCREnabled,SpareRendererForSitePerProcess,UseEcoQoSForBackgroundProcess,WinRetrieveSuggestionsOnlyOnDemand --variations-seed-version
+root        4192  0.0  0.0      0     0 ?        S    12:22   0:00 [nvidia-drm/timeline-84]
+xam         4197  0.0  0.0 34459076 32140 tty1   S+   12:22   0:00 /nix/store/0fj857j050x5flgk26773cwzc0736jl2-discord-canary-0.0.902/opt/DiscordCanary/.DiscordCanary-wrapped --type=zygote --no-zygote-sandbox
+xam         4244  8.1  1.5 1484677968 771576 tty1 SLl+ 12:22  53:14 /proc/self/exe --type=renderer --crashpad-handler-pid=4156 --enable-crash-reporter=241b1524-bbb4-4838-bb0d-3cd87fdb5726,no_channel --user-data-dir=/home/xam/.config/discordcanary --standard-schemes=disclip --secure-schemes=disclip,sentry-ipc --bypasscsp-schemes=sentry-ipc --cors-schemes=sentry-ipc --fetch-schemes=disclip,sentry-ipc --streaming-schemes=disclip --app-path=/nix/store/0fj857j050x5flgk26773cwzc0736jl2-discord-canary-0.0.902/opt/DiscordCanary/resources/app.asar --no-sandbox --no-zygote --enable-blink-features=EnumerateDevices,AudioOutputDevices --autoplay-policy=no-user-gesture-required --openh264-library-path=/home/xam/.config/discordcanary/discord_asset_cache/openh264/libopenh264-2.5.1-linux64.7.so --enable-libopenh264 --ozone-platform=wayland --lang=en-US --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=6 --time-ticks-at-unix-epoch=-1774005223371207 --launch-time-ticks=543189127 --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,898870392055745250,13603834303300120528,262144 --enable-features=WaylandWindowDecorations --disable-features=AllowAggressiveThrottlingWithWebSocket,HardwareMediaKeyHandling,IntensiveWakeUpThrottling,MediaSessionService,ScreenAIOCREnabled,SpareRendererForSitePerProcess,UseEcoQoSForBackgroundProcess,WinRetrieveSuggestionsOnlyOnDemand --variations-seed-version --enable-node-leakage-in-renderers
+xam         4302  0.0  0.1 33939804 63184 tty1   Sl+  12:22   0:00 /proc/self/exe --type=utility --utility-sub-type=audio.mojom.AudioService --lang=en-US --service-sandbox-type=none --crashpad-handler-pid=4156 --enable-crash-reporter=241b1524-bbb4-4838-bb0d-3cd87fdb5726,no_channel --user-data-dir=/home/xam/.config/discordcanary --standard-schemes=disclip --secure-schemes=disclip,sentry-ipc --bypasscsp-schemes=sentry-ipc --cors-schemes=sentry-ipc --fetch-schemes=disclip,sentry-ipc --streaming-schemes=disclip --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,898870392055745250,13603834303300120528,262144 --enable-features=WaylandWindowDecorations --disable-features=AllowAggressiveThrottlingWithWebSocket,HardwareMediaKeyHandling,IntensiveWakeUpThrottling,MediaSessionService,ScreenAIOCREnabled,SpareRendererForSitePerProcess,UseEcoQoSForBackgroundProcess,WinRetrieveSuggestionsOnlyOnDemand --variations-seed-version
+xam         4550  0.0  0.0 122136 10740 ?        Ssl  12:22   0:00 /nix/store/c3k934vx5j11jdg53m8bi5vs87svs4k0-speech-dispatcher-0.12.1/bin/speech-dispatcher -s -t 0
+xam         4562  0.0  0.0      0     0 ?        Z    12:22   0:00 [sd_voxin] <defunct>
+xam         4563  0.0  0.0      0     0 ?        Z    12:22   0:00 [sd_baratinoo] <defunct>
+xam         4564  0.0  0.0  16056 10056 ?        S    12:22   0:00 /nix/store/c3k934vx5j11jdg53m8bi5vs87svs4k0-speech-dispatcher-0.12.1/libexec/speech-dispatcher-modules/sd_pico /etc/speech-dispatcher/modules/pico.conf
+xam         4565  0.0  0.0      0     0 ?        Z    12:22   0:00 [sd_cicero] <defunct>
+xam         4566  0.0  0.0      0     0 ?        Z    12:22   0:00 [sd_kali] <defunct>
+xam         4567  0.0  0.0      0     0 ?        Z    12:22   0:00 [sd_festival] <defunct>
+xam         4568  0.0  0.0  18764  5932 ?        S    12:22   0:00 /nix/store/c3k934vx5j11jdg53m8bi5vs87svs4k0-speech-dispatcher-0.12.1/libexec/speech-dispatcher-modules/sd_flite /etc/speech-dispatcher/modules/flite.conf
+xam         4569  0.0  0.0      0     0 ?        Z    12:22   0:00 [sd_espeak-ng-mb] <defunct>
+xam         4672  0.0  0.0  27444 11648 ?        S    12:22   0:00 /nix/store/c3k934vx5j11jdg53m8bi5vs87svs4k0-speech-dispatcher-0.12.1/libexec/speech-dispatcher-modules/sd_espeak-ng /etc/speech-dispatcher/modules/espeak-ng.conf
+xam         4673  0.0  0.0  97288  6700 ?        Sl   12:22   0:00 /nix/store/c3k934vx5j11jdg53m8bi5vs87svs4k0-speech-dispatcher-0.12.1/libexec/speech-dispatcher-modules/sd_dummy /etc/speech-dispatcher/modules/dummy.conf
+xam         4676  0.0  0.0      0     0 ?        Z    12:22   0:00 [sd_openjtalk] <defunct>
+xam         4677  0.0  0.0  27532 11640 ?        S    12:22   0:00 /nix/store/c3k934vx5j11jdg53m8bi5vs87svs4k0-speech-dispatcher-0.12.1/libexec/speech-dispatcher-modules/sd_espeak-ng /etc/speech-dispatcher/modules/
+xam         5860  0.0  0.4 7073720 211848 tty1   Sl+  12:26   0:15 /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/firefox -contentproc -isForBrowser -prefsHandle 0:44467 -prefMapHandle 1:280650 -jsInitHandle 2:227672 -parentBuildID 20260309125808 -sandboxReporter 3 -chrootClient 4 -ipcHandle 5 -initialChannelId {db52a60c-0eed-45b6-a173-18102b85d5f6} -parentPid 2522 -crashReporter 6 -crashHelper 7 -greomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/omni.ja -appomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser/omni.ja -appDir /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser 15 tab
+xam         6301  0.0  0.0  18920 10444 pts/2    T    12:28   0:00 /nix/store/cyqhaxxc2ygqvvvdm8ybcx4im4qn0asf-neovim-unwrapped-0.11.6/bin/nvim --cmd set packpath^=/nix/store/rzqwcw0b0glxsmnvci6mg6iglmm6gbc1-vim-pack-dir --cmd set rtp^=/nix/store/rzqwcw0b0glxsmnvci6mg6iglmm6gbc1-vim-pack-dir flake.nix
+xam         6302  0.1  0.0  45124 37192 ?        Ss   12:28   1:03 /nix/store/cyqhaxxc2ygqvvvdm8ybcx4im4qn0asf-neovim-unwrapped-0.11.6/bin/nvim --embed --cmd set packpath^=/nix/store/rzqwcw0b0glxsmnvci6mg6iglmm6gbc1-vim-pack-dir --cmd set rtp^=/nix/store/rzqwcw0b0glxsmnvci6mg6iglmm6gbc1-vim-pack-dir flake.nix
+root        7038  0.0  0.0      0     0 ?        S    12:33   0:00 [kworker/u64:0+iou_exit]
+root        7294  0.0  0.0      0     0 ?        I    12:33   0:00 [kworker/4:0]
+root        7385  0.0  0.0      0     0 ?        S    12:34   0:00 [kworker/u64:3+iou_exit]
+xam         7439  0.0  0.0  18936 10396 pts/2    T    12:35   0:00 /nix/store/cyqhaxxc2ygqvvvdm8ybcx4im4qn0asf-neovim-unwrapped-0.11.6/bin/nvim --cmd set packpath^=/nix/store/rzqwcw0b0glxsmnvci6mg6iglmm6gbc1-vim-pack-dir --cmd set rtp^=/nix/store/rzqwcw0b0glxsmnvci6mg6iglmm6gbc1-vim-pack-dir flake.nix
+xam         7440  0.1  0.0  45512 37536 ?        Ss   12:35   1:02 /nix/store/cyqhaxxc2ygqvvvdm8ybcx4im4qn0asf-neovim-unwrapped-0.11.6/bin/nvim --embed --cmd set packpath^=/nix/store/rzqwcw0b0glxsmnvci6mg6iglmm6gbc1-vim-pack-dir --cmd set rtp^=/nix/store/rzqwcw0b0glxsmnvci6mg6iglmm6gbc1-vim-pack-dir flake.nix
+root        7684  0.0  0.0      0     0 ?        I    12:35   0:00 [kworker/10:0]
+root        7771  0.0  0.0      0     0 ?        S    12:36   0:00 [kworker/u64:5+iou_exit]
+root        8834  0.0  0.0      0     0 ?        S    12:44   0:00 [kworker/u64:8+iou_exit]
+xam        10198  0.0  0.0  18880 10156 pts/2    T    12:55   0:00 /nix/store/cyqhaxxc2ygqvvvdm8ybcx4im4qn0asf-neovim-unwrapped-0.11.6/bin/nvim --cmd set packpath^=/nix/store/rzqwcw0b0glxsmnvci6mg6iglmm6gbc1-vim-pack-dir --cmd set rtp^=/nix/store/rzqwcw0b0glxsmnvci6mg6iglmm6gbc1-vim-pack-dir flake.nix
+xam        10199  0.1  0.0  46716 38856 ?        Ss   12:55   1:00 /nix/store/cyqhaxxc2ygqvvvdm8ybcx4im4qn0asf-neovim-unwrapped-0.11.6/bin/nvim --embed --cmd set packpath^=/nix/store/rzqwcw0b0glxsmnvci6mg6iglmm6gbc1-vim-pack-dir --cmd set rtp^=/nix/store/rzqwcw0b0glxsmnvci6mg6iglmm6gbc1-vim-pack-dir flake.nix
+xam        10254  0.0  0.2 2709584 125820 tty1   Sl+  12:55   0:05 /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/firefox -contentproc -isForBrowser -prefsHandle 0:44467 -prefMapHandle 1:280650 -jsInitHandle 2:227672 -parentBuildID 20260309125808 -sandboxReporter 3 -chrootClient 4 -ipcHandle 5 -initialChannelId {a4daf111-bead-4482-8b6e-e5533cd0f9aa} -parentPid 2522 -crashReporter 6 -crashHelper 7 -greomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/omni.ja -appomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser/omni.ja -appDir /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser 19 tab
+xam        10329  0.0  0.0  12640  6688 pts/2    S    12:55   0:01 bash --rcfile /tmp/nix-shell.vBq3Kc
+xam        10638  0.5  1.0 3279984 525640 tty1   Sl+  12:56   3:30 /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/firefox -contentproc -isForBrowser -prefsHandle 0:44467 -prefMapHandle 1:280650 -jsInitHandle 2:227672 -parentBuildID 20260309125808 -sandboxReporter 3 -chrootClient 4 -ipcHandle 5 -initialChannelId {6dd73abe-6c82-4817-b551-fb76a653f2ae} -parentPid 2522 -crashReporter 6 -crashHelper 7 -greomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/omni.ja -appomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser/omni.ja -appDir /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser 21 tab
+root       10681  0.0  0.0      0     0 ?        I    12:56   0:00 [kworker/0:0-events]
+xam        10754  0.5  0.4 1844144 210252 pts/2  Sl+  12:57   3:29 /nix/store/m1fw8l8y9ycxh5dzispbb7cwl6rra14l-python3-3.13.12/bin/python3.13 /nix/store/jyny34kiw9ajladihckyhn9khjjn8ywi-gns3-gui-2.2.56.1/bin/.gns3-wrapped
+xam        10774  0.1  0.1 551552 87484 pts/2    Sl+  12:57   0:43 /nix/store/m1fw8l8y9ycxh5dzispbb7cwl6rra14l-python3-3.13.12/bin/python3.13 /nix/store/8dr19bl8f3r6afd4yy9r5lm2lkc80wd6-gns3-server-2.2.56.1/bin/.gns3server-wrapped --local --log=/home/xam/.config/GNS3/2.2/gns3_server.log --pid=/home/xam/.config/GNS3/2.2/gns3_server.pid
+xam        10809  1.2  0.4 472360 212976 pts/2   Sl+  12:57   7:44 /nix/store/fh2d69mdjcpayz04q6fg81f46z188wv2-dynamips-0.2.23/bin/dynamips -N1 -l dynamips_i1_log.txt -H 127.0.0.1:35859 --console-binding-addr localhost
+xam        10837  0.0  0.0 186776  5600 pts/2    Sl+  12:57   0:30 /nix/store/fh2d69mdjcpayz04q6fg81f46z188wv2-dynamips-0.2.23/bin/dynamips -N1 -l dynamips_i2_log.txt -H 127.0.0.1:55063 --console-binding-addr localhost
+xam        10853  0.0  0.0 142780  3404 pts/2    Sl+  12:57   0:00 /nix/store/ljd3dacnbpvykhq5i7l84r234d5r6zaa-ubridge-0.9.19/bin/ubridge -H localhost:41001
+xam        11421  1.1  0.4 467908 212076 pts/2   Sl+  13:05   6:57 /nix/store/fh2d69mdjcpayz04q6fg81f46z188wv2-dynamips-0.2.23/bin/dynamips -N1 -l dynamips_i3_log.txt -H 127.0.0.1:53981 --console-binding-addr localhost
+xam        11456  1.1  0.4 467908 212112 pts/2   Sl+  13:05   6:57 /nix/store/fh2d69mdjcpayz04q6fg81f46z188wv2-dynamips-0.2.23/bin/dynamips -N1 -l dynamips_i4_log.txt -H 127.0.0.1:32923 --console-binding-addr localhost
+xam        11729  0.0  0.0 109816  2772 pts/2    Sl+  13:08   0:00 /nix/store/ljd3dacnbpvykhq5i7l84r234d5r6zaa-ubridge-0.9.19/bin/ubridge -H localhost:44679
+xam        11791  0.0  0.0 126388  3256 pts/2    Sl+  13:09   0:00 /nix/store/ljd3dacnbpvykhq5i7l84r234d5r6zaa-ubridge-0.9.19/bin/ubridge -H localhost:36907
+xam        12004  0.2  0.6 2941604 299496 tty1   Sl+  13:11   1:21 /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/firefox -contentproc -isForBrowser -prefsHandle 0:44467 -prefMapHandle 1:280650 -jsInitHandle 2:227672 -parentBuildID 20260309125808 -sandboxReporter 3 -chrootClient 4 -ipcHandle 5 -initialChannelId {6c6bb4d5-7087-436c-8e82-c169d11d2c7f} -parentPid 2522 -crashReporter 6 -crashHelper 7 -greomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/omni.ja -appomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser/omni.ja -appDir /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser 22 tab
+xam        12659  0.4  0.9 3204568 469612 tty1   Sl+  13:18   2:58 /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/firefox -contentproc -isForBrowser -prefsHandle 0:44467 -prefMapHandle 1:280650 -jsInitHandle 2:227672 -parentBuildID 20260309125808 -sandboxReporter 3 -chrootClient 4 -ipcHandle 5 -initialChannelId {a98f5b41-750f-4bdb-9692-5643a334775b} -parentPid 2522 -crashReporter 6 -crashHelper 7 -greomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/omni.ja -appomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser/omni.ja -appDir /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser 25 tab
+root       15312  0.0  0.0      0     0 ?        I    14:00   0:00 [kworker/11:0]
+xam        16995  0.0  0.2 2707252 124504 tty1   Sl+  14:25   0:06 /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/firefox -contentproc -isForBrowser -prefsHandle 0:44573 -prefMapHandle 1:280650 -jsInitHandle 2:227672 -parentBuildID 20260309125808 -sandboxReporter 3 -chrootClient 4 -ipcHandle 5 -initialChannelId {c83c08f5-3f5c-40b5-8871-b333e11ac221} -parentPid 2522 -crashReporter 6 -crashHelper 7 -greomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/omni.ja -appomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser/omni.ja -appDir /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser 26 tab
+xam        18250  0.6  1.3 7664628 644544 tty1   Sl+  14:41   3:29 /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/firefox -contentproc -isForBrowser -prefsHandle 0:44574 -prefMapHandle 1:280650 -jsInitHandle 2:227672 -parentBuildID 20260309125808 -sandboxReporter 3 -chrootClient 4 -ipcHandle 5 -initialChannelId {e2b04287-4737-4716-817f-00bd1a5eef18} -parentPid 2522 -crashReporter 6 -crashHelper 7 -greomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/omni.ja -appomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser/omni.ja -appDir /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser 29 tab
+xam        20989  1.2  0.4 467908 212064 pts/2   Sl+  15:05   5:59 /nix/store/fh2d69mdjcpayz04q6fg81f46z188wv2-dynamips-0.2.23/bin/dynamips -N1 -l dynamips_i7_log.txt -H 127.0.0.1:51171 --console-binding-addr localhost
+xam        21021  1.2  0.4 467908 212060 pts/2   Sl+  15:05   5:55 /nix/store/fh2d69mdjcpayz04q6fg81f46z188wv2-dynamips-0.2.23/bin/dynamips -N1 -l dynamips_i8_log.txt -H 127.0.0.1:37071 --console-binding-addr localhost
+xam        21062  0.0  0.0 126208  2916 pts/2    Sl+  15:05   0:00 /nix/store/ljd3dacnbpvykhq5i7l84r234d5r6zaa-ubridge-0.9.19/bin/ubridge -H localhost:36729
+xam        21075  0.0  0.0 109816  2772 pts/2    Sl+  15:05   0:00 /nix/store/ljd3dacnbpvykhq5i7l84r234d5r6zaa-ubridge-0.9.19/bin/ubridge -H localhost:33891
+xam        25371  0.0  0.4 2798788 208680 tty1   Sl+  16:00   0:07 /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/firefox -contentproc -isForBrowser -prefsHandle 0:44655 -prefMapHandle 1:280650 -jsInitHandle 2:227672 -parentBuildID 20260309125808 -sandboxReporter 3 -chrootClient 4 -ipcHandle 5 -initialChannelId {c2917284-0337-48b1-b309-742f959aba7e} -parentPid 2522 -crashReporter 6 -crashHelper 7 -greomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/omni.ja -appomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser/omni.ja -appDir /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser 30 tab
+xam        26418  0.4  0.6 2915376 315520 tty1   Sl+  16:05   1:53 /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/firefox -contentproc -isForBrowser -prefsHandle 0:44655 -prefMapHandle 1:280650 -jsInitHandle 2:227672 -parentBuildID 20260309125808 -sandboxReporter 3 -chrootClient 4 -ipcHandle 5 -initialChannelId {351b1a99-a948-4b29-a044-031a676f3fda} -parentPid 2522 -crashReporter 6 -crashHelper 7 -greomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/omni.ja -appomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser/omni.ja -appDir /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser 31 tab
+xam        26422  0.0  0.2 2714876 112876 tty1   Sl+  16:05   0:04 /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/firefox -contentproc -isForBrowser -prefsHandle 0:44655 -prefMapHandle 1:280650 -jsInitHandle 2:227672 -parentBuildID 20260309125808 -sandboxReporter 3 -chrootClient 4 -ipcHandle 5 -initialChannelId {a77026fd-6833-4b5a-8038-5119a4819f34} -parentPid 2522 -crashReporter 6 -crashHelper 7 -greomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/omni.ja -appomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser/omni.ja -appDir /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser 32 tab
+xam        29147  0.0  0.0  76904  4272 tty1     Tl   16:38   0:00 wiremix
+xam        30062  0.1  0.0   4812  2024 ?        Ss   16:48   0:30 /nix/store/ylw34irxybrh28ykvpc3hb5r4wqsxwx4-vpcs-0.8.3/bin/vpcs -p 5003 -m 0 -i 1 -F -R -s 10008 -c 10009 -t 127.0.0.1 startup.vpc
+xam        30065  0.4  0.0 185060  3864 pts/3    Ssl+ 16:48   1:37 /nix/store/ylw34irxybrh28ykvpc3hb5r4wqsxwx4-vpcs-0.8.3/bin/vpcs -p 5003 -m 0 -i 1 -F -R -s 10008 -c 10009 -t 127.0.0.1 startup.vpc
+xam        30071  0.0  0.0  93424  2624 pts/2    Sl+  16:48   0:00 /nix/store/ljd3dacnbpvykhq5i7l84r234d5r6zaa-ubridge-0.9.19/bin/ubridge -H localhost:36695
+xam        30072  0.1  0.0   4812  2024 ?        Ss   16:48   0:30 /nix/store/ylw34irxybrh28ykvpc3hb5r4wqsxwx4-vpcs-0.8.3/bin/vpcs -p 5005 -m 1 -i 1 -F -R -s 10010 -c 10011 -t 127.0.0.1 startup.vpc
+xam        30073  0.4  0.0 185060  3864 pts/4    Ssl+ 16:48   1:38 /nix/store/ylw34irxybrh28ykvpc3hb5r4wqsxwx4-vpcs-0.8.3/bin/vpcs -p 5005 -m 1 -i 1 -F -R -s 10010 -c 10011 -t 127.0.0.1 startup.vpc
+xam        30078  0.0  0.0  93424  2624 pts/2    Sl+  16:48   0:00 /nix/store/ljd3dacnbpvykhq5i7l84r234d5r6zaa-ubridge-0.9.19/bin/ubridge -H localhost:39827
+xam        30100  0.1  0.0   4812  2024 ?        Ss   16:48   0:30 /nix/store/ylw34irxybrh28ykvpc3hb5r4wqsxwx4-vpcs-0.8.3/bin/vpcs -p 5011 -m 2 -i 1 -F -R -s 10052 -c 10053 -t 127.0.0.1 startup.vpc
+xam        30101  0.4  0.0 185060  3856 pts/5    Ssl+ 16:48   1:37 /nix/store/ylw34irxybrh28ykvpc3hb5r4wqsxwx4-vpcs-0.8.3/bin/vpcs -p 5011 -m 2 -i 1 -F -R -s 10052 -c 10053 -t 127.0.0.1 startup.vpc
+xam        30106  0.0  0.0  93424  2624 pts/2    Sl+  16:48   0:00 /nix/store/ljd3dacnbpvykhq5i7l84r234d5r6zaa-ubridge-0.9.19/bin/ubridge -H localhost:43267
+xam        33214  0.0  0.3 509756 152448 tty1    Sl+  17:28   0:00 kitty
+root       33215  0.0  0.0      0     0 ?        S    17:28   0:00 [nvidia-drm/timeline-1d47]
+xam        33216  0.0  0.0 1285572 24448 tty1    Sl+  17:28   0:00 /nix/store/4gsq4shmyxa246wq1ydi3k0lgp60m9lq-kitty-0.46.0/bin/kitten __atexit__
+xam        33222  0.0  0.0  14104  5268 pts/6    Ss+  17:28   0:00 tmux
+xam        33260  0.0  0.0  11868  2128 ?        Ss   17:28   0:00 ssh-agent -s
+xam        33262  0.0  0.0  15564  8620 pts/7    Ss   17:28   0:00 -zsh
+xam        33462  0.0  0.0  12640  6696 pts/7    S+   17:30   0:01 bash --rcfile /tmp/nix-shell.vHkclS
+xam        38124  0.0  0.0      0     0 pts/2    Z+   17:37   0:00 [.kitty-wrapped] <defunct>
+root       40837  0.0  0.0      0     0 ?        I    17:57   0:00 [kworker/14:2]
+root       40993  0.0  0.0      0     0 ?        I    18:00   0:00 [kworker/7:1-mm_percpu_wq]
+xam        41993  0.0  0.3 2752208 168632 tty1   Sl+  18:14   0:07 /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/firefox -contentproc -isForBrowser -prefsHandle 0:44712 -prefMapHandle 1:280650 -jsInitHandle 2:227672 -parentBuildID 20260309125808 -sandboxReporter 3 -chrootClient 4 -ipcHandle 5 -initialChannelId {6271abbb-8cb0-434b-9875-720f377be4fc} -parentPid 2522 -crashReporter 6 -crashHelper 7 -greomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/omni.ja -appomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser/omni.ja -appDir /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser 34 tab
+root       45546  0.0  0.0      0     0 ?        I    19:00   0:00 [kworker/13:0]
+root       46645  0.0  0.0      0     0 ?        S    19:11   0:00 [nvidia-drm/timeline-1e5a]
+xam        46654  0.3  0.9 3196292 449260 tty1   Sl+  19:11   0:44 /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/firefox -contentproc -isForBrowser -prefsHandle 0:44712 -prefMapHandle 1:280650 -jsInitHandle 2:227672 -parentBuildID 20260309125808 -sandboxReporter 3 -chrootClient 4 -ipcHandle 5 -initialChannelId {a7f766e7-62a8-4b5a-9b92-a689c5da322b} -parentPid 2522 -crashReporter 6 -crashHelper 7 -greomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/omni.ja -appomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser/omni.ja -appDir /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser 45 tab
+root       46970  0.0  0.0      0     0 ?        I    19:13   0:00 [kworker/5:2]
+xam        48125  0.5  0.3 563132 194320 tty1    Sl+  19:28   1:11 kitty
+root       48126  0.0  0.0      0     0 ?        S    19:28   0:00 [nvidia-drm/timeline-1e91]
+xam        48127  0.0  0.0 1285308 24496 tty1    Sl+  19:28   0:00 /nix/store/4gsq4shmyxa246wq1ydi3k0lgp60m9lq-kitty-0.46.0/bin/kitten __atexit__
+xam        48133  0.0  0.0  14104  5240 pts/8    Ss+  19:28   0:00 tmux
+xam        48170  0.0  0.0  11868  2120 ?        Ss   19:28   0:00 ssh-agent -s
+xam        48172  0.0  0.0  15248  8192 pts/9    Ss+  19:28   0:00 -zsh
+xam        48247  0.0  0.0  15260  8256 pts/10   Ss   19:28   0:00 -zsh
+xam        49625  0.0  0.0  11868  2144 ?        Ss   19:34   0:00 ssh-agent -s
+xam        49627  0.0  0.0  15116  8128 pts/12   Ss+  19:34   0:00 -zsh
+xam        52817  0.1  0.3 519716 169112 tty1    Sl+  19:42   0:14 kitty
+root       52818  0.0  0.0      0     0 ?        S    19:42   0:00 [nvidia-drm/timeline-1ea8]
+xam        52819  0.0  0.0 1285564 24324 tty1    Sl+  19:42   0:00 /nix/store/4gsq4shmyxa246wq1ydi3k0lgp60m9lq-kitty-0.46.0/bin/kitten __atexit__
+xam        52825  0.0  0.0  14104  5308 pts/11   Ss+  19:42   0:00 tmux
+xam        52861  0.0  0.0  11884  3988 ?        Ss   19:42   0:00 ssh-agent -s
+xam        52863  0.0  0.0  15732  8884 pts/13   Ss   19:42   0:01 -zsh
+xam        52981  0.0  0.0  15268  8408 pts/14   Ss   19:42   0:00 -zsh
+root       57740  0.0  0.0      0     0 ?        I    20:00   0:00 [kworker/15:2-mm_percpu_wq]
+root       60769  0.0  0.0      0     0 ?        I    20:10   0:00 [kworker/6:0-mm_percpu_wq]
+root       72294  0.0  0.0      0     0 ?        I    21:00   0:00 [kworker/12:0]
+xam        73136  0.1  0.6 3003352 338464 tty1   Sl+  21:07   0:08 /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/firefox -contentproc -isForBrowser -prefsHandle 0:44712 -prefMapHandle 1:280650 -jsInitHandle 2:227672 -parentBuildID 20260309125808 -sandboxReporter 3 -chrootClient 4 -ipcHandle 5 -initialChannelId {891a26b8-dd77-4c79-903f-3bd99aaa5eef} -parentPid 2522 -crashReporter 6 -crashHelper 7 -greomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/omni.ja -appomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser/omni.ja -appDir /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser 57 tab
+root       73232  0.0  0.0      0     0 ?        I    21:07   0:00 [kworker/3:0-events]
+root       76415  0.0  0.0      0     0 ?        I    21:20   0:00 [kworker/9:0]
+root       76583  0.0  0.0      0     0 ?        I    21:22   0:00 [kworker/u64:9-kvfree_rcu_reclaim]
+xam        79617  0.0  0.3 2753684 159944 tty1   Sl+  21:37   0:01 /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/firefox -contentproc -isForBrowser -prefsHandle 0:44712 -prefMapHandle 1:280650 -jsInitHandle 2:227672 -parentBuildID 20260309125808 -sandboxReporter 3 -chrootClient 4 -ipcHandle 5 -initialChannelId {8e2028b9-7730-4cda-8700-d6366f7091ad} -parentPid 2522 -crashReporter 6 -crashHelper 7 -greomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/omni.ja -appomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser/omni.ja -appDir /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser 59 tab
+xam        80085  0.0  0.0  15732  8812 pts/15   Ss+  21:43   0:00 -zsh
+root       80350  0.0  0.0      0     0 ?        S    21:44   0:00 [kworker/u64:2+iou_exit]
+root       81155  0.0  0.0      0     0 ?        S    21:47   0:00 [nvidia-drm/timeline-2461]
+xam        81848  0.0  0.0   3728  2264 pts/10   S+   21:49   0:00 /nix/store/qn1pfnn2xgfwdr6avw1fnvwsabi83973-bubblewrap-0.11.0/bin/bwrap --ro-bind /nix/store /nix/store --ro-bind /run/current-system /run/current-system --ro-bind /etc /etc --proc /proc --dev-bind /dev /dev --tmpfs /tmp --tmpfs /home/xam --bind /home/xam/Projects /home/xam/Projects --ro-bind /home/xam/nixos /home/xam/nixos --bind /home/xam/.config/opencode /home/xam/.config/opencode --bind /home/xam/.local/state/opencode /home/xam/.local/state/opencode --bind /home/xam/.local/share/opencode /home/xam/.local/share/opencode --setenv HOME /home/xam --unshare-ipc --unshare-uts --die-with-parent /nix/store/5nlzsrjcyas0cj9bb3i8hf9ayjhxmj2m-opencode-1.2.27/bin/opencode
+xam        81849 13.3  1.8 75540004 928636 pts/10 Sl+ 21:49  11:24 /nix/store/5nlzsrjcyas0cj9bb3i8hf9ayjhxmj2m-opencode-1.2.27/bin/opencode
+root       83517  0.0  0.0      0     0 ?        I    22:00   0:00 [kworker/8:1]
+xam        84099  0.1  0.3 1478393348 162240 tty1 Sl+ 22:07   0:05 /nix/store/0fj857j050x5flgk26773cwzc0736jl2-discord-canary-0.0.902/opt/DiscordCanary/.DiscordCanary-wrapped --type=zygote
+xam        94849  0.0  0.0  18076  4944 pts/14   S+   22:26   0:00 tail -f spellbook.log
+root       96289  0.0  0.0      0     0 ?        S    22:31   0:00 [kworker/u64:6+iou_exit]
+root       97153  0.0  0.0      0     0 ?        S    22:37   0:00 [kworker/u64:1+iou_exit]
+root       99458  0.0  0.0      0     0 ?        I    22:41   0:00 [kworker/u64:11-events_unbound]
+xam        99500  0.6  0.5 2943472 294064 tty1   Sl+  22:41   0:13 /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/firefox -contentproc -isForBrowser -prefsHandle 0:44711 -prefMapHandle 1:280650 -jsInitHandle 2:227672 -parentBuildID 20260309125808 -sandboxReporter 3 -chrootClient 4 -ipcHandle 5 -initialChannelId {dbe62fa8-5a96-474c-b3ce-22d3e895d99e} -parentPid 2522 -crashReporter 6 -crashHelper 7 -greomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/omni.ja -appomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser/omni.ja -appDir /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser 60 tab
+xam        99747  0.0  0.1 2641492 73848 tty1    Sl+  22:41   0:00 /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/firefox -contentproc -isForBrowser -prefsHandle 0:44711 -prefMapHandle 1:280650 -jsInitHandle 2:227672 -parentBuildID 20260309125808 -sandboxReporter 3 -chrootClient 4 -ipcHandle 5 -initialChannelId {4a5ea4e6-6feb-4369-9491-4b271969e80d} -parentPid 2522 -crashReporter 6 -crashHelper 7 -greomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/omni.ja -appomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser/omni.ja -appDir /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser 61 tab
+root       99976  0.0  0.0      0     0 ?        S    22:41   0:00 [kworker/u64:12+iou_exit]
+xam       100258  0.0  0.1 2641492 73696 tty1    Sl+  22:41   0:00 /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/firefox -contentproc -isForBrowser -prefsHandle 0:44711 -prefMapHandle 1:280650 -jsInitHandle 2:227672 -parentBuildID 20260309125808 -sandboxReporter 3 -chrootClient 4 -ipcHandle 5 -initialChannelId {760e738a-88ca-4b7d-8958-c57e292ade21} -parentPid 2522 -crashReporter 6 -crashHelper 7 -greomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/omni.ja -appomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser/omni.ja -appDir /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser 62 tab
+xam       101153  0.0  0.1 2641488 73472 tty1    Sl+  22:42   0:00 /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/firefox -contentproc -isForBrowser -prefsHandle 0:44711 -prefMapHandle 1:280650 -jsInitHandle 2:227672 -parentBuildID 20260309125808 -sandboxReporter 3 -chrootClient 4 -ipcHandle 5 -initialChannelId {6df24906-3fed-445f-b7be-77de76374eed} -parentPid 2522 -crashReporter 6 -crashHelper 7 -greomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/omni.ja -appomni /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser/omni.ja -appDir /nix/store/nzgy3lfdnd2kshzp056za9wqny6a26jr-firefox-148.0.2/lib/firefox/browser 63 tab
+root      101190  0.0  0.0      0     0 ?        I    22:42   0:00 [kworker/1:0]
+xam       101442  0.0  0.0  18788 10320 pts/13   T    22:43   0:00 /nix/store/cyqhaxxc2ygqvvvdm8ybcx4im4qn0asf-neovim-unwrapped-0.11.6/bin/nvim --cmd set packpath^=/nix/store/rzqwcw0b0glxsmnvci6mg6iglmm6gbc1-vim-pack-dir --cmd set rtp^=/nix/store/rzqwcw0b0glxsmnvci6mg6iglmm6gbc1-vim-pack-dir countlines.sh
+xam       101443  0.2  0.0  50480 42764 ?        Ss   22:43   0:05 /nix/store/cyqhaxxc2ygqvvvdm8ybcx4im4qn0asf-neovim-unwrapped-0.11.6/bin/nvim --embed --cmd set packpath^=/nix/store/rzqwcw0b0glxsmnvci6mg6iglmm6gbc1-vim-pack-dir --cmd set rtp^=/nix/store/rzqwcw0b0glxsmnvci6mg6iglmm6gbc1-vim-pack-dir countlines.sh
+root      102777  0.0  0.0      0     0 ?        I    22:46   0:00 [kworker/u64:13-flush-259:0]
+xam       106452  0.0  0.0  18788 10420 pts/15   T    22:58   0:00 /nix/store/cyqhaxxc2ygqvvvdm8ybcx4im4qn0asf-neovim-unwrapped-0.11.6/bin/nvim --cmd set packpath^=/nix/store/rzqwcw0b0glxsmnvci6mg6iglmm6gbc1-vim-pack-dir --cmd set rtp^=/nix/store/rzqwcw0b0glxsmnvci6mg6iglmm6gbc1-vim-pack-dir home/users/xam/xam.nix
+xam       106453  0.3  0.0 347456 44772 ?        Ssl  22:58   0:03 /nix/store/cyqhaxxc2ygqvvvdm8ybcx4im4qn0asf-neovim-unwrapped-0.11.6/bin/nvim --embed --cmd set packpath^=/nix/store/rzqwcw0b0glxsmnvci6mg6iglmm6gbc1-vim-pack-dir --cmd set rtp^=/nix/store/rzqwcw0b0glxsmnvci6mg6iglmm6gbc1-vim-pack-dir home/users/xam/xam.nix
+root      106593  0.0  0.0      0     0 ?        I    23:00   0:00 [kworker/7:0]
+root      106630  0.0  0.0      0     0 ?        I    23:00   0:00 [kworker/u64:10-events_unbound]
+root      106781  0.0  0.0      0     0 ?        I    23:00   0:00 [kworker/u64:14-events_unbound]
+root      108667  0.0  0.0      0     0 ?        I<   23:04   0:00 [kworker/u65:2]
+root      108673  0.0  0.0      0     0 ?        I    23:04   0:00 [kworker/2:1-events]
+xam       109985  0.1  0.0  76336  7268 pts/13   S+   23:11   0:00 target/debug/spellbook
+xam       110240  0.0  0.0      0     0 pts/13   Z+   23:11   0:00 [notify-send] <defunct>
+xam       110837  0.0  0.0      0     0 pts/13   Z+   23:15   0:00 [notify-send] <defunct>
+xam       110998  0.0  0.0  14944  6360 pts/13   R+   23:15   0:00 ps aux
+
+# STDERR:

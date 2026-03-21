@@ -1,0 +1,9 @@
+# Command: sudo nix-collect-garbage -d
+# Exit code: Some(127)
+
+# STDOUT:
+
+# STDERR:
+The value for the SHELL variable was not found in the /etc/shells file
+
+This incident has been reported.

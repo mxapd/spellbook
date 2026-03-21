@@ -107,12 +107,14 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
     frame.render_widget(details_block, chunks[1]);
 
     let footer = if let Some(ref msg) = ui.copy_feedback {
-        Paragraph::new(msg.clone())
+        let single_line = msg.lines().next().unwrap_or(msg).to_string();
+        Paragraph::new(single_line)
             .style(Style::new().fg(ratatui::style::Color::Green).bg(theme.bg))
+            .alignment(ratatui::layout::Alignment::Center)
     } else {
         Paragraph::new(format!(
             "↑↓ navigate  enter copy  / search  t {}  esc back  q quit",
-            state.theme_names[state.current_theme_index]
+            state.current_theme.name()
         ))
         .style(Style::new().fg(theme.muted).bg(theme.bg))
     };

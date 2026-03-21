@@ -4,6 +4,18 @@
 
 - **No emojis** - prefer ASCII or text characters
 - Cool ASCII symbols are welcome (e.g., *, >, ::, #, etc.)
+- More symbols are in symbols.md
+
+## Development Environment
+
+This project uses **NixOS**. All dependencies should be managed via:
+
+```bash
+nix develop      # Enter development shell with all dependencies
+nix shell        # Run commands with dependencies available
+```
+
+Do not use traditional package managers (apt, brew, cargo install, etc.) for system dependencies.
 
 ## Code Style
 
