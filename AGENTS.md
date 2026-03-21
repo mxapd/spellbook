@@ -1,10 +1,12 @@
-# Spellbook Developer Notes
+# Spellbook v2 Developer Notes
 
 ## Design Preferences
 
-- **No emojis** - prefer ASCII or text characters
-- Cool ASCII symbols are welcome (e.g., *, >, ::, #, etc.)
+- **No emojis** - prefer ASCII or text characters (except in user-facing sigils)
+- Cool ASCII symbols are welcome (e.g., *, >, ::, #, ∧, ⟳, ✓, ✗, etc.)
 - More symbols are in symbols.md
+- **Clean architecture** - component state encapsulation, no God objects
+- **Explicit over implicit** - use enums like SpellbookRef instead of raw indices
 
 ## Development Environment
 
@@ -22,62 +24,268 @@ Do not use traditional package managers (apt, brew, cargo install, etc.) for sys
 - Follow existing code conventions in the codebase
 - Use theme colors (from `state.theme`) for all UI styling
 - Keep render functions clean and readable
+- Each UI component should have its own state struct
+- Prefer pattern matching over if/else chains
+- Use `#[serde(default)]` for all new optional fields in data models
 
-## Features
+## Architecture (v2)
 
-- Theme cycling with `t` key, persisted to `theme.toml`
-- View mode cycling with `v` key (cards/spines), persisted to `theme.toml`
-- `--add` CLI flag opens Add Spell screen directly
-- SearchOverlay is the primary screen with modes: BrowseSpellbooks, BrowseSpells, AddSpell, AddSpellbook
-- Command bar with `:` prefix for quick actions (`:n`, `:b`, `:s`, `:c`, `:p`, `:a`, `:t`, `:?`)
-- Row-based navigation: Left/Right wrap within row, Up/Down wrap within column
-- Ctrl+C quits, Ctrl+Z passes through (let terminal handle job control)
-- No sigil sizing - Ratatui does not support font size changes
+### Core Principles
 
-## Known Limitations
+1. **Single-mode navigation** - One active `Mode`, multiple `Overlay`s
+2. **Component state encapsulation** - Each component owns its state
+3. **Type-safe references** - Use `SpellbookRef` enum, not raw indices
+4. **Atomic archivist** - Write-to-temp + rename pattern
+5. **Event priority** - Overlay → Sidebar → Mode → Global
 
-- **Ctrl+Z**: Crossterm raw mode captures Ctrl+Z before terminal can handle job control. This is a fundamental limitation - let terminal deal with it naturally by returning false.
-- **Font sizing**: Ratatui does not support font size changes.
-
-## SearchOverlay Modes
-
-The SearchOverlay has four modes controlled by `SearchMode` enum:
+### Mode Enum
 
 ```rust
-pub enum SearchMode {
-    BrowseSpellbooks, // Default - show cards/spines
-    BrowseSpells,      // Show spells in selected spellbook
-    AddSpell,          // Add new spell form
-    AddSpellbook,      // Add new spellbook form
+pub enum Mode {
+    BrowseSpellbooks,   // Home - card/spine view
+    BrowseSpells,       // Spells in selected spellbook
+    AddSpell,           // Add spell form
+    EditSpell,          // Edit spell form
+    AddSpellbook,       // Add spellbook form
 }
 ```
 
-## Navigation in BrowseSpellbooks
+### Overlay Enum
 
-Row-based navigation uses `search_items_per_row`:
-- Left/Right wrap within the same row
-- Up/Down wrap within the same column
-- Enter opens spellbook in BrowseSpells mode
-
-## View Modes
-
-Three view modes for spellbook display:
-- `ViewMode::Cards`: Large card view
-- `ViewMode::Spines`: Compact spine view
-- Both modes are responsive (cards when they fit, spines otherwise)
-
-## Testing
-
-When the linker issue is resolved, test the app with:
-```bash
-cargo run
+```rust
+pub enum Overlay {
+    OutputModal,        // Command output viewer
+    ConfirmDialog,      // Confirmation prompts
+    CommandPalette,     // : command input
+    Help,               // ? keybind reference
+}
 ```
 
-Test key features:
-1. Browse spellbooks with arrow keys
-2. Enter to open a spellbook
-3. Navigate spells with Up/Down
-4. Enter to copy a spell
-5. Type `:` to open command bar
-6. Use `:n` to add a new spell
-7. Cycle themes with `t`
+### Jobs Sidebar
+
+**Important**: Jobs sidebar is NOT an overlay. It's a toggleable panel that coexists with any mode.
+
+- Toggle with `:jobs`
+- Renders on right side
+- Has own focus state (`FocusTarget::JobsSidebar`)
+- Tab key cycles focus between Main and Sidebar
+
+## Key Features (v2)
+
+### Execution Modes
+
+Three execution modes for spells:
+
+1. **Simple** (`s`) - Exit TUI, exec via `$SHELL -c`, user back at shell
+2. **TUI** (`Ctrl+r`) - Capture output in modal, stream in real-time (10k line cap)
+3. **Background** (`Ctrl+b`) - Detach as job, track in sidebar, notify on completion
+
+### Virtual Spellbooks
+
+- **Favorites**: Dynamic collection of spells with `favorite = true`
+- **Recent**: Last 100 used spells from `recents.toml`
+- Both appear at top of spellbook list
+- Referenced via `SpellbookRef::Virtual(VirtualKind)`
+
+### Focus Management
+
+```rust
+pub enum FocusTarget {
+    Main,         // Main content has focus
+    JobsSidebar,  // Sidebar has focus
+}
+```
+
+- Tab key cycles focus when sidebar is open
+- Visual indicators (bright vs muted borders)
+- Focused component receives key events first
+
+### Search Activation
+
+- `/` key activates search mode (explicit, no conflicts)
+- `search_active: bool` flag in browser states
+- Esc deactivates and clears query
+- Filters: spellbooks by name, spells by name/lore/school/glyphs
+
+## Persistence
+
+### File Locations
+
+| File | Purpose |
+|------|---------|
+| `codex.toml` | Spells and spellbooks |
+| `config.toml` | User settings (view mode, defaults) |
+| `theme.toml` | Theme selection |
+| `~/.spellbook/jobs.toml` | Job registry |
+| `~/.spellbook/recents.toml` | Recently used spells |
+| `~/.spellbook/spellbook.log` | Application logs |
+
+### Atomic Writes
+
+All TOML writes use atomic pattern:
+```rust
+write_to_temp("{file}.tmp")
+fs::rename("{file}.tmp", "{file}")
+```
+
+### Retention Policies
+
+- **Recents**: Keep last 100, FIFO eviction
+- **Jobs**: Keep last 50, auto-purge on startup
+- **Output lines**: Cap at 10,000 per job
+
+## Data Model
+
+### Spell
+
+```rust
+pub struct Spell {
+    pub id: String,              // UUID
+    pub name: String,
+    pub incantation: String,
+    pub lore: String,
+    pub school: String,
+    pub glyphs: Vec<String>,
+    pub confirm: bool,
+    pub run_mode: RunMode,
+    pub working_dir: String,
+    pub favorite: bool,
+}
+```
+
+**Critical**: Use UUIDs for `id`, not sequential numbers. References are by ID, not name.
+
+### SpellbookRef
+
+```rust
+pub enum SpellbookRef {
+    Virtual(VirtualKind),
+    Codex(usize),
+}
+
+pub enum VirtualKind {
+    Favorites,
+    Recent,
+}
+```
+
+**Critical**: Always use SpellbookRef when referencing spellbooks, never raw indices.
+
+## Known Limitations
+
+- **Ctrl+Z**: Crossterm raw mode captures Ctrl+Z. Fundamental limitation - return false to pass through.
+- **Font sizing**: Ratatui does not support font size changes.
+- **Exec on Windows**: `exec()` is Unix-only. Use conditional compilation for Windows fallback.
+
+## Navigation
+
+### BrowseSpellbooks
+
+- Row-based grid navigation
+- Left/Right wrap within row
+- Up/Down wrap within column
+- Enter opens spellbook
+
+### BrowseSpells
+
+- List navigation
+- Up/Down through spells
+- Enter copies to clipboard
+- `r`/`s`/`Ctrl+r`/`Ctrl+b` for execution modes
+- `e` edit, `d` delete, `f` favorite
+
+## Command Bar
+
+`:` prefix for commands:
+
+| Command | Action |
+|---------|--------|
+| `:n` | New spell |
+| `:nb` | New spellbook |
+| `:b` | Browse spellbooks |
+| `:s` | Browse spells |
+| `:jobs` | Toggle jobs sidebar |
+| `:c` / `:p` / `:a` | Card / Spine / Auto view |
+| `:t` | Cycle theme |
+| `:?` | Help |
+| `:import <file>` | Import spells |
+| `:export [file]` | Export codex |
+
+## Testing Checklist
+
+When testing v2:
+
+1. **Navigation**
+   - [ ] Browse spellbooks with arrows/hjkl
+   - [ ] Enter to open spellbook
+   - [ ] Navigate spells with Up/Down
+   - [ ] Back with Esc or ←
+
+2. **Execution**
+   - [ ] Copy to clipboard (Enter)
+   - [ ] Simple mode (`s`) - TUI exits
+   - [ ] TUI mode (`Ctrl+r`) - output modal appears
+   - [ ] Background mode (`Ctrl+b`) - job in sidebar
+   - [ ] Confirmation dialog on `confirm = true` spells
+
+3. **CRUD**
+   - [ ] Add spell (`:n`)
+   - [ ] Edit spell (`e`)
+   - [ ] Delete spell (`d`) - confirmation shown
+   - [ ] Toggle favorite (`f`)
+   - [ ] Add spellbook (`:nb`)
+
+4. **Virtual Spellbooks**
+   - [ ] Favorites appears when favorites exist
+   - [ ] Recent appears with recent activity
+   - [ ] Both at top of list
+
+5. **Jobs**
+   - [ ] Jobs sidebar toggles (`:jobs`)
+   - [ ] Running jobs show ⟳ icon
+   - [ ] Completed show ✓, failed show ✗
+   - [ ] Enter on job shows output
+   - [ ] Kill with `k` works
+
+6. **Search**
+   - [ ] `/` activates search
+   - [ ] Real-time filtering works
+   - [ ] Esc clears and deactivates
+
+7. **Focus**
+   - [ ] Tab cycles between main and sidebar
+   - [ ] Visual indicators correct
+   - [ ] Events route to focused component
+
+8. **Themes & Views**
+   - [ ] `t` cycles themes
+   - [ ] `v` cycles view modes
+   - [ ] Preferences persist across restarts
+
+## Migration Notes
+
+### V1 → V2
+
+On first v2 run:
+1. Detect missing `id` fields in spells
+2. Generate UUIDs for all spells
+3. Update spellbook references from names to IDs
+4. Rewrite `codex.toml` with new format
+5. Log migration in `spellbook.log`
+
+Backup `codex.toml` before migration (automatic).
+
+## Debug Tips
+
+- Set `SPELLBOOK_LOG=debug` for verbose logging
+- Check `~/.spellbook/spellbook.log` for errors
+- Job output in `~/.spellbook/job_<id>.out/err`
+- Use `RUST_BACKTRACE=1` for panics
+
+## References
+
+- [refactor.md](refactor.md) - Complete v2 specification (source of truth)
+- [docs/architecture.md](docs/architecture.md) - System design
+- [docs/data-model.md](docs/data-model.md) - Data structures
+- [docs/ui-screens.md](docs/ui-screens.md) - UI details
+- [docs/roadmap.md](docs/roadmap.md) - Implementation phases

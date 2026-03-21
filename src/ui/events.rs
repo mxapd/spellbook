@@ -1,5 +1,5 @@
 use crate::clipboard;
-use crate::persistence::Archivist;
+use crate::archivist::Archivist;
 use crate::state::State;
 use crate::ui::search_overlay::{find_nearest_card, CardDirection};
 use crate::ui::{Screen, SearchMode, UiState, ViewMode};
@@ -893,7 +893,7 @@ fn start_spell_execution(spell: &crate::models::Spell, state: &mut State, ui: &m
 
     // Experimental mode: full elevated/background/job handling
     let should_run_background = force_background || spell.background;
-    let placeholders = crate::executor::detect_placeholders(&spell.incantation);
+    let placeholders = crate::invoker::detect_placeholders(&spell.incantation);
 
     if spell.elevated {
         ui.previous_screen = Some(ui.screen);
@@ -914,7 +914,7 @@ fn start_spell_execution(spell: &crate::models::Spell, state: &mut State, ui: &m
             should_run_background,
         ));
     } else if should_run_background {
-        match crate::executor::start_spell(
+        match crate::invoker::start_spell(
             spell.name.clone(),
             spell.incantation.clone(),
             false,
@@ -932,7 +932,7 @@ fn start_spell_execution(spell: &crate::models::Spell, state: &mut State, ui: &m
             }
         }
     } else {
-        let result = crate::executor::execute_sync(&spell.incantation, false);
+        let result = crate::invoker::execute_sync(&spell.incantation, false);
         let exec_result = crate::clipboard::ExecutionResult {
             command: spell.incantation.clone(),
             stdout: result.stdout.clone(),
@@ -989,7 +989,7 @@ fn handle_output_popup(key: KeyCode, state: &mut State, ui: &mut UiState) {
 
                 // Save background preference to codex.toml and update in-memory
                 if let Some(ref spell_name) = result.spell_name {
-                    if let Err(e) = crate::persistence::Archivist::update_spell_background(
+                    if let Err(e) = crate::archivist::Archivist::update_spell_background(
                         "codex.toml",
                         spell_name,
                         true,
@@ -1008,7 +1008,7 @@ fn handle_output_popup(key: KeyCode, state: &mut State, ui: &mut UiState) {
 
                 // Kill the running process
                 if let Some(pid) = result.pid {
-                    if let Err(e) = crate::executor::kill_process(pid) {
+                    if let Err(e) = crate::invoker::kill_process(pid) {
                         log_warn!("Failed to kill process {}: {}", pid, e);
                     }
                 }
@@ -1021,7 +1021,7 @@ fn handle_output_popup(key: KeyCode, state: &mut State, ui: &mut UiState) {
                 };
 
                 if elevated {
-                    match crate::executor::start_spell_with_sudo_cached(
+                    match crate::invoker::start_spell_with_sudo_cached(
                         result.spell_name.clone().unwrap_or_else(|| "Command".to_string()),
                         result.command.clone(),
                         working_dir_opt,
@@ -1041,7 +1041,7 @@ fn handle_output_popup(key: KeyCode, state: &mut State, ui: &mut UiState) {
                         }
                     }
                 } else {
-                    match crate::executor::start_spell(
+                    match crate::invoker::start_spell(
                         result.spell_name.clone().unwrap_or_else(|| "Command".to_string()),
                         result.command.clone(),
                         false,
@@ -1115,7 +1115,7 @@ fn handle_input_popup(key: KeyCode, _state: &mut State, ui: &mut UiState) -> boo
 
                         if let Some(spell) = spell {
                             if run_background {
-                                match crate::executor::start_spell_with_sudo(
+                                match crate::invoker::start_spell_with_sudo(
                                     spell.name.clone(),
                                     resolved.clone(),
                                     password,
@@ -1135,7 +1135,7 @@ fn handle_input_popup(key: KeyCode, _state: &mut State, ui: &mut UiState) -> boo
                                 }
                             } else {
                                 let result =
-                                    crate::executor::execute_with_sudo(&resolved, &password);
+                                    crate::invoker::execute_with_sudo(&resolved, &password);
                                 let exec_result = crate::clipboard::ExecutionResult {
                                     command: resolved.clone(),
                                     stdout: result.stdout.clone(),
@@ -1168,7 +1168,7 @@ fn handle_input_popup(key: KeyCode, _state: &mut State, ui: &mut UiState) -> boo
                     if let Some(spell) = spell {
                         if run_background {
                             if elevated {
-                                match crate::executor::start_spell_with_sudo(
+                                match crate::invoker::start_spell_with_sudo(
                                     spell.name.clone(),
                                     resolved.clone(),
                                     password,
@@ -1187,7 +1187,7 @@ fn handle_input_popup(key: KeyCode, _state: &mut State, ui: &mut UiState) -> boo
                                     }
                                 }
                             } else {
-                                match crate::executor::start_spell(
+                                match crate::invoker::start_spell(
                                     spell.name.clone(),
                                     resolved.clone(),
                                     false,
@@ -1208,9 +1208,9 @@ fn handle_input_popup(key: KeyCode, _state: &mut State, ui: &mut UiState) -> boo
                             }
                         } else {
                             let result = if elevated {
-                                crate::executor::execute_with_sudo(&resolved, &password)
+                                crate::invoker::execute_with_sudo(&resolved, &password)
                             } else {
-                                crate::executor::execute_sync(&resolved, false)
+                                crate::invoker::execute_sync(&resolved, false)
                             };
 
                             let exec_result = crate::clipboard::ExecutionResult {

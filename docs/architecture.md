@@ -1,8 +1,15 @@
-# Spellbook Architecture
+# Spellbook v2 Architecture
 
 ## Overview
 
-Spellbook is a TUI (Terminal User Interface) application for managing and quickly accessing CLI command snippets. It uses a simple theme where commands are "spells" organized into "spellbooks".
+Spellbook is a TUI (Terminal User Interface) application for managing and executing CLI command snippets. It uses a fantasy/magic theme where commands are "spells" organized into "spellbooks", stored in a "codex".
+
+This document describes the architecture for **Spellbook v2**, a complete redesign focused on:
+- Clean state management with encapsulated component state
+- Unified Mode/Overlay navigation system
+- Three execution modes (Simple, TUI, Background)
+- Background job management with notifications
+- Virtual spellbooks (Favorites, Recent)
 
 ## Technology Stack
 
@@ -10,99 +17,292 @@ Spellbook is a TUI (Terminal User Interface) application for managing and quickl
 - **TUI Framework**: [ratatui](https://ratatui.rs/)
 - **Terminal I/O**: crossterm
 - **Serialization**: serde + toml
+- **Clipboard**: wl-copy / xclip / xsel (system tools)
+- **Notifications**: notify-send (D-Bus)
+- **Job Management**: nohup (detached process execution)
 
 ## Data Storage Conventions
 
 - **TOML is preferred** over JSON for all persistent data
-- Only use JSON if required by external tools (e.g., LSP servers)
 - Human-editable configs should always use TOML
+- All file writes use atomic write-to-temp + rename pattern
 
-## Directory Structure
+---
 
-```
-src/
-├── main.rs           # Entry point, CLI args, event loop
-├── state.rs          # Application state (Codex + theme)
-├── clipboard.rs      # Clipboard operations with fallback support
-├── models/           # Data structures
-│   ├── mod.rs
-│   ├── codex.rs      # Root data container
-│   ├── spell.rs      # Spell/command definition
-│   ├── spellbook.rs  # Spellbook/collection
-│   ├── theme.rs      # Theme colors (10 themes)
-│   └── view_mode.rs  # View mode enum (cards/spines)
-├── ui/               # Rendering and events
-│   ├── mod.rs        # Screen states, UiState, SearchMode, AddSpellField
-│   ├── render.rs     # Main render dispatcher
-│   ├── events.rs     # Key event handlers
-│   ├── spellbook_list.rs
-│   ├── spell_list.rs
-│   ├── search_overlay.rs  # Primary screen with modes
-│   └── add_spell.rs  # Add spell form with dropdown
-└── persistence/
-    ├── mod.rs
-    └── archivist.rs  # TOML load/save, settings persistence
+## Core Architecture Principles
 
-codex.toml            # Spell data
-theme.toml            # Theme and view mode configuration
-```
+### 1. Single-Mode Navigation
 
-## Data Flow
-
-1. **Load**: `main.rs` calls `Archivist::load("codex.toml")` to deserialize TOML into `Codex`
-2. **Settings Load**: Theme and view mode loaded from `theme.toml` via `Archivist::load_theme()` and `Archivist::load_user_settings()`
-3. **ID Generation**: Spells get auto-generated IDs (1, 2, 3...) on load
-4. **Resolution**: Spellbook spell references are resolved from names to IDs
-5. **State**: `Codex` + settings wrapped in `State` and passed through the app
-6. **UI State**: `UiState` tracks navigation state (selected items, current screen, search query, form fields)
-7. **Render Loop**: Each frame, `render()` dispatches to the appropriate screen renderer
-8. **Events**: `handle_event()` processes key presses and updates `UiState`
-9. **Clipboard**: On copy, notification is sent via `notify-send`
-10. **Save**: New spells are appended to `codex.toml` via `Archivist::append_spell()`
-
-## Key Concepts
-
-- **Codex**: The root data structure containing all spells and spellbooks
-- **Spell**: A single command with metadata (name, incantation, lore, school, glyphs)
-- **Spellbook**: A named collection of spells (referenced by name in TOML, resolved to IDs on load)
-- **Screen**: Enum representing the current UI view (SpellbookList, SpellList, SearchOverlay, AddSpell)
-- **SearchMode**: Mode within SearchOverlay (BrowseSpellbooks, BrowseSpells, AddSpell, AddSpellbook)
-- **UiState**: Tracks selection, navigation, search state, and form fields
-- **Theme**: Color scheme with bg, fg, accent, muted, selection, border colors
-- **ViewMode**: Display mode for spellbook browser (cards/spines)
-
-## Screen Architecture
-
-### SearchOverlay (Primary Screen)
-
-SearchOverlay is the main navigation hub with multiple modes:
-
-1. **BrowseSpellbooks**: Default mode showing spellbooks as cards or spines
-2. **BrowseSpells**: Shows spells from selected spellbook
-3. **AddSpell**: Form to add new spells
-4. **AddSpellbook**: Form to add new spellbooks
-
-Navigation within SearchOverlay:
-- Row-based navigation in BrowseSpellbooks: Left/Right wrap within row, Up/Down wrap within column
-- Command palette with `:` prefix - shows filterable command list
-- Context-aware footer hints
-
-## Theming
-
-The app uses 16-color ANSI themes for terminal compatibility. Theme colors are stored in `RatatuiColors`:
+V2 uses a single primary mode with overlays, not multiple top-level screens:
 
 ```rust
-pub struct RatatuiColors {
-    pub bg: Color,
-    pub fg: Color,
-    pub accent: Color,
-    pub muted: Color,
-    pub selection: Color,
-    pub border: Color,
+pub enum Mode {
+    BrowseSpellbooks,   // Home - card/spine view
+    BrowseSpells,       // Spells in selected spellbook
+    AddSpell,           // Form to add spell
+    EditSpell,          // Form to edit spell
+    AddSpellbook,       // Form to add spellbook
+}
+
+pub enum Overlay {
+    OutputModal,        // Scrollable command output
+    ConfirmDialog,      // Confirmation prompts
+    CommandPalette,     // : command input
+    Help,               // ? keybind reference
 }
 ```
 
-**Available Themes** (cycle with `t` key or `:t` command):
+### 2. Component State Encapsulation
+
+Each UI component owns its own state struct:
+
+```rust
+pub struct AppState {
+    // Data
+    pub codex: Codex,
+    pub jobs: JobManager,
+    pub recents: Vec<RecentEntry>,
+
+    // UI state
+    pub mode: Mode,
+    pub overlays: Vec<Overlay>,
+    pub jobs_sidebar_open: bool,
+    pub focus: FocusTarget,
+    pub theme: Theme,
+    pub config: Config,
+
+    // Component states (encapsulated)
+    pub spellbook_browser: SpellbookBrowserState,
+    pub spell_browser: SpellBrowserState,
+    pub spell_form: SpellFormState,
+    pub spellbook_form: SpellbookFormState,
+    pub output_modal: OutputModalState,
+    pub command_palette: CommandPaletteState,
+    pub confirm_dialog: ConfirmDialogState,
+    pub jobs_sidebar: JobsSidebarState,
+}
+```
+
+No flat God-object with hundreds of individual fields.
+
+### 3. Jobs Sidebar (Not an Overlay)
+
+The jobs sidebar is a **toggleable panel**, not an overlay:
+- Sits on right side of screen
+- Visible across all modes when toggled on
+- Has its own focus state (`FocusTarget::JobsSidebar`)
+- Does not block interaction with main content
+
+---
+
+## Module Structure
+
+```
+src/
+├── main.rs                  # Entry point, CLI args, terminal setup
+├── app.rs                   # AppState, main event loop
+├── config.rs                # Config struct, load/save
+│
+├── models/
+│   ├── mod.rs
+│   ├── spell.rs             # Spell struct, RunMode enum
+│   ├── spellbook.rs         # Spellbook struct
+│   ├── codex.rs             # Codex struct
+│   └── job.rs               # Job struct, JobStatus enum
+│
+├── archivist/
+│   ├── mod.rs
+│   ├── codex_store.rs       # Load/save codex.toml
+│   ├── config_store.rs      # Load/save config.toml
+│   ├── theme_store.rs       # Load/save theme.toml
+│   ├── job_store.rs         # Load/save jobs.toml
+│   └── recent_store.rs      # Load/save recents.toml
+│
+├── invoker/
+│   ├── mod.rs
+│   ├── simple.rs            # Simple mode: exit TUI, exec
+│   ├── tui_runner.rs        # TUI mode: capture output
+│   ├── background.rs        # Background mode: detach
+│   └── job_manager.rs       # Job lifecycle, polling
+│
+├── theme/
+│   ├── mod.rs
+│   └── themes.rs            # 10 built-in themes
+│
+├── ui/
+│   ├── mod.rs               # Mode, Overlay enums
+│   ├── render.rs            # Top-level render dispatcher
+│   ├── events.rs            # Event handler dispatcher
+│   ├── components/
+│   │   ├── mod.rs
+│   │   ├── spellbook_browser.rs
+│   │   ├── spell_browser.rs
+│   │   ├── spell_form.rs
+│   │   ├── spellbook_form.rs
+│   │   ├── output_modal.rs
+│   │   ├── confirm_dialog.rs
+│   │   ├── command_palette.rs
+│   │   ├── jobs_sidebar.rs
+│   │   ├── help.rs
+│   │   └── footer.rs
+│   └── widgets/
+│       ├── mod.rs
+│       ├── card.rs          # Spellbook card widget
+│       ├── spine.rs         # Spellbook spine widget
+│       └── search_input.rs  # Search input widget
+│
+├── clipboard.rs             # Clipboard operations
+├── notifications.rs         # D-Bus notification helpers
+├── validation.rs            # Codex validation
+├── logging.rs               # Logging setup
+└── cli.rs                   # CLI argument parsing
+```
+
+---
+
+## Data Flow
+
+### Startup
+
+1. **Parse CLI args** → Determine initial mode (`--add` opens AddSpell)
+2. **Initialize logging** → `~/.spellbook/spellbook.log`
+3. **Load codex** → `archivist::codex_store::load("codex.toml")`
+4. **Load config** → `archivist::config_store::load("config.toml")`
+5. **Load theme** → `archivist::theme_store::load("theme.toml")`
+6. **Load jobs** → `archivist::job_store::load()` from `~/.spellbook/jobs.toml`
+7. **Load recents** → `archivist::recent_store::load()` from `~/.spellbook/recents.toml`
+8. **Validate codex** → Check references, duplicates, required fields
+9. **Create AppState** → Initialize all component states
+10. **Start job poller** → Background thread monitors running jobs
+11. **Enter event loop** → 60fps tick rate with crossterm events
+
+### Event Loop
+
+```
+┌─────────────────────────────────────┐
+│  Crossterm Event (Key, Mouse, etc) │
+└──────────────┬──────────────────────┘
+               │
+               ▼
+     ┌─────────────────────┐
+     │   events::dispatch  │
+     └──────────┬──────────┘
+                │
+         ┌──────┴──────┐
+         │             │
+    Overlay?      No   │
+         │             ▼
+        Yes    ┌───────────────┐
+         │     │  Mode handler │
+         │     └───────────────┘
+         ▼
+  ┌──────────────┐
+  │Overlay handler│
+  └──────────────┘
+         │
+         ▼
+  ┌──────────────┐
+  │Update AppState│
+  └──────┬───────┘
+         │
+         ▼
+  ┌──────────────┐
+  │    Render    │
+  └──────────────┘
+```
+
+---
+
+## Execution System
+
+### Three Execution Modes
+
+```rust
+pub enum RunMode {
+    Simple,      // Exit TUI, run in terminal
+    Tui,         // Capture output in modal
+    Background,  // Detach, track in jobs
+}
+```
+
+### Simple Mode Flow
+
+1. User presses `s` or `r` (if spell default is simple)
+2. If `confirm = true` → show ConfirmDialog
+3. **Write `recents.toml`** (critical - no chance after)
+4. Shut down TUI (restore terminal)
+5. Execute via `$SHELL -c "<incantation>"` using `exec()` (replaces process)
+6. User is back at shell
+
+### TUI Mode Flow
+
+1. User presses `Ctrl+r` or `r` (if spell default is tui)
+2. If `confirm = true` → show ConfirmDialog
+3. Spawn child process with stdout/stderr piped
+4. Open OutputModal overlay, stream output in real-time
+5. **Streaming architecture**:
+   - Background thread reads from pipes line-by-line
+   - Sends lines via mpsc channel to event loop
+   - Event loop polls channel each tick (~16ms)
+   - Lines appended to `OutputModalState::content` (cap: 10,000 lines)
+6. On completion, show exit code
+7. User can promote to background with `Ctrl+b`
+
+### Background Mode Flow
+
+1. User presses `Ctrl+b` or `r` (if spell default is background)
+2. If `confirm = true` → show ConfirmDialog
+3. Spawn detached process (nohup)
+4. Create Job entry in JobManager
+5. Persist to `~/.spellbook/jobs.toml`
+6. Write stdout/stderr to `~/.spellbook/job_<id>.out/err`
+7. Job appears in jobs sidebar
+8. Background poller monitors process
+9. D-Bus notification on completion/failure
+
+---
+
+## Virtual Spellbooks
+
+Favorites and Recents are **virtual spellbooks** - generated dynamically, not stored in `codex.toml`:
+
+### Favorites
+
+- Contains all spells with `favorite = true`
+- Only visible if at least one favorite exists
+- Appears at top of spellbook list
+- Cannot be edited or deleted directly
+
+### Recent
+
+- Contains recently used spells from `recents.toml`
+- Sorted by most recent timestamp
+- Only visible if recents exist
+- Appears second in spellbook list (after Favorites)
+- Limited to last 100 entries (FIFO)
+
+### SpellbookRef Type
+
+```rust
+pub enum SpellbookRef {
+    Virtual(VirtualKind),
+    Codex(usize),
+}
+
+pub enum VirtualKind {
+    Favorites,
+    Recent,
+}
+```
+
+This provides type-safe references to spellbooks, avoiding index offset bugs.
+
+---
+
+## Theming
+
+10 built-in themes with ANSI color support:
+
 - default (dark)
 - default-light
 - dracula
@@ -114,114 +314,189 @@ pub struct RatatuiColors {
 - solarized-dark
 - solarized-light
 
-Theme preference is persisted in `theme.toml` (`selected_theme` index).
-
-## View Modes
-
-**Available View Modes** (cycle with `v` key or use commands):
-- auto (`:a`): Responsive - cards on wide screens, spines on narrow
-- cards (`:c`): Large card view with sigils and descriptions
-- spines (`:p`): Compact spine (book spine) view
-
-View mode preference is persisted in `theme.toml` (`selected_view_mode`).
-
-## CLI Arguments
-
-- `--add`: Opens directly to Add Spell screen instead of SpellbookList
-
-## Clipboard
-
-The app uses external clipboard tools for maximum compatibility:
-
-1. `wl-copy` (Wayland)
-2. `xclip` (X11)
-3. `xsel` (X11)
-
-On successful copy, a D-Bus notification is sent via `notify-send`.
-
-## Command Palette
-
-The SearchOverlay supports a command palette (triggered with `:`):
-
-1. Type `:` to enter command mode
-2. A filtered list of matching commands appears
-3. Use `↑`/`↓` to navigate, `Enter` to execute
-4. `Esc` to cancel
-
-| Command | Action |
-|---------|--------|
-| `:n` | New spell - open Add Spell form |
-| `:b` | Browse spellbooks mode |
-| `:s` | Browse spells mode |
-| `:c` | Card view mode |
-| `:p` | Spine view mode |
-| `:t` | Cycle theme |
-| `:?` | Show help |
-
-Commands are defined in `src/ui/events.rs` with aliases for flexible matching.
-
-## Job Execution System
-
-Spellbook supports detached job execution for long-running commands.
-
-### Overview
-
-Jobs run in the background, detached from the TUI:
-- The TUI can be closed while jobs are running
-- Jobs continue executing independently
-- Notifications are sent via D-Bus when jobs complete
-- Job state is persisted to `~/.spellbook/jobs.toml`
-
-### Components
-
+Each theme defines:
+```rust
+pub struct RatatuiColors {
+    pub bg: Color,
+    pub fg: Color,
+    pub accent: Color,
+    pub muted: Color,
+    pub selection: Color,
+    pub border: Color,
+}
 ```
-src/
-├── executor.rs          # JobManager, job spawning, notifications
-├── ui/jobs.rs           # JobsPanel UI component
-└── ui/confirm.rs        # Confirmation dialog for elevated/dangerous commands
-~/.spellbook/            # Created on first run
-  jobs.toml              # Job registry
-  job_001.out           # stdout
-  job_001.err           # stderr
-```
+
+Theme preference persisted in `theme.toml`.
+
+---
+
+## Job System
 
 ### Job Lifecycle
 
 ```
 Queued → Running → Completed
-                   ↘ Failed
-                   ↘ Cancelled
+                 ↘ Failed
+                 ↘ Cancelled
 ```
-
-### Job States
-
-| State | Description |
-|-------|-------------|
-| `Queued` | Waiting to run (respects 10-job limit) |
-| `Running` | Currently executing |
-| `Completed` | Exited with code 0 |
-| `Failed` | Exited with non-zero code |
-| `Cancelled` | Killed by user |
 
 ### JobManager
 
-Handles job lifecycle:
-- Spawns detached child processes
-- Tracks job state via PID polling
-- Persists job registry to TOML
-- Sends D-Bus notifications on completion
-- Enforces 10 concurrent job limit
+Responsibilities:
+- Spawn detached child processes (nohup)
+- Track job state via PID polling
+- Persist job registry to `~/.spellbook/jobs.toml`
+- Send D-Bus notifications on completion/failure
+- Enforce 10 concurrent job limit
 
-### Commands
+### Background Polling
 
-| Command | Action |
-|---------|--------|
-| `:jobs` | Open Jobs panel |
-| `:kill <id>` | Kill a running job |
-| `:cancel <id>` | Cancel a queued job |
+- Single background thread polls all jobs periodically (every 1 second)
+- Sends status updates via mpsc channel to event loop
+- Event loop updates `JobManager` state each tick
+- Notifications sent via `notify-send` when job completes/fails
 
-### Notifications
+### Job Output
 
-D-Bus notifications via `notify-send`:
-- Success: `"<spell_name> completed"`
-- Failure: `"<spell_name> failed (exit <code>)"`
+- stdout → `~/.spellbook/job_<id>.out`
+- stderr → `~/.spellbook/job_<id>.err`
+- Viewable in OutputModal by selecting job in sidebar
+
+---
+
+## Focus Management
+
+When jobs sidebar is open, focus can be on main content or sidebar:
+
+```rust
+pub enum FocusTarget {
+    Main,
+    JobsSidebar,
+}
+```
+
+- **Tab** key cycles focus: Main ↔ JobsSidebar
+- Focus determines which component receives key events
+- Visual indicator shows which component has focus
+
+---
+
+## Event Handling Priority
+
+When a key event arrives:
+
+1. **Active overlay** (topmost if multiple) - ConfirmDialog, OutputModal, CommandPalette, Help
+2. **Jobs sidebar** (if focused)
+3. **Current mode** - BrowseSpellbooks, BrowseSpells, AddSpell, EditSpell, AddSpellbook
+4. **Global keybinds** - `/`, `:`, `t`, `v`, `q`, `?`, `Tab`
+
+If a handler consumes the event, stop propagation.
+
+---
+
+## Persistence Strategy
+
+### Atomic Writes
+
+All TOML files written atomically:
+```rust
+// Pattern
+write_to_temp("{file}.tmp")
+fs::rename("{file}.tmp", "{file}")
+```
+
+Prevents corruption if process dies mid-write.
+
+### File Locations
+
+| File | Purpose |
+|------|---------|
+| `codex.toml` | Spells and spellbooks |
+| `config.toml` | User settings (view mode, defaults) |
+| `theme.toml` | Theme selection |
+| `~/.spellbook/jobs.toml` | Job registry |
+| `~/.spellbook/job_<id>.out` | Job stdout |
+| `~/.spellbook/job_<id>.err` | Job stderr |
+| `~/.spellbook/recents.toml` | Recently used spells |
+| `~/.spellbook/spellbook.log` | Application logs |
+
+### Retention Policies
+
+- **Recents**: Keep last 100, FIFO eviction
+- **Jobs**: Keep last 50, auto-purge on startup
+- **Logs**: Rotate at 5MB
+
+---
+
+## Validation Rules
+
+On load, validate codex:
+
+- No duplicate spell IDs
+- No duplicate spell names (warning only)
+- No empty spell names or incantations
+- Spellbook spell references must point to existing spell IDs
+- Warn (don't crash) on invalid references - skip and log
+- `run_mode` must be one of: simple, tui, background (default to simple if invalid)
+
+---
+
+## Error Handling
+
+- Missing `codex.toml` → create default empty one
+- Missing `config.toml` → create with defaults
+- Missing `theme.toml` → create with default theme
+- Missing `~/.spellbook/` → create directory
+- Invalid TOML → show error message in TUI, don't crash
+- Clipboard tool not found → show error in footer
+- Job process spawn failure → mark job as Failed, log error
+- Invalid `working_dir` → fall back to `$HOME`, log warning
+
+---
+
+## Migration Strategy
+
+### V1 → V2 Migration
+
+On first v2 load:
+
+1. **Check for spell IDs** - if any spell lacks `id` field:
+   - Generate UUID for each spell without ID
+   - Rewrite `codex.toml` with IDs
+2. **Update spellbook references** - if spellbooks use name references:
+   - Resolve names to IDs
+   - Rewrite `codex.toml` with ID references
+3. **Remove deprecated fields** - `elevated`, `dangerous`, `background` (replaced by `run_mode` and `confirm`)
+4. **Log migration** - record actions in `spellbook.log`
+
+### Forward Compatibility
+
+- Use `#[serde(default)]` for all new optional fields
+- Old TOML files load successfully with defaults for missing fields
+
+---
+
+## CLI Arguments
+
+- `--add`: Opens directly to AddSpell form instead of BrowseSpellbooks
+
+Future:
+- `--import <file>`: Import spells from file
+- `--export <file>`: Export codex to file
+
+---
+
+## Logging
+
+- **File**: `~/.spellbook/spellbook.log`
+- **Rotation**: Keep last 5MB
+- **Levels**: ERROR, WARN, INFO, DEBUG
+- **Control**: Set via `SPELLBOOK_LOG` env var (e.g., `SPELLBOOK_LOG=debug`)
+
+Example log entries:
+```
+[INFO] Loaded 42 spells from codex.toml
+[WARN] Invalid spell reference in spellbook 'System': unknown ID 550e8400...
+[ERROR] Failed to spawn job 5: working_dir /invalid/path does not exist
+[DEBUG] Job 3 status check: Running (PID 12345)
+```

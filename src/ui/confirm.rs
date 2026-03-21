@@ -105,7 +105,7 @@ pub fn handle_confirm_key(
 
             if spell.background {
                 // Run as background job
-                match crate::executor::start_spell(
+                match crate::invoker::start_spell(
                     spell.name.clone(),
                     spell.incantation.clone(),
                     spell.elevated,
@@ -122,7 +122,7 @@ pub fn handle_confirm_key(
                 }
             } else {
                 // Run synchronously and show output
-                let result = crate::executor::execute_sync(&spell.incantation, spell.elevated);
+                let result = crate::invoker::execute_sync(&spell.incantation, spell.elevated);
                 let exec_result = crate::clipboard::ExecutionResult {
                     command: spell.incantation.clone(),
                     stdout: result.stdout.clone(),

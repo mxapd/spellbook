@@ -1,9 +1,9 @@
+mod archivist;
 mod clipboard;
 mod cli;
-mod executor;
+mod invoker;
 mod logging;
 mod models;
-mod persistence;
 mod state;
 mod ui;
 mod validation;
@@ -24,7 +24,7 @@ fn run(terminal: &mut DefaultTerminal) -> io::Result<()> {
     let args = CliArgs::parse();
     let mode = args.mode;
 
-    let codex = match persistence::Archivist::load("codex.toml") {
+    let codex = match archivist::Archivist::load("codex.toml") {
         Ok(c) => c,
         Err(e) => {
             eprintln!("Error loading codex.toml: {}", e);
@@ -45,7 +45,7 @@ fn run(terminal: &mut DefaultTerminal) -> io::Result<()> {
     log_info!("Spellbook started (mode: {:?})", mode);
 
     // Initialize job manager (starts background polling thread)
-    let _ = executor::get_job_manager();
+    let _ = invoker::get_job_manager();
     log_info!("Job manager initialized");
 
     let _ = execute!(

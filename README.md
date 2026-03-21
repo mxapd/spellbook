@@ -1,18 +1,42 @@
 # Spellbook
 
-A TUI application for managing and quickly accessing CLI command snippets.
+A powerful TUI application for managing and executing CLI command snippets with style.
 
 ## Features
 
-- **Browse Spellbooks** - Organize commands into categorized collections
-- **Global Search** - Search across all spells by name, lore, or tags
+### Core
+
+- **Browse Spellbooks** - Organize commands into categorized collections with visual themes
+- **Global Search** - Filter spells by name, description, tags, or category
 - **Quick Copy** - Copy any command to clipboard with Enter
-- **D-Bus Notifications** - Get notified when commands are copied
-- **Vim-style Navigation** - Use j/k or arrow keys to navigate
-- **Themes** - 10 built-in themes, cycle with `t` key
-- **View Modes** - Cards or spines view (responsive)
-- **Command Bar** - Quick actions with `:` prefix commands
-- **Add Spells** - Add new spells via UI (`--add` flag)
+- **Three Execution Modes** - Simple, TUI, and Background for different use cases
+- **Background Jobs** - Run long commands as detached jobs with progress tracking
+- **D-Bus Notifications** - Get notified when jobs complete or commands are copied
+
+### Organization
+
+- **Favorites** - Mark frequently used spells for quick access
+- **Recent Items** - Virtual spellbook of recently used commands
+- **Virtual Spellbooks** - Dynamic collections that update automatically
+- **Tags & Categories** - Flexible organization with schools and glyphs
+
+### UI/UX
+
+- **10 Built-in Themes** - Beautiful color schemes from Dracula to Solarized
+- **View Modes** - Cards, spines, or responsive auto mode
+- **Command Palette** - Quick actions with `:` prefix
+- **Vi-style Navigation** - Use j/k or arrow keys
+- **Jobs Sidebar** - Monitor running jobs without leaving the TUI
+- **Real-time Output** - Stream command output in modal overlays
+
+### Management
+
+- **Add/Edit/Delete** - Full CRUD operations for spells and spellbooks
+- **Import/Export** - Share spell collections as TOML files
+- **Validation** - Automatic checks for broken references and duplicates
+- **Persistence** - All preferences saved automatically
+
+---
 
 ## Quick Start
 
@@ -20,109 +44,172 @@ A TUI application for managing and quickly accessing CLI command snippets.
 # Run the app
 cargo run
 
-# Run with Add Spell screen open
+# Add a new spell directly
 cargo run -- --add
 ```
+
+---
+
+## Installation
+
+### Requirements
+
+- **wl-clipboard** (Wayland) or **xclip/xsel** (X11) - For clipboard support
+- **libnotify** (notify-send) - For D-Bus notifications
+- **nohup** - For background job execution (usually pre-installed)
+
+On NixOS (using flake.nix):
+```bash
+nix develop  # Enters dev shell with all dependencies
+```
+
+On other systems:
+```bash
+# Debian/Ubuntu
+sudo apt install wl-clipboard libnotify-bin
+
+# Arch
+sudo pacman -S wl-clipboard libnotify
+
+# Fedora
+sudo dnf install wl-clipboard libnotify
+```
+
+---
 
 ## Keybindings
 
 ### Global
 | Key | Action |
 |-----|--------|
-| `Ctrl+C` | Quit |
-| `Esc` | Go back / Close search / Cancel |
+| `/` | Activate search |
+| `Tab` | Cycle focus (main / jobs sidebar) |
+| `:` | Open command palette |
 | `t` | Cycle theme |
 | `v` | Cycle view mode |
-| `:` | Open command bar |
+| `q` | Quit |
+| `?` | Help |
 
-### Navigation
+### Browse & Navigate
 | Key | Action |
 |-----|--------|
-| `↑` / `↓` / `j` / `k` | Navigate |
-| `←` / `→` / `h` / `l` | Move within row / column |
-| `Enter` | Open / Copy / Save |
-| `/` | Open search (from home screens) |
+| `↑↓` or `jk` | Navigate |
+| `←→` or `hl` | Move left/right |
+| `Enter` | Open / Copy |
+| `Esc` | Go back |
 
-### Command Bar
-Press `:` then type:
+### Spell Actions
+| Key | Action |
+|-----|--------|
+| `r` | Run (default mode) |
+| `s` | Run in Simple mode |
+| `Ctrl+r` | Run in TUI mode |
+| `Ctrl+b` | Run in Background mode |
+| `e` | Edit spell |
+| `d` | Delete spell |
+| `f` | Toggle favorite |
+
+### Command Palette
+Type `:` then:
 | Command | Action |
 |---------|--------|
 | `:n` | New spell |
-| `:b` | Browse spellbooks |
-| `:s` | Browse spells |
-| `:c` | Card view |
-| `:p` | Spine view |
-| `:t` | Cycle theme |
-| `:?` | Help |
+| `:nb` | New spellbook |
+| `:jobs` | Toggle jobs sidebar |
+| `:import <file>` | Import spells |
+| `:export [file]` | Export codex |
+| `:c` / `:p` / `:a` | Card / Spine / Auto view |
 
-### Add Spell Screen
-| Key | Action |
-|-----|--------|
-| `Tab` | Next field |
-| `↑` / `↓` | Navigate fields |
-| `Enter` | Save |
-| `Esc` | Cancel |
+---
 
-## Requirements
+## Execution Modes
 
-- **wl-clipboard** - For Wayland clipboard support (or xclip/xsel for X11)
-- **notify-send** - For copy notifications (part of libnotify)
+Spellbook supports three execution modes for different use cases:
 
-On NixOS, add to your system packages:
+### Simple Mode (`s`)
+Exit TUI and run command in your shell. Perfect for quick commands.
 ```
-wl-clipboard
-libnotify
+Use for: ls, ps, git status, cd
 ```
+
+### TUI Mode (`Ctrl+r`)
+Capture output in a modal overlay with real-time streaming.
+```
+Use for: grep, find, curl, cat
+```
+
+### Background Mode (`Ctrl+b`)
+Detach command as a job, track in sidebar, get notified on completion.
+```
+Use for: cargo build, nixos-rebuild, long downloads
+```
+
+Each spell has a default mode, but you can override it at execution time.
+
+---
 
 ## Configuration
 
-Theme and view mode preferences are persisted in `theme.toml`.
+### File Locations
 
-### Available Themes
-- default (dark)
-- default-light
+| File | Purpose |
+|------|---------|
+| `codex.toml` | Your spells and spellbooks |
+| `config.toml` | User preferences (view mode, defaults) |
+| `theme.toml` | Selected theme |
+| `~/.spellbook/jobs.toml` | Background job registry |
+| `~/.spellbook/recents.toml` | Recently used spells |
+
+### Themes
+
+10 built-in themes:
+- default (dark) | default-light
 - dracula
-- gruvbox-dark
-- gruvbox-light
+- gruvbox-dark | gruvbox-light
 - nord
 - catppuccin
 - one-dark
-- solarized-dark
-- solarized-light
+- solarized-dark | solarized-light
+
+Cycle with `t` key or `:t` command.
 
 ### View Modes
-- **Cards**: Large card view with sigils and descriptions
-- **Spines**: Compact spine view
 
-Both modes are responsive and adapt to terminal width.
+- **Cards**: Large card view with sigils and descriptions
+- **Spines**: Compact book spine view
+- **Auto**: Responsive (cards on wide, spines on narrow)
+
+Cycle with `v` key or commands (`:c`, `:p`, `:a`).
+
+---
 
 ## Project Structure
 
 ```
 src/
-├── main.rs           # Entry point, CLI args, event loop
-├── clipboard.rs      # Clipboard operations with fallback support
-├── state.rs          # Application state (Codex + settings)
-├── models/           # Data structures
-│   ├── codex.rs      # Root data container
-│   ├── spell.rs      # Spell/command definition
-│   ├── spellbook.rs  # Spellbook/collection
-│   ├── theme.rs      # Theme colors
-│   └── view_mode.rs  # View mode enum
-├── ui/               # Rendering and events
-│   ├── mod.rs        # Screen states, UiState, SearchMode
-│   ├── render.rs     # Main render dispatcher
-│   ├── events.rs     # Key event handlers
-│   ├── spellbook_list.rs
-│   ├── spell_list.rs
-│   ├── search_overlay.rs  # Primary navigation screen
-│   └── add_spell.rs  # Add spell form
-└── persistence/
-    └── archivist.rs  # TOML load/save
+├── main.rs              # Entry point
+├── app.rs               # Main event loop
+├── models/              # Data structures
+├── archivist/         # TOML load/save
+├── invoker/            # Execution modes & job manager
+├── ui/                  # Rendering & events
+│   ├── components/      # Mode-specific UI
+│   └── widgets/         # Reusable widgets
+├── theme/               # Theme definitions
+├── clipboard.rs         # Clipboard operations
+├── notifications.rs     # D-Bus notifications
+└── validation.rs        # Data validation
 
-codex.toml            # Spell data
-theme.toml            # Theme and view mode configuration
+docs/                    # Documentation
+├── architecture.md      # System design
+├── data-model.md        # Data structures
+├── ui-screens.md        # UI details
+├── keybindings.md       # Complete keybind reference
+├── diagrams.md          # Architecture diagrams
+└── roadmap.md           # Implementation plan
 ```
+
+---
 
 ## Data Format
 
@@ -130,15 +217,87 @@ Spells are defined in `codex.toml`:
 
 ```toml
 [[spells]]
+id = "550e8400-e29b-41d4-a716-446655440000"
 name = "List Processes"
 incantation = "ps aux"
 lore = "Shows all running processes."
 school = "System"
 glyphs = ["process", "running", "ps"]
+run_mode = "simple"
+favorite = false
 
 [[spellbooks]]
 name = "System"
 cover = "System monitoring commands."
-sigil = "*"
-spells = ["List Processes"]
+sigil = "∧"
+spells = [
+    "550e8400-e29b-41d4-a716-446655440000"
+]
 ```
+
+Each spell has:
+- **Unique ID** (UUID) for stable references
+- **Name** and **incantation** (the command)
+- **Lore** (description) and **school** (category)
+- **Glyphs** (tags for search)
+- **run_mode** (default execution mode)
+- **confirm** flag (require confirmation)
+- **working_dir** (optional working directory)
+
+---
+
+## Jobs System
+
+Background jobs run independently of the TUI:
+
+- **Detached execution** - Jobs survive TUI close
+- **Output capture** - stdout/stderr saved to files
+- **Status tracking** - Monitor via jobs sidebar
+- **Notifications** - D-Bus alerts on completion/failure
+- **Limits** - Max 10 concurrent jobs, 50 total retained
+
+Toggle sidebar with `:jobs`, navigate with arrows, press Enter to view output.
+
+---
+
+## Development
+
+Built with:
+- **Rust** - Systems programming language
+- **ratatui** - Terminal UI framework
+- **crossterm** - Terminal I/O
+- **serde + toml** - Serialization
+
+Run tests:
+```bash
+cargo test
+```
+
+Build release:
+```bash
+cargo build --release
+```
+
+---
+
+## Documentation
+
+- [Architecture](docs/architecture.md) - System design and data flow
+- [Data Model](docs/data-model.md) - Spell, Spellbook, Job structures
+- [UI Screens](docs/ui-screens.md) - Mode/Overlay system details
+- [Keybindings](docs/keybindings.md) - Complete keybind reference
+- [Roadmap](docs/roadmap.md) - Implementation plan
+
+---
+
+## License
+
+MIT License - See LICENSE file for details.
+
+---
+
+## Credits
+
+Created with care by the Spellbook team.
+
+Powered by [ratatui](https://ratatui.rs/) and the Rust ecosystem.

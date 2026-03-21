@@ -29,11 +29,11 @@ graph TB
             mod_ui["mod.rs"]
         end
         
-        subgraph "persistence/"
+        subgraph "archivist/"
             archivist["archivist.rs"]
         end
         
-        executor["executor.rs"]
+        invoker["invoker.rs"]
         clipboard["clipboard.rs"]
         state["state.rs"]
         validation["validation.rs"]
@@ -286,8 +286,8 @@ graph TD
     subgraph "src/"
         models["models/"]
         ui["ui/"]
-        persistence["persistence/"]
-        executor["executor.rs"]
+        persistence["archivist/"]
+        invoker["invoker.rs"]
         clipboard["clipboard.rs"]
         state["state.rs"]
         validation["validation.rs"]

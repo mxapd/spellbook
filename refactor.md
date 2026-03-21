@@ -29,6 +29,7 @@ A single command snippet with metadata.
 
 ```toml
 [[spells]]
+id = "550e8400-e29b-41d4-a716-446655440000"
 name = "Rebuild NixOS"
 incantation = "sudo nixos-rebuild switch"
 lore = "Rebuild and switch to new system configuration"
@@ -42,6 +43,7 @@ favorite = false
 
 | Field         | Type         | Required | Default    | Description                                |
 | ------------- | ------------ | -------- | ---------- | ------------------------------------------ |
+| `id`          | String       | Yes      | —          | UUID (e.g. "550e8400-e29b-41d4-a716-446655440000") |
 | `name`        | String       | Yes      | —          | Display name                               |
 | `incantation` | String       | Yes      | —          | The actual command(s) to run               |
 | `lore`        | String       | No       | `""`       | Description / usage notes                  |
@@ -53,7 +55,8 @@ favorite = false
 | `favorite`    | bool         | No       | `false`    | Whether the spell is favorited             |
 
 **Notes:**
-- IDs should be stable (use UUIDs or persistent IDs, not sequential on load)
+- IDs are UUIDs generated with `uuid::Uuid::new_v4()` when spell is created
+- IDs must be stable and persist across application restarts
 - If a command needs `sudo`, write it in the incantation directly — no separate elevation flag
 
 ### Spellbook
@@ -65,7 +68,11 @@ A named collection of spells.
 name = "System"
 cover = "System monitoring and management commands"
 sigil = "∧"
-spells = ["List Processes", "Kill Process", "Rebuild NixOS"]
+spells = [
+    "550e8400-e29b-41d4-a716-446655440000",
+    "660e9401-f30c-52e5-b827-557766551111",
+    "770f0512-g41d-63f6-c938-668877662222"
+]
 ```
 
 | Field    | Type         | Required | Description                         |
@@ -73,7 +80,7 @@ spells = ["List Processes", "Kill Process", "Rebuild NixOS"]
 | `name`   | String       | Yes      | Display name                        |
 | `cover`  | String       | No       | Description / purpose               |
 | `sigil`  | String       | No       | Emoji or symbol for visual identity |
-| `spells` | Vec<String>  | No       | References to spell names           |
+| `spells` | Vec<String>  | No       | References to spell IDs (UUIDs)     |
 | `style`  | String       | No       | Spine style for spine view mode     |
 
 ### Codex
@@ -86,6 +93,27 @@ pub struct Codex {
     pub spellbooks: Vec<Spellbook>,
 }
 ```
+
+### SpellbookRef
+
+Used to reference spellbooks, distinguishing between virtual and codex spellbooks.
+
+```rust
+pub enum SpellbookRef {
+    Virtual(VirtualKind),
+    Codex(usize),
+}
+
+pub enum VirtualKind {
+    Favorites,
+    Recent,
+}
+```
+
+**Notes:**
+- Virtual spellbooks (Favorites, Recent) are generated dynamically at runtime
+- Codex spellbooks are stored in `codex.toml`
+- This enum provides type safety when navigating between spellbook types
 
 ### Job
 
@@ -249,6 +277,7 @@ pub struct AppState {
     pub mode: Mode,
     pub overlays: Vec<Overlay>,
     pub jobs_sidebar_open: bool,
+    pub focus: FocusTarget,
     pub theme: Theme,
     pub config: Config,
 
@@ -261,7 +290,13 @@ pub struct AppState {
     pub command_palette: CommandPaletteState,
     pub confirm_dialog: ConfirmDialogState,
     pub jobs_sidebar: JobsSidebarState,
-}```
+}
+
+pub enum FocusTarget {
+    Main,         // Focus is on main content area
+    JobsSidebar,  // Focus is on jobs sidebar
+}
+```
 
 Key principle: Each UI component owns its state in a dedicated struct.
 
@@ -281,8 +316,9 @@ SpellbookBrowserState
 ### SpellBrowserState
 ```rust
 	pub struct SpellBrowserState {
-	    pub spellbook_index: usize,  // which spellbook we're browsing
+	    pub spellbook: SpellbookRef,  // which spellbook we're browsing (virtual or codex)
 	    pub selected_index: usize,
+	    pub search_active: bool,
 	    pub search_query: String,
 	    pub filtered_indices: Vec<usize>,
 	}
@@ -305,6 +341,7 @@ Used for BOTH add and edit. Populated with existing data when editing.
 	    pub dropdown_open: bool,
 	    pub dropdown_index: usize,
 	    pub editing_spell_id: Option<SpellId>, // None = adding, Some = editing
+	    pub dirty: bool,             // tracks if form has unsaved changes
 	}
 ```
 
@@ -334,11 +371,17 @@ Three Execution Modes
 #### Execution Flow
 
 ##### Simple Mode
-1. User presses s or r (if spell default is simple)
-2. If confirm flag is set → show ConfirmDialog overlay
-3. TUI shuts down completely (restore terminal)
-4. Command is executed via the user's shell
-5. App process exits — user is back at their shell
+1. User presses `s` or `r` (if spell's default `run_mode` is `simple`)
+2. If `confirm = true` → show ConfirmDialog overlay
+3. **CRITICAL**: Write to `recents.toml` before executing (no chance after)
+4. TUI shuts down completely (restore terminal state)
+5. Command is executed via `$SHELL -c "<incantation>"` using `exec()` (replaces process)
+6. User is back at their shell with command running/completed
+
+**Implementation Notes**:
+- Use `std::process::Command` with `.exec()` on Unix (process replacement)
+- If `working_dir` is invalid, fall back to `$HOME` and log warning
+- If `$SHELL` is not set, default to `/bin/sh`
 
 ##### TUI Mode
 
@@ -360,6 +403,43 @@ Three Execution Modes
 6. Jobs sidebar shows progress
 7. D-Bus notification on completion/failure
 
+#### TUI Mode Streaming Architecture
+
+When running commands in TUI mode, output streaming works as follows:
+
+1. **Child Process Spawn**: Command spawns with `stdout` and `stderr` piped
+2. **Background Thread**: Dedicated thread reads from pipes line-by-line using `BufReader`
+3. **Message Channel**: Lines sent via `tokio::sync::mpsc` channel to main event loop
+4. **Event Loop Polling**: Main loop polls channel each tick (~16ms / 60fps)
+5. **Content Buffer**: Lines appended to `OutputModalState::content` (capped at 10,000 lines to prevent memory issues)
+6. **Real-time Display**: Modal shows output with auto-scroll to bottom
+7. **Promotion**: On Ctrl+b (promote to background):
+   - All captured lines written to job output file
+   - Process becomes detached (re-parented to init)
+   - Job entry created in JobManager
+   - Modal closes, job appears in sidebar
+
+#### Unsaved Changes Handling
+
+When `Esc` is pressed in `AddSpell`, `EditSpell`, or `AddSpellbook` modes:
+
+- If `dirty` flag is `true` → show `ConfirmDialog` overlay: "Discard unsaved changes?"
+  - If confirmed → clear form state, set `dirty = false`, return to previous mode
+  - If cancelled → stay in form, keep `dirty = true`
+- If `dirty` flag is `false` → immediately return to previous mode
+- Successful save → set `dirty = false`
+
+**When to set `dirty = true`**:
+- Any character typed in any form field
+- Toggle checkboxes (confirm, favorite, etc.)
+- Change dropdown selection (run_mode, spellbook)
+- Any modification to form state from default/loaded values
+
+**When to set `dirty = false`**:
+- Successful save operation
+- User confirms discard via ConfirmDialog
+- Form is freshly initialized (Add mode) or loaded (Edit mode)
+
 Promotion: TUI → Background
 
 
@@ -379,13 +459,16 @@ While viewing a TUI run in the output modal:
 
 #### Global (all modes)
 
-Key	Action
-:	Open command palette
-t	Cycle theme
-v	Cycle view mode
-q	Quit
-Esc	Close overlay / go back
-?	Show help overlay
+| Key | Action |
+|-----|--------|
+| `/` | Activate search mode (in Browse modes) |
+| `Tab` | Cycle focus (Main ↔ Jobs Sidebar when sidebar open) |
+| `:` | Open command palette |
+| `t` | Cycle theme |
+| `v` | Cycle view mode |
+| `q` | Quit |
+| `Esc` | Close overlay / deactivate search / go back |
+| `?` | Show help overlay |
 
 #### BrowseSpellbooks Mode
 
@@ -580,7 +663,7 @@ Command	Action
 	│   ├── codex.rs             # Codex struct (spells + spellbooks)
 	│   └── job.rs               # Job struct, JobStatus
 	│
-	├── persistence/
+	├── archivist/
 	│   ├── mod.rs
 	│   ├── codex_store.rs       # Load/save codex.toml (full serialization)
 	│   ├── config_store.rs      # Load/save config.toml
@@ -588,7 +671,7 @@ Command	Action
 	│   ├── job_store.rs         # Load/save jobs.toml and job output files
 	│   └── recent_store.rs      # Load/save recents.toml
 	│
-	├── executor/
+	├── invoker/
 	│   ├── mod.rs
 	│   ├── simple.rs            # Simple mode: exit TUI, exec command
 	│   ├── tui_runner.rs        # TUI mode: spawn with captured output
@@ -631,8 +714,8 @@ Module Responsibilities
 - main.rs: Parse CLI args, initialize terminal, create AppState, run event loop, restore terminal on exit.
 - app.rs: Owns AppState. Dispatches events to the correct handler based on active mode/overlay. Coordinates between UI, executor, and persistence.
 - models/: Pure data structures with serde derives. No logic beyond basic methods (e.g. Spell::requires_confirmation()).
-- persistence/: Each store handles one file. Full serialize/deserialize — no line-by-line editing. All stores are stateless functions that take a path and return/accept data.
-- executor/: Each execution mode is its own module. job_manager.rs handles the lifecycle of background jobs (start, poll, notify, kill).
+- archivist/: Each store handles one file. Full serialize/deserialize — no line-by-line editing. All stores are stateless functions that take a path and return/accept data.
+- invoker/: Each execution mode is its own module. job_manager.rs handles the lifecycle of background jobs (start, poll, notify, kill).
 - ui/render.rs: Dispatches to the correct component renderer based on current mode. Renders overlays on top. Renders jobs sidebar if open.
 - ui/events.rs: Dispatches key events based on active overlay (overlays take priority) → then mode → then global keybinds.
 - ui/components/: Each component is self-contained with its own state struct, render function, and event handler function.
@@ -714,3 +797,113 @@ with an async channel for job status updates.
 - Simple run mode must fully restore the terminal before executing the command
 and then exit the process. The command should be executed via exec (replace
 process) or std::process::Command with inherited stdio.
+
+
+--- 
+
+## Operational Policies
+
+Define limits and behaviors for system resources:
+
+### File Retention
+
+- **recents.toml**: Keep last 100 entries, FIFO eviction when limit reached
+- **jobs.toml**: Keep last 50 jobs, auto-purge completed/failed jobs on startup
+- **Job output files**: Retained as long as job is in registry, purged when job is removed
+
+### Resource Limits
+
+- **OutputModalState**: Cap at 10,000 lines per job to prevent memory issues
+  - When limit reached, truncate from beginning (keep most recent)
+  - Display warning: "Output truncated (showing last 10,000 lines)"
+- **Job concurrency**: Maximum 10 concurrent running jobs
+  - Additional jobs enter `Queued` state
+  - Automatically started when a running job completes
+
+### File Operations
+
+- **Atomic writes**: Use write-to-temp + atomic rename for all TOML files
+  - Pattern: Write to `{file}.tmp`, then `fs::rename()` to `{file}`
+  - Prevents corruption if process dies mid-write
+- **working_dir validation**: If path is invalid at execution time:
+  - Fall back to `$HOME`
+  - Log warning to `spellbook.log`
+  - Show warning in TUI footer
+
+### Data Migrations
+
+- **Serde compatibility**: Use `#[serde(default)]` for all new optional fields
+  - Enables forward compatibility when adding fields
+  - Old TOML files load successfully with defaults for missing fields
+- **Spell ID generation**: 
+  - New spells: Generate with `uuid::Uuid::new_v4()`, store as string
+  - Legacy spells (no ID): Generate UUID from name hash on first load, persist to file
+  - Migration: On first v2 load, assign UUIDs to all spells, rewrite `codex.toml`
+
+### Logging
+
+- **Log file**: `~/.spellbook/spellbook.log`
+- **Rotation**: Keep last 5MB, rotate when exceeded
+- **Levels**: ERROR, WARN, INFO, DEBUG (configurable via env var `SPELLBOOK_LOG`)
+
+
+--- 
+
+
+## RESOLVED CONSIDERATIONS
+
+The following design decisions were made during specification review. These issues have been addressed in the spec above:
+
+### 1. Spell ID Stability ✓
+**Issue**: Spell references by name cause problems when spells are renamed.
+**Resolution**: Added explicit `id` field (UUID) to Spell TOML format. Spellbooks reference spells by ID, not name.
+
+### 2. Search vs Hotkey Conflicts ✓
+**Issue**: "Just start typing" for search conflicts with single-key actions (e, d, f, r).
+**Resolution**: Use `/` key to activate search mode explicitly, avoiding ambiguity.
+
+### 3. Virtual Spellbook Indexing ✓
+**Issue**: `SpellBrowserState::spellbook_index: usize` is ambiguous for virtual vs codex spellbooks.
+**Resolution**: Introduced `SpellbookRef` enum with `Virtual(VirtualKind)` and `Codex(usize)` variants.
+
+### 4. Focus Management ✓
+**Issue**: No defined focus behavior when jobs sidebar is open.
+**Resolution**: Added `FocusTarget` enum to AppState, Tab key cycles focus between Main and JobsSidebar.
+
+### 5. Unsaved Changes Handling ✓
+**Issue**: No confirmation when Esc pressed in forms with unsaved changes.
+**Resolution**: Added `dirty` flag to `SpellFormState`, show ConfirmDialog when dirty and Esc pressed.
+
+### 6. Simple Mode Execution ✓
+**Issue**: Underspecified how simple mode executes commands.
+**Resolution**: Use `$SHELL -c` with `exec()` replacement. Write `recents.toml` **before** exec (no after).
+
+### 7. TUI Streaming Architecture ✓
+**Issue**: No description of how stdout/stderr flows from child to UI.
+**Resolution**: Added detailed architecture: background thread → mpsc channel → event loop polling.
+
+### 8. Output Memory Limits ✓
+**Issue**: `OutputModalState::content: Vec<String>` can grow unbounded.
+**Resolution**: Cap at 10,000 lines with truncation from beginning when exceeded.
+
+### 9. Recents & Jobs Retention ✓
+**Issue**: No defined limits for `recents.toml` and `jobs.toml` growth.
+**Resolution**: Keep last 100 recents (FIFO), last 50 jobs (auto-purge on startup).
+
+### 10. Atomic File Writes ✓
+**Issue**: No mention of atomic writes for TOML files (corruption risk).
+**Resolution**: All persistence modules use write-to-temp + atomic rename pattern.
+
+### Additional Clarifications
+
+The following details were also specified:
+
+- **Job polling**: Single background thread polls all jobs periodically, sends updates via mpsc channel
+- **Job ID generation**: Monotonic counter stored in `jobs.toml` (`next_id` field)
+- **Form navigation**: Tab and Arrow keys move between fields (specified in keybinds)
+- **Scroll behavior**: Cursor-follows scrolling (selected item stays visible, scrolls when near edge)
+- **Footer hints**: Context-aware (e.g., "Enter: copy | e: edit | d: delete | /: search")
+- **Notifications**: Format is `"{spell_name} completed"` or `"{spell_name} failed (exit {code})"`
+- **CLI pre-population**: `--add` opens blank form (no pre-population in v2 scope)
+- **Import conflicts**: Show overlay with options: Skip / Overwrite / Rename (append number)
+- **Undo**: Not in v2 scope (future enhancement)

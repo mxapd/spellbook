@@ -1,6 +1,6 @@
+use crate::archivist::Archivist;
 use crate::log_info;
 use crate::models::{Codex, RatatuiColors, Theme, UserSettings};
-use crate::persistence::Archivist;
 
 const THEME_CONFIG_PATH: &str = "theme.toml";
 

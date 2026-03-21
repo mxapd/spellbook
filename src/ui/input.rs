@@ -1,4 +1,4 @@
-use crate::executor::Placeholder;
+use crate::invoker::Placeholder;
 use crate::models::Spell;
 
 #[derive(PartialEq, Clone, Copy)]
@@ -67,7 +67,7 @@ impl InputPopupState {
             .iter()
             .map(|p| (p.placeholder.name.clone(), p.value.clone()))
             .collect();
-        crate::executor::substitute_placeholders(&self.command, &values)
+        crate::invoker::substitute_placeholders(&self.command, &values)
     }
 
     pub fn validate(&self) -> bool {

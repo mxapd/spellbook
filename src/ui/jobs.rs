@@ -6,7 +6,7 @@ use ratatui::{
     Frame,
 };
 
-use crate::executor::{self, Job, JobStatus};
+use crate::invoker::{self, Job, JobStatus};
 use crate::state::State;
 use crate::ui::Screen;
 
@@ -33,7 +33,7 @@ pub fn render_jobs_panel(
     area: Rect,
 ) {
     let theme = &state.theme;
-    let jobs = executor::list_jobs();
+    let jobs = invoker::list_jobs();
 
     let title = format!(" Jobs ({} jobs) ", jobs.len());
 
@@ -165,7 +165,7 @@ pub fn handle_jobs_key(
     key: crossterm::event::KeyCode,
     ui: &mut crate::ui::UiState,
 ) -> bool {
-    let jobs = executor::list_jobs();
+    let jobs = invoker::list_jobs();
     let job_ids: Vec<u64> = jobs.iter().map(|j| j.id).collect();
 
     match key {
@@ -198,7 +198,7 @@ pub fn handle_jobs_key(
             if let Some(idx) = ui.jobs_panel_state.selected_index {
                 if idx < job_ids.len() {
                     let job_id = job_ids[idx];
-                    if let Err(e) = executor::kill_job(job_id) {
+                    if let Err(e) = invoker::kill_job(job_id) {
                         ui.copy_feedback = Some(format!("Kill failed: {}", e));
                     } else {
                         ui.copy_feedback = Some(format!("Job {} killed", job_id));
@@ -211,7 +211,7 @@ pub fn handle_jobs_key(
             if let Some(idx) = ui.jobs_panel_state.selected_index {
                 if idx < job_ids.len() {
                     let job_id = job_ids[idx];
-                    if let Err(e) = executor::cancel_job(job_id) {
+                    if let Err(e) = invoker::cancel_job(job_id) {
                         ui.copy_feedback = Some(format!("Cancel failed: {}", e));
                     } else {
                         ui.copy_feedback = Some(format!("Job {} cancelled", job_id));
@@ -224,7 +224,7 @@ pub fn handle_jobs_key(
             if let Some(idx) = ui.jobs_panel_state.selected_index {
                 if idx < job_ids.len() {
                     let job_id = job_ids[idx];
-                    if let Err(e) = executor::dismiss_job(job_id) {
+                    if let Err(e) = invoker::dismiss_job(job_id) {
                         ui.copy_feedback = Some(format!("Dismiss failed: {}", e));
                     } else {
                         ui.copy_feedback = Some(format!("Job {} dismissed", job_id));
@@ -242,8 +242,8 @@ pub fn handle_jobs_key(
             if let Some(idx) = ui.jobs_panel_state.selected_index {
                 if idx < job_ids.len() {
                     let job_id = job_ids[idx];
-                    if let Some(job) = executor::get_job(job_id) {
-                        let (stdout, stderr) = executor::get_job_output(job_id);
+                    if let Some(job) = invoker::get_job(job_id) {
+                        let (stdout, stderr) = invoker::get_job_output(job_id);
                         let result = crate::clipboard::ExecutionResult {
                             command: job.command.clone(),
                             stdout: stdout.clone(),
