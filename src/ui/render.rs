@@ -1,5 +1,5 @@
 use crate::state::State;
-use crate::ui::{add_spell, input, jobs, search_overlay, spell_list, Screen, UiState};
+use crate::ui::{add_spell, add_spell_form, add_spellbook_form, confirm, help, input, jobs, search_overlay, spell_list, Screen, UiState};
 use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout},
     style::{Modifier, Style},
@@ -43,6 +43,10 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
             if let Some(_) = &ui.input_popup {
                 render_input_popup_overlay(frame, state, ui);
             }
+        }
+        Screen::Help => {
+            search_overlay::render(frame, state, ui);
+            render_help_overlay(frame, state);
         }
     }
 }
@@ -345,68 +349,8 @@ fn render_confirm_popup(frame: &mut Frame, state: &State, ui: &UiState) {
         height: popup_height,
     };
 
-    let block = Block::default()
-        .borders(Borders::ALL)
-        .border_style(Style::new().fg(theme.accent))
-        .title(" Confirm ")
-        .title_style(Style::new().fg(theme.accent).add_modifier(Modifier::BOLD));
-
-    frame.render_widget(&block, popup_area);
-
-    let inner = block.inner(popup_area);
-    let inner_width = inner.width as usize;
-
-    let layout = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([
-            Constraint::Length(1),
-            Constraint::Length(1),
-            Constraint::Length(1),
-            Constraint::Length(1),
-            Constraint::Min(1),
-            Constraint::Length(1),
-        ])
-        .split(inner);
-
     if let Some(ref dialog) = ui.confirm_dialog {
-        let line1 = Line::from(vec![
-            Span::raw("Confirm "),
-            Span::styled("execution", Style::new().fg(theme.accent)),
-            Span::raw("?"),
-        ]);
-        let para1 = Paragraph::new(line1).style(Style::new().fg(theme.fg));
-        frame.render_widget(para1, layout[0]);
-
-        let line2 = Line::from(vec![
-            Span::styled("Spell: ", Style::new().fg(theme.muted)),
-            Span::styled(
-                &dialog.spell.name,
-                Style::new().fg(theme.fg).add_modifier(Modifier::BOLD),
-            ),
-        ]);
-        let para2 = Paragraph::new(line2);
-        frame.render_widget(para2, layout[1]);
-
-        let line3 = Line::from(vec![Span::styled(
-            "Command: ",
-            Style::new().fg(theme.muted),
-        )]);
-        let cmd_display =
-            truncate_string(&dialog.spell.incantation, inner_width.saturating_sub(10));
-        let cmd_line = Line::from(vec![
-            Span::raw("  "),
-            Span::styled(&cmd_display, Style::new().fg(theme.accent)),
-        ]);
-        let para3 = Paragraph::new(vec![line3, cmd_line]);
-        frame.render_widget(para3, layout[2]);
-
-        let instruction = "Press Enter to confirm, Esc to cancel";
-        let line5 = Line::from(vec![Span::styled(
-            instruction,
-            Style::new().fg(theme.muted),
-        )]);
-        let para5 = Paragraph::new(line5);
-        frame.render_widget(para5, layout[5]);
+        confirm::render_confirm_dialog(frame, popup_area, theme, dialog);
     }
 }
 
@@ -478,4 +422,35 @@ fn render_input_popup_overlay(frame: &mut Frame, state: &State, ui: &UiState) {
     let text = Text::from(lines);
     let paragraph = Paragraph::new(text);
     frame.render_widget(paragraph, inner);
+}
+
+fn render_help_overlay(frame: &mut Frame, state: &State) {
+    let theme = &state.theme;
+    let area = frame.area();
+
+    // Dim the background
+    let overlay_rect = ratatui::layout::Rect {
+        x: 0,
+        y: 0,
+        width: area.width,
+        height: area.height,
+    };
+    let overlay = Paragraph::new("").style(Style::new().bg(ratatui::style::Color::Indexed(0)));
+    frame.render_widget(overlay, overlay_rect);
+
+    // Calculate popup size
+    let popup_width = 60.min(area.width - 4);
+    let popup_height = 20.min(area.height - 4);
+
+    let popup_x = (area.width - popup_width) / 2;
+    let popup_y = (area.height - popup_height) / 2;
+
+    let popup_area = ratatui::layout::Rect {
+        x: popup_x,
+        y: popup_y,
+        width: popup_width,
+        height: popup_height,
+    };
+
+    help::render_help(frame, popup_area, theme);
 }

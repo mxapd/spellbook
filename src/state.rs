@@ -588,6 +588,21 @@ impl State {
         }
     }
 
+    pub fn delete_spellbook(&mut self, spellbook_name: &str) -> Result<(), String> {
+        let initial_len = self.codex.spellbooks.len();
+        self.codex.spellbooks.retain(|sb| sb.name != spellbook_name);
+
+        if self.codex.spellbooks.len() < initial_len {
+            if let Err(e) = Archivist::save(&self.codex, "codex.toml") {
+                return Err(format!("Failed to save: {}", e));
+            }
+            log_info!("Spellbook '{}' deleted successfully", spellbook_name);
+            Ok(())
+        } else {
+            Err("Spellbook not found".to_string())
+        }
+    }
+
     pub fn get_spell(&self, spell_id: &str) -> Option<&crate::models::Spell> {
         self.codex.spells.iter().find(|s| s.id == spell_id)
     }
@@ -597,6 +612,23 @@ impl State {
 mod tests {
     use super::*;
     use crate::models::{Theme, ThemeConfig, UserSettings, ViewMode};
+    use serial_test::serial;
+    use std::fs;
+    use std::path::Path;
+
+    struct TestFileGuard;
+
+    impl Drop for TestFileGuard {
+        fn drop(&mut self) {
+            let _ = fs::remove_file("codex.toml");
+        }
+    }
+
+    fn setup_test_file() -> TestFileGuard {
+        let content = r#"[spellbook]"#;
+        let _ = fs::write("codex.toml", content);
+        TestFileGuard
+    }
 
     fn make_test_state(codex: Codex) -> State {
         let theme = Theme::default();
@@ -614,7 +646,9 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn test_update_spell_modifies_existing() {
+        let _guard = setup_test_file();
         let spell_id = uuid::Uuid::new_v4().to_string();
         let original_spell = Spell {
             id: spell_id.clone(),
@@ -683,7 +717,9 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn test_delete_spell_removes_from_codex() {
+        let _guard = setup_test_file();
         let spell_id = uuid::Uuid::new_v4().to_string();
         let mut state = make_test_state(Codex {
             spells: vec![Spell {
@@ -708,9 +744,10 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn test_delete_spell_removes_from_spellbooks() {
+        let _guard = setup_test_file();
         let spell_id = uuid::Uuid::new_v4().to_string();
-        let spellbook_id = uuid::Uuid::new_v4().to_string();
 
         let mut state = make_test_state(Codex {
             spells: vec![Spell {
@@ -726,7 +763,6 @@ mod tests {
                 favorite: false,
             }],
             spellbooks: vec![crate::models::Spellbook {
-                id: Some(spellbook_id.clone()),
                 name: "TestSpellbook".to_string(),
                 cover: String::new(),
                 sigil: "*".to_string(),

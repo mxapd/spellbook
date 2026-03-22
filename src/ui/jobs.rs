@@ -232,7 +232,8 @@ pub fn handle_jobs_key(key: crossterm::event::KeyCode, ui: &mut crate::ui::UiSta
             }
             return false;
         }
-        crossterm::event::KeyCode::Char('v') | crossterm::event::KeyCode::Char('V') => {
+        crossterm::event::KeyCode::Char('v') | crossterm::event::KeyCode::Char('V')
+        | crossterm::event::KeyCode::Enter => {
             if let Some(idx) = ui.jobs_panel_state.selected_index {
                 if idx < job_ids.len() {
                     let job_id = job_ids[idx];

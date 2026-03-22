@@ -9,30 +9,71 @@ use ratatui::{
 use crate::models::{RunMode, Spell};
 
 #[derive(Debug, Clone)]
+pub enum ConfirmAction {
+    DeleteSpell(Spell),
+    DeleteSpellbook(String),
+    ExecuteSpell(Spell),
+}
+
+#[derive(Debug, Clone)]
 pub struct ConfirmDialogState {
-    pub spell: Spell,
+    pub action: ConfirmAction,
     pub typed_confirmation: String,
 }
 
 impl Default for ConfirmDialogState {
     fn default() -> Self {
         Self {
-            spell: Spell::default(),
+            action: ConfirmAction::DeleteSpell(Spell::default()),
             typed_confirmation: String::new(),
         }
     }
 }
 
 impl ConfirmDialogState {
-    pub fn new(spell: Spell) -> Self {
+    pub fn delete_spell(spell: Spell) -> Self {
         Self {
-            spell,
+            action: ConfirmAction::DeleteSpell(spell),
+            typed_confirmation: String::new(),
+        }
+    }
+
+    pub fn delete_spellbook(name: String) -> Self {
+        Self {
+            action: ConfirmAction::DeleteSpellbook(name),
+            typed_confirmation: String::new(),
+        }
+    }
+
+    pub fn execute_spell(spell: Spell) -> Self {
+        Self {
+            action: ConfirmAction::ExecuteSpell(spell),
             typed_confirmation: String::new(),
         }
     }
 
     pub fn requires_typed_confirmation(&self) -> bool {
-        self.spell.confirm
+        match &self.action {
+            ConfirmAction::DeleteSpell(s) => s.confirm,
+            ConfirmAction::DeleteSpellbook(_) => true,
+            ConfirmAction::ExecuteSpell(s) => s.confirm,
+        }
+    }
+
+    pub fn title(&self) -> &'static str {
+        match &self.action {
+            ConfirmAction::DeleteSpell(_) => " Delete Spell ",
+            ConfirmAction::DeleteSpellbook(_) => " Delete Spellbook ",
+            ConfirmAction::ExecuteSpell(_) => " Confirm ",
+        }
+    }
+
+    pub fn confirmation_word(&self) -> &'static str {
+        match &self.action {
+            ConfirmAction::DeleteSpell(_) => "DELETE",
+            ConfirmAction::DeleteSpellbook(_) => "DELETE",
+            ConfirmAction::ExecuteSpell(_) => "yes",
+        }
     }
 }
 
@@ -43,7 +84,7 @@ pub fn render_confirm_dialog(
     dialog: &ConfirmDialogState,
 ) {
     let block = Block::default()
-        .title(" Confirm ")
+        .title(dialog.title())
         .borders(Borders::ALL)
         .border_style(Style::new().fg(theme.accent));
 
@@ -55,16 +96,89 @@ pub fn render_confirm_dialog(
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Length(1),
-            Constraint::Length(1),
-            Constraint::Length(1),
-            Constraint::Length(1),
+            Constraint::Length(2),
+            Constraint::Length(2),
             Constraint::Min(1),
             Constraint::Length(2),
         ])
         .split(inner);
 
-    let line1 = if dialog.spell.confirm {
+    match &dialog.action {
+        ConfirmAction::DeleteSpell(spell) => {
+            render_delete_spell(f, chunks, theme, spell, inner_width);
+        }
+        ConfirmAction::DeleteSpellbook(name) => {
+            render_delete_spellbook(f, chunks, theme, name);
+        }
+        ConfirmAction::ExecuteSpell(spell) => {
+            render_execute_spell(f, chunks, theme, spell, inner_width, dialog);
+        }
+    }
+}
+
+fn render_delete_spell(
+    f: &mut Frame,
+    chunks: std::rc::Rc<[Rect]>,
+    theme: &crate::models::RatatuiColors,
+    spell: &Spell,
+    inner_width: usize,
+) {
+    let line1 = Line::from(vec![
+        Span::styled("Delete spell '", Style::new().fg(theme.fg)),
+        Span::styled(&spell.name, Style::new().fg(theme.accent).add_modifier(Modifier::BOLD)),
+        Span::styled("'?", Style::new().fg(theme.fg)),
+    ]);
+    let para1 = Paragraph::new(line1);
+    f.render_widget(para1, chunks[0]);
+
+    let line2 = Line::from(vec![
+        Span::styled("Command: ", Style::new().fg(theme.muted)),
+        Span::styled(truncate_string(&spell.incantation, inner_width.saturating_sub(12)), Style::new().fg(theme.fg)),
+    ]);
+    let para2 = Paragraph::new(line2);
+    f.render_widget(para2, chunks[1]);
+
+    let instruction = "Type 'DELETE' to confirm, Esc to cancel";
+    let line3 = Line::from(vec![Span::styled(instruction, Style::new().fg(theme.muted))]);
+    let para3 = Paragraph::new(line3);
+    f.render_widget(para3, chunks[3]);
+}
+
+fn render_delete_spellbook(
+    f: &mut Frame,
+    chunks: std::rc::Rc<[Rect]>,
+    theme: &crate::models::RatatuiColors,
+    name: &str,
+) {
+    let line1 = Line::from(vec![
+        Span::styled("Delete spellbook '", Style::new().fg(theme.fg)),
+        Span::styled(name, Style::new().fg(theme.accent).add_modifier(Modifier::BOLD)),
+        Span::styled("'?", Style::new().fg(theme.fg)),
+    ]);
+    let para1 = Paragraph::new(line1);
+    f.render_widget(para1, chunks[0]);
+
+    let line2 = Line::from(vec![
+        Span::styled("This will also delete all spells in this spellbook.", Style::new().fg(theme.muted)),
+    ]);
+    let para2 = Paragraph::new(line2);
+    f.render_widget(para2, chunks[1]);
+
+    let instruction = "Type 'DELETE' to confirm, Esc to cancel";
+    let line3 = Line::from(vec![Span::styled(instruction, Style::new().fg(theme.muted))]);
+    let para3 = Paragraph::new(line3);
+    f.render_widget(para3, chunks[3]);
+}
+
+fn render_execute_spell(
+    f: &mut Frame,
+    chunks: std::rc::Rc<[Rect]>,
+    theme: &crate::models::RatatuiColors,
+    spell: &Spell,
+    inner_width: usize,
+    dialog: &ConfirmDialogState,
+) {
+    let line1 = if spell.confirm {
         Line::from(vec![
             Span::raw("Confirm "),
             Span::styled("execution", Style::new().fg(theme.accent)),
@@ -83,7 +197,7 @@ pub fn render_confirm_dialog(
     let line2 = Line::from(vec![
         Span::styled("Spell: ", Style::new().fg(theme.muted)),
         Span::styled(
-            &dialog.spell.name,
+            &spell.name,
             Style::new().fg(theme.fg).add_modifier(Modifier::BOLD),
         ),
     ]);
@@ -94,7 +208,7 @@ pub fn render_confirm_dialog(
         "Command: ",
         Style::new().fg(theme.muted),
     )]);
-    let cmd_display = truncate_string(&dialog.spell.incantation, inner_width.saturating_sub(10));
+    let cmd_display = truncate_string(&spell.incantation, inner_width.saturating_sub(10));
     let cmd_line = Line::from(vec![
         Span::raw("  "),
         Span::styled(&cmd_display, Style::new().fg(theme.accent)),
@@ -102,12 +216,12 @@ pub fn render_confirm_dialog(
     let para3 = Paragraph::new(vec![line3, cmd_line]);
     f.render_widget(para3, chunks[2]);
 
-    let run_mode_hint = match dialog.spell.run_mode {
+    let run_mode_hint = match spell.run_mode {
         RunMode::Simple => "",
         RunMode::Tui => " (TUI mode)",
         RunMode::Background => " (background)",
     };
-    let instruction = if dialog.spell.confirm {
+    let instruction = if spell.confirm {
         "Type 'yes' or press Enter to confirm, Esc to cancel"
     } else {
         "Press Enter to confirm, Esc to cancel"
@@ -117,7 +231,7 @@ pub fn render_confirm_dialog(
         Span::styled(run_mode_hint, Style::new().fg(theme.accent)),
     ]);
     let para5 = Paragraph::new(line5);
-    f.render_widget(para5, chunks[5]);
+    f.render_widget(para5, chunks[3]);
 }
 
 fn truncate_string(s: &str, max_width: usize) -> String {

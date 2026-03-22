@@ -8,6 +8,7 @@ pub mod add_spell_form;
 pub mod add_spellbook_form;
 pub mod confirm;
 pub mod events;
+pub mod help;
 pub mod input;
 pub mod jobs;
 pub mod render;
@@ -36,6 +37,7 @@ pub enum Screen {
     JobsPanel,
     ConfirmDialog,
     InputPopup,
+    Help,
 }
 
 #[derive(PartialEq, Clone, Copy, Default)]
@@ -145,6 +147,22 @@ impl UiState {
 
     pub fn filtered_indices_mut(&mut self) -> &mut Vec<usize> {
         &mut self.search.filtered_indices
+    }
+
+    pub fn filtered_spellbook_indices(&self) -> &[usize] {
+        &self.search.filtered_spellbook_indices
+    }
+
+    pub fn filtered_spellbook_indices_mut(&mut self) -> &mut Vec<usize> {
+        &mut self.search.filtered_spellbook_indices
+    }
+
+    pub fn search_active(&self) -> bool {
+        self.search.search_active
+    }
+
+    pub fn set_search_active(&mut self, value: bool) {
+        self.search.search_active = value;
     }
 
     pub fn search_results_state(&mut self) -> &mut ListState {

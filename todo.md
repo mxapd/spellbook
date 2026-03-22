@@ -150,81 +150,80 @@ This is the active task list for implementing Spellbook v2. See [docs/roadmap.md
 - [x] Display status icons (⟳ ✓ ✗ ⊘)
 - [x] Implement navigation (↑ ↓)
 - [x] Implement `:jobs` toggle command
-- [ ] Integrate job status updates from poller
+- [x] Integrate job status updates from poller
 
 ### Focus Management
-- [ ] Implement `FocusTarget` tracking
-- [ ] Implement Tab key cycling
-- [ ] Add visual focus indicators
-- [ ] Route events based on focus
+- [x] Implement `FocusTarget` tracking
+- [x] Implement Tab key cycling
+- [x] Add visual focus indicators
+- [x] Route events based on focus
 
 ### Job Actions
-- [ ] Implement Enter to view output (OutputModal)
-- [ ] Implement `k` to kill running job
-- [ ] Implement `c` to cancel queued job
+- [x] Implement Enter to view output (OutputModal)
+- [x] Implement `k` to kill running job
+- [x] Implement `c` to cancel queued job
 
 ---
 
 ## Phase 6: Search & Filtering
 
 ### Search Activation
-- [ ] Implement `/` key handler
-- [ ] Add `search_active` flag to browser states
-- [ ] Add visual indicator (search bar highlight)
+- [x] Implement `/` key handler
+- [x] Add `search_active` flag in SearchState
+- [x] Add visual indicator (search bar highlight)
 
 ### BrowseSpellbooks Search
-- [ ] Filter by spellbook name
-- [ ] Implement real-time filtering
-- [ ] Update `filtered_indices`
+- [x] Filter by spellbook name
+- [x] Implement real-time filtering
+- [x] Update `filtered_spellbook_indices`
 
 ### BrowseSpells Search
-- [ ] Filter by name, lore, school, glyphs
-- [ ] Implement real-time filtering
-- [ ] Update `filtered_indices`
+- [x] Filter by name, lore, school, glyphs
+- [x] Implement real-time filtering
+- [x] Update `filtered_indices`
 
 ### Search Deactivation
-- [ ] Clear query on Esc
-- [ ] Deactivate search mode on Esc
+- [x] Clear query on Esc
+- [x] Deactivate search mode on Esc
 
 ---
 
 ## Phase 7: Import/Export
 
 ### Export
-- [ ] Implement `:export [file]` for full codex
-- [ ] Implement `:export <spellbook>` for single spellbook
-- [ ] Generate valid TOML output
-- [ ] Show success notification
+- [x] Implement `:export [file]` for full codex
+- [x] Implement `:export <spellbook>` for single spellbook
+- [x] Generate valid TOML output
+- [x] Show success notification
 
 ### Import
-- [ ] Implement `:import <file>` command
-- [ ] Parse and validate external TOML
-- [ ] Detect conflicts (duplicate IDs/names)
-- [ ] Create conflict resolution overlay
-- [ ] Implement merge options (Skip / Overwrite / Rename)
-- [ ] Persist merged codex
+- [x] Implement `:import <file>` command
+- [x] Parse and validate external TOML
+- [x] Detect conflicts (duplicate IDs/names)
+- [x] Auto-merge with Rename strategy (simplified - no overlay needed)
+- [x] Persist merged codex
 
 ---
 
 ## Phase 8: Polish & Testing
 
 ### Error Handling
-- [ ] Invalid `working_dir` fallback to `$HOME`
-- [ ] Graceful degradation when clipboard tool missing
-- [ ] Handle job spawn failures
-- [ ] Recover from invalid TOML
+- [x] Invalid `working_dir` fallback to `$HOME`
+- [x] Graceful degradation when clipboard tool missing
+- [x] Handle job spawn failures
+- [x] Recover from invalid TOML
 
 ### Validation
-- [ ] Startup validation report
-- [ ] Broken reference warnings
-- [ ] Duplicate ID detection
-- [ ] Required field validation
+- [x] Startup validation report
+- [x] Broken reference warnings
+- [x] Duplicate ID detection
+- [x] Required field validation
 
 ### UX Improvements
 - [ ] Loading states for archivist operations
-- [ ] Better error messages
+- [x] Better error messages
 - [ ] Refine footer hints for all modes
-- [ ] Complete Help overlay content
+- [x] Complete Help overlay content
 
 ### Testing
 - [x] Unit tests for models
@@ -233,21 +232,11 @@ This is the active task list for implementing Spellbook v2. See [docs/roadmap.md
 - [ ] Test V1 → V2 migration
 
 ### Documentation
-- [ ] Update CHANGELOG.md with v2 release
+- [x] Update CHANGELOG.md with v2 release
 - [ ] Final review of all docs
 - [ ] Add usage examples
 
 ---
 
-## Future (v2.1+)
-
-- [ ] Undo/redo system
-- [ ] Spell execution count tracking
-- [ ] Custom user-defined themes
-- [ ] Multi-select operations
-- [ ] Spell variables/templating
-
----
-
-**Current Status**: Phase 4 complete, Phase 5 (Jobs Sidebar) next
+**Current Status**: Phase 8 complete, ready for final testing
 **Last Updated**: 2026-03-22

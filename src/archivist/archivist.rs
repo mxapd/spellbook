@@ -1,4 +1,4 @@
-use crate::models::{Codex, JobManager, RecentEntry, Theme, ThemeConfig, UserSettings};
+use crate::models::{Codex, JobManager, RecentEntry, SpineStyle, Theme, ThemeConfig, UserSettings};
 use crate::validation::validate_codex;
 use crate::{log_debug, log_info, log_warn};
 use serde::{Deserialize, Serialize};
@@ -381,4 +381,191 @@ impl Archivist {
         log_info!("Spell '{}' updated successfully", spell_name);
         Ok(())
     }
+
+    pub fn export_codex(
+        codex: &Codex,
+        path: &str,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        log_info!("Exporting codex to: {}", path);
+        let content = toml::to_string_pretty(codex)?;
+        atomic_write(path, &content)?;
+        log_info!("Codex exported successfully");
+        Ok(())
+    }
+
+    pub fn export_spellbook(
+        codex: &Codex,
+        spellbook_name: &str,
+        path: &str,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        log_info!("Exporting spellbook '{}' to: {}", spellbook_name, path);
+        
+        let spellbook = codex
+            .spellbooks
+            .iter()
+            .find(|sb| sb.name == spellbook_name)
+            .ok_or_else(|| format!("Spellbook '{}' not found", spellbook_name))?;
+
+        let spells: Vec<crate::models::Spell> = spellbook
+            .spell_ids
+            .iter()
+            .filter_map(|id| codex.spells.iter().find(|s| &s.id == id))
+            .cloned()
+            .collect();
+
+        #[derive(Serialize)]
+        struct ExportedSpellbook {
+            #[serde(skip_serializing_if = "Vec::is_empty")]
+            spells: Vec<crate::models::Spell>,
+            spellbooks: Vec<ExportedSpellbookData>,
+        }
+
+        #[derive(Serialize)]
+        struct ExportedSpellbookData {
+            name: String,
+            #[serde(skip_serializing_if = "String::is_empty")]
+            cover: String,
+            #[serde(skip_serializing_if = "String::is_empty")]
+            sigil: String,
+            #[serde(skip_serializing_if = "Vec::is_empty")]
+            spell_ids: Vec<String>,
+            #[serde(skip_serializing_if = "Vec::is_empty")]
+            spells: Vec<String>,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            style: Option<SpineStyle>,
+        }
+
+        let export = ExportedSpellbook {
+            spells,
+            spellbooks: vec![ExportedSpellbookData {
+                name: spellbook.name.clone(),
+                cover: spellbook.cover.clone(),
+                sigil: spellbook.sigil.clone(),
+                spell_ids: spellbook.spell_ids.clone(),
+                spells: spellbook.spells.clone(),
+                style: spellbook.style,
+            }],
+        };
+
+        let content = toml::to_string_pretty(&export)?;
+        atomic_write(path, &content)?;
+        log_info!("Spellbook '{}' exported successfully", spellbook_name);
+        Ok(())
+    }
+
+    pub fn import_codex(
+        path: &str,
+    ) -> Result<Codex, Box<dyn std::error::Error>> {
+        log_info!("Importing codex from: {}", path);
+        let contents = fs::read_to_string(path)?;
+        let mut codex: Codex = toml::from_str(&contents)?;
+        validate_codex(&codex)?;
+        
+        for spell in codex.spells.iter_mut() {
+            if spell.id.is_empty() {
+                spell.id = uuid::Uuid::new_v4().to_string();
+            }
+        }
+        
+        log_info!("Imported {} spells and {} spellbooks", codex.spells.len(), codex.spellbooks.len());
+        Ok(codex)
+    }
+
+    pub fn merge_codex(
+        target: &mut Codex,
+        source: Codex,
+        strategy: MergeStrategy,
+    ) -> MergeResult {
+        log_info!("Merging codex with {} spells", source.spells.len());
+        
+        let mut added_spells = Vec::new();
+        let mut added_spellbooks = Vec::new();
+        let mut conflicts = Vec::new();
+
+        for spell in source.spells {
+            let existing = target.spells.iter().find(|s| s.id == spell.id);
+            
+            if let Some(existing) = existing {
+                match strategy {
+                    MergeStrategy::Skip => {
+                        conflicts.push(MergeConflict::Spell {
+                            id: spell.id.clone(),
+                            name: spell.name.clone(),
+                        });
+                    }
+                    MergeStrategy::Overwrite => {
+                        let idx = target.spells.iter().position(|s| s.id == spell.id).unwrap();
+                        target.spells[idx] = spell.clone();
+                    }
+                    MergeStrategy::Rename => {
+                        let mut new_spell = spell.clone();
+                        new_spell.id = uuid::Uuid::new_v4().to_string();
+                        new_spell.name = format!("{} (imported)", spell.name);
+                        added_spells.push(new_spell.name.clone());
+                        target.spells.push(new_spell);
+                    }
+                }
+            } else {
+                added_spells.push(spell.name.clone());
+                target.spells.push(spell);
+            }
+        }
+
+        for spellbook in source.spellbooks {
+            let existing = target.spellbooks.iter().find(|sb| sb.name == spellbook.name);
+            
+            if let Some(_existing) = existing {
+                match strategy {
+                    MergeStrategy::Skip => {
+                        conflicts.push(MergeConflict::Spellbook {
+                            name: spellbook.name.clone(),
+                        });
+                    }
+                    MergeStrategy::Overwrite => {
+                        let idx = target
+                            .spellbooks
+                            .iter()
+                            .position(|sb| sb.name == spellbook.name)
+                            .unwrap();
+                        target.spellbooks[idx] = spellbook;
+                    }
+                    MergeStrategy::Rename => {
+                        let mut new_spellbook = spellbook;
+                        new_spellbook.name = format!("{} (imported)", new_spellbook.name);
+                        added_spellbooks.push(new_spellbook.name.clone());
+                        target.spellbooks.push(new_spellbook);
+                    }
+                }
+            } else {
+                added_spellbooks.push(spellbook.name.clone());
+                target.spellbooks.push(spellbook);
+            }
+        }
+
+        MergeResult {
+            added_spells,
+            added_spellbooks,
+            conflicts,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum MergeStrategy {
+    Skip,
+    Overwrite,
+    Rename,
+}
+
+#[derive(Debug)]
+pub enum MergeConflict {
+    Spell { id: String, name: String },
+    Spellbook { name: String },
+}
+
+#[derive(Debug)]
+pub struct MergeResult {
+    pub added_spells: Vec<String>,
+    pub added_spellbooks: Vec<String>,
+    pub conflicts: Vec<MergeConflict>,
 }

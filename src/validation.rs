@@ -1,6 +1,19 @@
 use crate::models::Codex;
 use std::collections::HashSet;
 
+#[derive(Debug, Clone)]
+pub struct ValidationWarning {
+    pub message: String,
+    pub severity: WarningSeverity,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum WarningSeverity {
+    Info,
+    Warning,
+    Error,
+}
+
 pub fn validate_codex(codex: &Codex) -> Result<(), Box<dyn std::error::Error>> {
     let spell_names: HashSet<&String> = codex.spells.iter().map(|s| &s.name).collect();
     let spell_ids: HashSet<&String> = codex.spells.iter().map(|s| &s.id).collect();
@@ -40,6 +53,99 @@ pub fn validate_codex(codex: &Codex) -> Result<(), Box<dyn std::error::Error>> {
     }
 
     Ok(())
+}
+
+pub fn validate_codex_warnings(codex: &Codex) -> Vec<ValidationWarning> {
+    let mut warnings = Vec::new();
+    let spell_ids: HashSet<&String> = codex.spells.iter().map(|s| &s.id).collect();
+
+    // Check for duplicate spell names (non-blocking, report as error)
+    let mut seen_spell_names: HashSet<&String> = HashSet::new();
+    for spell in &codex.spells {
+        if seen_spell_names.contains(&spell.name) {
+            warnings.push(ValidationWarning {
+                message: format!("Duplicate spell name: {}", spell.name),
+                severity: WarningSeverity::Error,
+            });
+        }
+        seen_spell_names.insert(&spell.name);
+
+        if spell.name.trim().is_empty() {
+            warnings.push(ValidationWarning {
+                message: "Spell has empty name".to_string(),
+                severity: WarningSeverity::Error,
+            });
+        }
+
+        if spell.incantation.trim().is_empty() {
+            warnings.push(ValidationWarning {
+                message: format!("Spell '{}' has empty incantation", spell.name),
+                severity: WarningSeverity::Warning,
+            });
+        }
+    }
+
+    // Check for duplicate spellbook names
+    let mut seen_spellbook_names: HashSet<&String> = HashSet::new();
+    for spellbook in &codex.spellbooks {
+        if seen_spellbook_names.contains(&spellbook.name) {
+            warnings.push(ValidationWarning {
+                message: format!("Duplicate spellbook name: {}", spellbook.name),
+                severity: WarningSeverity::Error,
+            });
+        }
+        seen_spellbook_names.insert(&spellbook.name);
+
+        // Check for empty spellbook
+        if spellbook.spell_ids.is_empty() {
+            warnings.push(ValidationWarning {
+                message: format!("Spellbook '{}' has no spells", spellbook.name),
+                severity: WarningSeverity::Info,
+            });
+        }
+
+        // Check for broken references
+        for spell_id in &spellbook.spell_ids {
+            if !spell_ids.contains(spell_id) {
+                warnings.push(ValidationWarning {
+                    message: format!(
+                        "Spellbook '{}' references non-existent spell: {}",
+                        spellbook.name, spell_id
+                    ),
+                    severity: WarningSeverity::Error,
+                });
+            }
+        }
+    }
+
+    // Check for duplicate spell IDs (shouldn't happen after migration)
+    let mut seen_ids: HashSet<&String> = HashSet::new();
+    for spell in &codex.spells {
+        if seen_ids.contains(&spell.id) {
+            warnings.push(ValidationWarning {
+                message: format!("Duplicate spell ID: {}", spell.id),
+                severity: WarningSeverity::Error,
+            });
+        }
+        seen_ids.insert(&spell.id);
+    }
+
+    // Check for spells not in any spellbook (orphan spells)
+    let spells_in_books: HashSet<&String> = codex
+        .spellbooks
+        .iter()
+        .flat_map(|sb| sb.spell_ids.iter())
+        .collect();
+    for spell in &codex.spells {
+        if !spells_in_books.contains(&spell.id) {
+            warnings.push(ValidationWarning {
+                message: format!("Spell '{}' is not in any spellbook", spell.name),
+                severity: WarningSeverity::Info,
+            });
+        }
+    }
+
+    warnings
 }
 
 #[cfg(test)]

@@ -22101,3 +22101,90 @@
 [1774143837.659938301] [DEBUG] Screen: SearchOverlay
 [1774143839.730902282] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
 [1774143839.730938371] [DEBUG] Screen: SearchOverlay
+[1774219155.432643559] [INFO] Spellbook started (mode: Browse)
+[1774219155.432820738] [INFO] Job manager initialized
+[1774219159.826820400] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774219159.826873259] [DEBUG] Screen: SearchOverlay
+[1774219160.303778268] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1774219160.303821338] [DEBUG] Screen: SearchOverlay
+[1774219160.566812670] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774219160.566858690] [DEBUG] Screen: SearchOverlay
+[1774219162.054773579] [DEBUG] KeyEvent: code=Enter, modifiers=KeyModifiers(0x0)
+[1774219162.054827709] [DEBUG] Screen: SearchOverlay
+[1774219163.204726922] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774219163.204779352] [DEBUG] Screen: SearchOverlay
+[1774219163.204805202] [INFO] BrowseSpells mode handler
+[1774219164.519079109] [INFO] Spellbook started (mode: Browse)
+[1774219164.519240908] [INFO] Job manager initialized
+[1774219164.932716734] [DEBUG] KeyEvent: code=Char(':'), modifiers=KeyModifiers(0x0)
+[1774219164.932766444] [DEBUG] Screen: SearchOverlay
+[1774219168.811711746] [DEBUG] KeyEvent: code=Char('i'), modifiers=KeyModifiers(0x0)
+[1774219168.811761696] [DEBUG] Screen: SearchOverlay
+[1774219168.905712156] [DEBUG] KeyEvent: code=Char('m'), modifiers=KeyModifiers(0x0)
+[1774219168.905764966] [DEBUG] Screen: SearchOverlay
+[1774219169.050684594] [DEBUG] KeyEvent: code=Char('p'), modifiers=KeyModifiers(0x0)
+[1774219169.050725684] [DEBUG] Screen: SearchOverlay
+[1774219169.140715492] [DEBUG] KeyEvent: code=Char('o'), modifiers=KeyModifiers(0x0)
+[1774219169.140761052] [DEBUG] Screen: SearchOverlay
+[1774219169.269681370] [DEBUG] KeyEvent: code=Char('r'), modifiers=KeyModifiers(0x0)
+[1774219169.269715089] [DEBUG] Screen: SearchOverlay
+[1774219169.482692220] [DEBUG] KeyEvent: code=Enter, modifiers=KeyModifiers(0x0)
+[1774219169.482738690] [DEBUG] Screen: SearchOverlay
+[1774219169.482765210] [INFO] Command: import (showing usage)
+[1774219171.766179423] [DEBUG] KeyEvent: code=Char(':'), modifiers=KeyModifiers(0x0)
+[1774219171.766213842] [DEBUG] Screen: SearchOverlay
+[1774219173.454678583] [DEBUG] KeyEvent: code=Char('i'), modifiers=KeyModifiers(0x0)
+[1774219173.454713972] [DEBUG] Screen: SearchOverlay
+[1774219173.534627674] [DEBUG] KeyEvent: code=Char('m'), modifiers=KeyModifiers(0x0)
+[1774219173.534657064] [DEBUG] Screen: SearchOverlay
+[1774219173.667631134] [DEBUG] KeyEvent: code=Char('p'), modifiers=KeyModifiers(0x0)
+[1774219173.667663144] [DEBUG] Screen: SearchOverlay
+[1774219173.744590109] [DEBUG] KeyEvent: code=Char('o'), modifiers=KeyModifiers(0x0)
+[1774219173.744619688] [DEBUG] Screen: SearchOverlay
+[1774219173.885574254] [DEBUG] KeyEvent: code=Char('r'), modifiers=KeyModifiers(0x0)
+[1774219173.885601734] [DEBUG] Screen: SearchOverlay
+[1774219173.948649419] [DEBUG] KeyEvent: code=Char('t'), modifiers=KeyModifiers(0x0)
+[1774219173.948685009] [DEBUG] Screen: SearchOverlay
+[1774219174.020605786] [DEBUG] KeyEvent: code=Char(' '), modifiers=KeyModifiers(0x0)
+[1774219174.020639446] [DEBUG] Screen: SearchOverlay
+[1774219175.081655390] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774219175.081688360] [DEBUG] Screen: SearchOverlay
+[1774219176.960640809] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774219176.960671399] [DEBUG] Screen: SearchOverlay
+[1774219177.183667297] [DEBUG] KeyEvent: code=Char('.'), modifiers=KeyModifiers(0x0)
+[1774219177.183699217] [DEBUG] Screen: SearchOverlay
+[1774219178.812802135] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774219178.812841665] [DEBUG] Screen: SearchOverlay
+[1774219179.339641940] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774219179.339678110] [DEBUG] Screen: SearchOverlay
+[1774219179.519657115] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774219179.519692475] [DEBUG] Screen: SearchOverlay
+[1774219179.668638497] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774219179.668665067] [DEBUG] Screen: SearchOverlay
+[1774219179.820609474] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774219179.820637594] [DEBUG] Screen: SearchOverlay
+[1774219179.970628710] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774219179.970658170] [DEBUG] Screen: SearchOverlay
+[1774219180.117595510] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774219180.117624170] [DEBUG] Screen: SearchOverlay
+[1774219180.265653305] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774219180.265686695] [DEBUG] Screen: SearchOverlay
+[1774219180.425650677] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774219180.425691237] [DEBUG] Screen: SearchOverlay
+[1774219180.655651895] [DEBUG] KeyEvent: code=Char('c'), modifiers=KeyModifiers(0x0)
+[1774219180.655684595] [DEBUG] Screen: SearchOverlay
+[1774219181.022642996] [DEBUG] KeyEvent: code=Char('c'), modifiers=KeyModifiers(CONTROL)
+[1774219181.022678086] [INFO] Quit via Ctrl+C
+[1774219181.022692636] [INFO] Spellbook exiting
+[1774219205.866841100] [INFO] Spellbook started (mode: Browse)
+[1774219205.867008980] [INFO] Job manager initialized
+[1774219412.612535922] [INFO] Spellbook started (mode: Browse)
+[1774219412.612703241] [INFO] Job manager initialized
+[1774219421.351612475] [DEBUG] KeyEvent: code=Char('c'), modifiers=KeyModifiers(CONTROL)
+[1774219421.351664695] [INFO] Quit via Ctrl+C
+[1774219421.351686755] [INFO] Spellbook exiting
+[1774219423.747495785] [INFO] Spellbook started (mode: Browse)
+[1774219423.747670845] [INFO] Job manager initialized
+[1774219467.784403554] [DEBUG] KeyEvent: code=Char('c'), modifiers=KeyModifiers(CONTROL)
+[1774219467.784460294] [INFO] Quit via Ctrl+C
+[1774219467.784485974] [INFO] Spellbook exiting

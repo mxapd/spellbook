@@ -25,11 +25,39 @@ fn run(terminal: &mut DefaultTerminal) -> io::Result<()> {
     let mode = args.mode;
 
     let codex = match archivist::Archivist::load("codex.toml") {
-        Ok(c) => c,
+        Ok(c) => {
+            // Run validation and log warnings
+            let warnings = validation::validate_codex_warnings(&c);
+            for warning in &warnings {
+                match warning.severity {
+                    validation::WarningSeverity::Error => {
+                        log_warn!("Validation error: {}", warning.message);
+                    }
+                    validation::WarningSeverity::Warning => {
+                        log_warn!("Warning: {}", warning.message);
+                    }
+                    validation::WarningSeverity::Info => {
+                        log_info!("Info: {}", warning.message);
+                    }
+                }
+            }
+            if !warnings.is_empty() {
+                log_info!("Found {} validation issue(s)", warnings.len());
+            }
+            c
+        }
         Err(e) => {
             eprintln!("Error loading codex.toml: {}", e);
-            eprintln!("Please ensure the file exists and contains valid TOML.");
-            return Ok(());
+            eprintln!("Creating empty codex...");
+            let empty_codex = models::Codex {
+                spells: vec![],
+                spellbooks: vec![],
+            };
+            // Try to save the empty codex
+            if let Err(save_err) = archivist::Archivist::save(&empty_codex, "codex.toml") {
+                eprintln!("Warning: Could not save empty codex: {}", save_err);
+            }
+            empty_codex
         }
     };
 
@@ -61,27 +89,37 @@ fn run(terminal: &mut DefaultTerminal) -> io::Result<()> {
             ui::render(frame, &state, &mut ui_state);
         })?;
 
-        if let Event::Key(key) = event::read()? {
-            if key.kind != KeyEventKind::Press {
-                continue;
-            }
-            log_debug!(
-                "KeyEvent: code={:?}, modifiers={:?}",
-                key.code,
-                key.modifiers
-            );
-            let should_quit = ui::handle_event(key.code, &mut state, &mut ui_state, key.modifiers);
-            if should_quit {
-                log_info!("Spellbook exiting");
-                return Ok(());
-            }
+        let poll_result = event::poll(std::time::Duration::from_millis(100));
+        match poll_result {
+            Ok(true) => {
+                if let Event::Key(key) = event::read()? {
+                    if key.kind != KeyEventKind::Press {
+                        continue;
+                    }
+                    log_debug!(
+                        "KeyEvent: code={:?}, modifiers={:?}",
+                        key.code,
+                        key.modifiers
+                    );
+                    let should_quit = ui::handle_event(key.code, &mut state, &mut ui_state, key.modifiers);
+                    if should_quit {
+                        log_info!("Spellbook exiting");
+                        return Ok(());
+                    }
 
-            // Force redraw if requested (e.g., after Alt+R)
-            if ui_state.needs_redraw {
-                terminal.draw(|frame| {
-                    ui::render(frame, &state, &mut ui_state);
-                })?;
-                let _ = ui_state.clear_redraw_flag();
+                    if ui_state.needs_redraw {
+                        terminal.draw(|frame| {
+                            ui::render(frame, &state, &mut ui_state);
+                        })?;
+                        let _ = ui_state.clear_redraw_flag();
+                    }
+                }
+            }
+            Ok(false) => {
+                // Timeout elapsed - redraw to update job statuses etc.
+            }
+            Err(e) => {
+                log_debug!("Event poll error: {}", e);
             }
         }
     }

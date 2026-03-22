@@ -10,7 +10,7 @@ use ratatui::Frame;
 const VIRTUAL_FAVORITES_IDX: Option<usize> = Some(0);
 const VIRTUAL_RECENT_IDX: Option<usize> = Some(1);
 
-enum SpellbookItem<'a> {
+pub enum SpellbookItem<'a> {
     VirtualFavorite {
         count: usize,
     },
@@ -23,7 +23,7 @@ enum SpellbookItem<'a> {
 }
 
 impl SpellbookItem<'_> {
-    fn name(&self) -> String {
+    pub fn name(&self) -> String {
         match self {
             SpellbookItem::VirtualFavorite { .. } => "Favorites".to_string(),
             SpellbookItem::VirtualRecent { .. } => "Recent".to_string(),
@@ -31,7 +31,7 @@ impl SpellbookItem<'_> {
         }
     }
 
-    fn is_virtual(&self) -> bool {
+    pub fn is_virtual(&self) -> bool {
         matches!(
             self,
             SpellbookItem::VirtualFavorite { .. } | SpellbookItem::VirtualRecent { .. }
@@ -69,7 +69,7 @@ impl SpellbookItem<'_> {
     }
 }
 
-fn get_spellbook_item<'a>(state: &'a State, index: usize) -> Option<SpellbookItem<'a>> {
+pub fn get_spellbook_item<'a>(state: &'a State, index: usize) -> Option<SpellbookItem<'a>> {
     let favorites = state
         .recents
         .iter()

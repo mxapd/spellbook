@@ -1,4 +1,4 @@
-use crate::archivist::Archivist;
+use crate::archivist::{Archivist, MergeStrategy};
 use crate::clipboard;
 use crate::models::FocusTarget;
 use crate::state::State;
@@ -25,6 +25,8 @@ enum CommandAction {
     Jobs,
     Help,
     Experimental,
+    Export,
+    Import,
 }
 
 fn get_commands() -> Vec<Command> {
@@ -89,6 +91,16 @@ fn get_commands() -> Vec<Command> {
             aliases: vec!["e", "experimental"],
             description: "Toggle experimental mode",
             action: CommandAction::Experimental,
+        },
+        Command {
+            aliases: vec!["export", "ex"],
+            description: "Export codex or spellbook",
+            action: CommandAction::Export,
+        },
+        Command {
+            aliases: vec!["import", "im"],
+            description: "Import from file",
+            action: CommandAction::Import,
         },
     ]
 }
@@ -167,10 +179,8 @@ fn execute_command_by_action(action: &CommandAction, state: &mut State, ui: &mut
             log_info!("Command: cycle theme");
         }
         CommandAction::Help => {
-            ui.copy_feedback = Some(
-                ":n new :b browse :s spells :c cards :p spines :l list :t theme :j jobs :e experimental :? help"
-                    .to_string(),
-            );
+            ui.previous_screen = Some(ui.screen);
+            ui.screen = Screen::Help;
             log_info!("Command: help");
         }
         CommandAction::Jobs => {
@@ -187,6 +197,14 @@ fn execute_command_by_action(action: &CommandAction, state: &mut State, ui: &mut
             };
             ui.copy_feedback = Some(format!("Experimental mode: {}", status));
             log_info!("Command: experimental mode {}", status);
+        }
+        CommandAction::Export => {
+            ui.copy_feedback = Some("Usage: :export [filename] or :export <spellbook>".to_string());
+            log_info!("Command: export (showing usage)");
+        }
+        CommandAction::Import => {
+            ui.copy_feedback = Some("Usage: :import <filename>".to_string());
+            log_info!("Command: import (showing usage)");
         }
     }
 }
@@ -287,6 +305,20 @@ pub fn handle_event(
             log_debug!("Screen: InputPopup");
             handle_input_popup(key, state, ui)
         }
+        Screen::Help => {
+            log_debug!("Screen: Help");
+            handle_help(key, ui)
+        }
+    }
+}
+
+fn handle_help(key: KeyCode, ui: &mut UiState) -> bool {
+    match key {
+        KeyCode::Esc => {
+            ui.screen = ui.previous_screen.take().unwrap_or(Screen::SearchOverlay);
+            false
+        }
+        _ => false,
     }
 }
 
@@ -509,17 +541,14 @@ fn handle_search(
         // 'd' key - delete the selected spell (with confirmation)
         if key == KeyCode::Char('d') && spell_count > 0 {
             let spell_idx = ui.spell_list_state.selected().unwrap_or(0);
-            if let Some((spell_id, spell_name)) =
+            if let Some((spell_id, _spell_name)) =
                 get_spell_at_index(state, spellbook_index, spell_idx)
             {
                 if let Some(spell) = state.get_spell(&spell_id) {
-                    ui.confirm_dialog = Some(crate::ui::ConfirmDialogState {
-                        spell: spell.clone(),
-                        typed_confirmation: String::new(),
-                    });
+                    ui.confirm_dialog = Some(crate::ui::confirm::ConfirmDialogState::delete_spell(spell.clone()));
                     ui.previous_screen = Some(ui.screen.clone());
                     ui.screen = Screen::ConfirmDialog;
-                    log_info!("Delete confirmation requested for: {}", spell.name);
+                    log_info!("Delete confirmation requested for: {}", spell_id);
                     return false;
                 }
             }
@@ -642,33 +671,39 @@ fn handle_search(
             return false;
         }
 
-        if key == KeyCode::Up {
-            if spellbook_count > 0 {
-                let current = ui.search_spellbook_index().unwrap_or(0);
-                let prev = find_nearest_card(
-                    current,
-                    CardDirection::Up,
-                    spellbook_count,
-                    cards_per_row,
-                    card_width,
-                    card_height,
-                    card_gap,
-                    grid_offset,
-                );
-                ui.set_search_spellbook_index(Some(prev));
-
-                if prev < scroll {
-                    ui.set_search_spellbook_scroll(scroll.saturating_sub(cards_per_row));
+        // Shift+D - Delete spellbook
+        if key == KeyCode::Char('D') {
+            if let Some(idx) = ui.search_spellbook_index() {
+                if idx < spellbook_count {
+                    use crate::ui::search_overlay::get_spellbook_item;
+                    if let Some(item) = get_spellbook_item(state, idx) {
+                        // Don't allow deleting virtual spellbooks
+                        if item.is_virtual() {
+                            ui.copy_feedback = Some("Cannot delete virtual spellbooks".to_string());
+                            return false;
+                        }
+                        let name = item.name();
+                        ui.confirm_dialog = Some(crate::ui::confirm::ConfirmDialogState::delete_spellbook(name));
+                        ui.previous_screen = Some(ui.screen);
+                        ui.screen = Screen::ConfirmDialog;
+                    }
                 }
             }
             return false;
         }
 
-        // Any character input switches to search mode
+        // Any character input - filter based on current context
         if let KeyCode::Char(c) = key {
-            ui.set_showing_spellbooks(false);
             ui.search_query_mut().push(c);
-            update_search_filter(state, ui);
+            ui.set_search_in_command_mode(ui.search_query().starts_with(':'));
+            ui.search.search_active = true;
+            if ui.search_in_command_mode() {
+                update_command_filter(ui);
+            } else if ui.showing_spellbooks() {
+                update_spellbook_filter(state, ui);
+            } else {
+                update_search_filter(state, ui);
+            }
             return false;
         }
 
@@ -792,6 +827,8 @@ fn handle_search(
             ui.set_search_in_command_mode(false);
         } else if ui.search_in_command_mode() {
             update_command_filter(ui);
+        } else if ui.showing_spellbooks() {
+            update_spellbook_filter(state, ui);
         } else {
             update_search_filter(state, ui);
         }
@@ -812,7 +849,7 @@ fn update_search_filter(state: &State, ui: &mut UiState) {
         return;
     }
 
-    // Filter spells that match the query in name, lore, or glyphs
+    // Filter spells that match the query in name, lore, school, or glyphs
     let indices: Vec<usize> = state
         .codex
         .spells
@@ -821,6 +858,7 @@ fn update_search_filter(state: &State, ui: &mut UiState) {
         .filter(|(_, spell)| {
             spell.name.to_lowercase().contains(&query)
                 || spell.lore.to_lowercase().contains(&query)
+                || spell.school.to_lowercase().contains(&query)
                 || spell
                     .glyphs
                     .iter()
@@ -836,6 +874,37 @@ fn update_search_filter(state: &State, ui: &mut UiState) {
         ui.search_results_state().select(Some(0));
     } else {
         ui.search_results_state().select(None);
+    }
+}
+
+/// Filters spellbooks by the current search query.
+/// Searches across spellbook name (case-insensitive).
+fn update_spellbook_filter(state: &State, ui: &mut UiState) {
+    let query = ui.search_query().to_lowercase();
+
+    if query.is_empty() {
+        ui.filtered_spellbook_indices_mut().clear();
+        return;
+    }
+
+    use crate::ui::search_overlay::{get_spellbook_item, total_spellbook_count};
+    let total = total_spellbook_count(state);
+
+    let indices: Vec<usize> = (0..total)
+        .filter(|&idx| {
+            if let Some(item) = get_spellbook_item(state, idx) {
+                let name: String = item.name();
+                name.to_lowercase().contains(&query)
+            } else {
+                false
+            }
+        })
+        .collect();
+
+    *ui.filtered_spellbook_indices_mut() = indices;
+
+    if !ui.filtered_spellbook_indices().is_empty() {
+        ui.set_search_spellbook_index(Some(0));
     }
 }
 
@@ -1021,7 +1090,7 @@ fn start_spell_execution(
     if spell.confirm {
         ui.previous_screen = Some(ui.screen);
         ui.screen = Screen::ConfirmDialog;
-        ui.confirm_dialog = Some(crate::ui::confirm::ConfirmDialogState::new(spell.clone()));
+        ui.confirm_dialog = Some(crate::ui::confirm::ConfirmDialogState::execute_spell(spell.clone()));
         return;
     }
 
@@ -1253,83 +1322,97 @@ fn handle_confirm_dialog(key: KeyCode, state: &mut State, ui: &mut UiState) -> b
             false
         }
         KeyCode::Enter => {
-            let spell = dialog.spell.clone();
+            let action = dialog.action.clone();
+            let typed_ok = dialog.typed_confirmation.to_uppercase() == dialog.confirmation_word().to_uppercase();
+            
+            if dialog.requires_typed_confirmation() && !typed_ok {
+                return false;
+            }
+            
             ui.confirm_dialog = None;
+            ui.screen = ui.previous_screen.take().unwrap_or(Screen::SearchOverlay);
 
-            if ui.previous_screen == Some(Screen::SearchOverlay)
-                && dialog.typed_confirmation.is_empty()
-            {
-                let previous = ui.previous_screen.take().unwrap_or(Screen::SearchOverlay);
-                ui.screen = previous;
-
-                match spell.run_mode {
-                    crate::models::RunMode::Simple => {
-                        if crate::clipboard::copy_to_clipboard(&spell.incantation) {
-                            ui.copy_feedback =
-                                Some("Copied! Paste into terminal to run.".to_string());
-                        } else {
-                            ui.copy_feedback = Some("Copy failed".to_string());
+            match action {
+                crate::ui::confirm::ConfirmAction::DeleteSpell(spell) => {
+                    match state.delete_spell(&spell.id) {
+                        Ok(_) => {
+                            ui.copy_feedback = Some(format!("Deleted: {}", spell.name));
+                            ui.spell_list_state.select(Some(0));
+                        }
+                        Err(e) => {
+                            ui.copy_feedback = Some(format!("Delete failed: {}", e));
                         }
                     }
-                    crate::models::RunMode::Tui => {
-                        let result = crate::invoker::execute_sync(&spell.incantation);
-                        let exec_result = crate::clipboard::ExecutionResult {
-                            command: spell.incantation.clone(),
-                            stdout: result.stdout.clone(),
-                            stderr: result.stderr.clone(),
-                            exit_code: result.exit_code,
-                            full_stdout: result.stdout,
-                            full_stderr: result.stderr,
-                            pid: Some(result.pid),
-                            spell_name: Some(spell.name.clone()),
-                        };
-                        ui.show_output_popup(exec_result);
+                }
+                crate::ui::confirm::ConfirmAction::DeleteSpellbook(name) => {
+                    match state.delete_spellbook(&name) {
+                        Ok(_) => {
+                            ui.copy_feedback = Some(format!("Deleted spellbook: {}", name));
+                        }
+                        Err(e) => {
+                            ui.copy_feedback = Some(format!("Delete failed: {}", e));
+                        }
                     }
-                    crate::models::RunMode::Background => {
-                        match crate::invoker::start_spell(
-                            spell.name.clone(),
-                            spell.incantation.clone(),
-                            if spell.working_dir.is_empty() {
-                                None
+                }
+                crate::ui::confirm::ConfirmAction::ExecuteSpell(spell) => {
+                    match spell.run_mode {
+                        crate::models::RunMode::Simple => {
+                            if crate::clipboard::copy_to_clipboard(&spell.incantation) {
+                                ui.copy_feedback = Some("Copied! Paste into terminal to run.".to_string());
                             } else {
-                                Some(spell.working_dir.clone())
-                            },
-                        ) {
-                            Ok(job_id) => {
-                                ui.copy_feedback =
-                                    Some(format!("Job {} started: {}", job_id, spell.name));
+                                ui.copy_feedback = Some("Copy failed".to_string());
                             }
-                            Err(e) => {
-                                ui.copy_feedback = Some(format!("Failed to start: {}", e));
+                        }
+                        crate::models::RunMode::Tui => {
+                            let result = crate::invoker::execute_sync(&spell.incantation);
+                            let exec_result = crate::clipboard::ExecutionResult {
+                                command: spell.incantation.clone(),
+                                stdout: result.stdout.clone(),
+                                stderr: result.stderr.clone(),
+                                exit_code: result.exit_code,
+                                full_stdout: result.stdout,
+                                full_stderr: result.stderr,
+                                pid: Some(result.pid),
+                                spell_name: Some(spell.name.clone()),
+                            };
+                            ui.show_output_popup(exec_result);
+                        }
+                        crate::models::RunMode::Background => {
+                            match crate::invoker::start_spell(
+                                spell.name.clone(),
+                                spell.incantation.clone(),
+                                if spell.working_dir.is_empty() {
+                                    None
+                                } else {
+                                    Some(spell.working_dir.clone())
+                                },
+                            ) {
+                                Ok(job_id) => {
+                                    ui.copy_feedback = Some(format!("Job {} started: {}", job_id, spell.name));
+                                }
+                                Err(e) => {
+                                    ui.copy_feedback = Some(format!("Failed to start: {}", e));
+                                }
                             }
                         }
                     }
                 }
-            } else {
-                ui.screen = ui.previous_screen.take().unwrap_or(Screen::SearchOverlay);
-
-                match state.delete_spell(&spell.id) {
-                    Ok(_) => {
-                        ui.copy_feedback = Some(format!("Deleted: {}", spell.name));
-                        ui.spell_list_state.select(Some(0));
-                    }
-                    Err(e) => {
-                        ui.copy_feedback = Some(format!("Delete failed: {}", e));
-                    }
-                }
             }
             false
         }
-        _ => {
-            if let KeyCode::Char('d') = key {
-                if let Some(ref mut d) = ui.confirm_dialog {
-                    if d.typed_confirmation.is_empty() {
-                        d.typed_confirmation = "d".to_string();
-                    }
-                }
+        KeyCode::Char(c) => {
+            if let Some(ref mut d) = ui.confirm_dialog {
+                d.typed_confirmation.push(c);
             }
             false
         }
+        KeyCode::Backspace => {
+            if let Some(ref mut d) = ui.confirm_dialog {
+                d.typed_confirmation.pop();
+            }
+            false
+        }
+        _ => false,
     }
 }
 
@@ -1707,8 +1790,95 @@ fn execute_command_legacy(cmd: &str, state: &mut State, ui: &mut UiState) {
         }
         // Help
         "?" | "help" | "commands" => {
-            ui.copy_feedback = Some("Commands: :n/new spell, :N/new book, :b/browse, :s/spells, :c/cards, :p/spines, :l/list, :t/theme".to_string());
+            ui.previous_screen = Some(ui.screen);
+            ui.screen = Screen::Help;
             log_info!("Command: help");
+        }
+        // Export commands
+        cmd if cmd.starts_with("export") || cmd.starts_with("ex") => {
+            let args = cmd.strip_prefix("export").unwrap_or(cmd).strip_prefix("ex").unwrap_or(cmd).trim();
+            if args.is_empty() {
+                // Export full codex
+                let filename = format!("spellbook_export_{}.toml", 
+                    chrono::Utc::now().format("%Y%m%d_%H%M%S"));
+                match Archivist::export_codex(&state.codex, &filename) {
+                    Ok(_) => {
+                        ui.copy_feedback = Some(format!("Exported codex to {}", filename));
+                        log_info!("Command: export codex to {}", filename);
+                    }
+                    Err(e) => {
+                        ui.copy_feedback = Some(format!("Export failed: {}", e));
+                        log_info!("Export failed: {}", e);
+                    }
+                }
+            } else {
+                // Check if argument is a spellbook name
+                let spellbook_name = args.trim();
+                if let Some(_) = state.codex.spellbooks.iter().find(|sb| sb.name == spellbook_name) {
+                    let filename = format!("{}_export.toml", 
+                        spellbook_name.replace(' ', "_"));
+                    match Archivist::export_spellbook(&state.codex, spellbook_name, &filename) {
+                        Ok(_) => {
+                            ui.copy_feedback = Some(format!("Exported '{}' to {}", spellbook_name, filename));
+                            log_info!("Command: export spellbook '{}' to {}", spellbook_name, filename);
+                        }
+                        Err(e) => {
+                            ui.copy_feedback = Some(format!("Export failed: {}", e));
+                            log_info!("Export failed: {}", e);
+                        }
+                    }
+                } else {
+                    // Treat as filename for full codex export
+                    match Archivist::export_codex(&state.codex, spellbook_name) {
+                        Ok(_) => {
+                            ui.copy_feedback = Some(format!("Exported codex to {}", spellbook_name));
+                            log_info!("Command: export codex to {}", spellbook_name);
+                        }
+                        Err(e) => {
+                            ui.copy_feedback = Some(format!("Export failed: {}", e));
+                            log_info!("Export failed: {}", e);
+                        }
+                    }
+                }
+            }
+        }
+        // Import commands
+        cmd if cmd.starts_with("import") || cmd.starts_with("im") => {
+            let args = cmd.strip_prefix("import").unwrap_or(cmd).strip_prefix("im").unwrap_or(cmd).trim();
+            if args.is_empty() {
+                ui.copy_feedback = Some("Usage: :import <file>".to_string());
+                log_info!("Command: import - no file specified");
+            } else {
+                let filename = args.trim();
+                match Archivist::import_codex(filename) {
+                    Ok(imported) => {
+                        let imported_spells = imported.spells.len();
+                        let imported_spellbooks = imported.spellbooks.len();
+                        
+                        // Auto-merge with rename strategy for conflicts
+                        let result = Archivist::merge_codex(&mut state.codex, imported, MergeStrategy::Rename);
+                        
+                        // Save the merged codex
+                        if let Err(e) = Archivist::save(&state.codex, "codex.toml") {
+                            ui.copy_feedback = Some(format!("Import succeeded but save failed: {}", e));
+                            log_info!("Import save failed: {}", e);
+                        } else {
+                            let mut msg = format!("Imported {} spell(s), {} spellbook(s)", 
+                                result.added_spells.len(), result.added_spellbooks.len());
+                            if !result.conflicts.is_empty() {
+                                msg.push_str(&format!(" ({} conflicts renamed)", result.conflicts.len()));
+                            }
+                            ui.copy_feedback = Some(msg);
+                            log_info!("Command: import from {} - {} spells, {} spellbooks", 
+                                filename, imported_spells, imported_spellbooks);
+                        }
+                    }
+                    Err(e) => {
+                        ui.copy_feedback = Some(format!("Import failed: {}", e));
+                        log_info!("Import failed: {}", e);
+                    }
+                }
+            }
         }
         // Unknown command
         _ => {

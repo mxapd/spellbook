@@ -293,14 +293,14 @@ impl JobManager {
             completed_at: None,
             output_file,
             error_file,
-            working_dir: working_dir.unwrap_or_default(),
+            working_dir: working_dir.clone().unwrap_or_default(),
         };
 
         registry.job_list.push(job);
         drop(registry);
 
         self.save_registry();
-        self.spawn_detached(id, command, output_path, error_path);
+        self.spawn_detached(id, command, output_path, error_path, working_dir);
 
         Ok(id)
     }
@@ -388,10 +388,16 @@ impl JobManager {
         command: String,
         _output_path: PathBuf,
         _error_path: PathBuf,
+        working_dir: Option<String>,
     ) {
         let spool_dir = self.spool_dir.clone();
         let shell_path = self.shell_path.clone();
         let registry = Arc::clone(&self.registry);
+
+        let home = std::env::var("HOME").unwrap_or_else(|_| "/".to_string());
+        let work_dir = working_dir
+            .filter(|d| !d.is_empty() && std::path::Path::new(d).exists())
+            .unwrap_or_else(|| home.clone());
 
         thread::spawn(move || {
             let output_file = spool_dir.join(&format!("job_{:03}.out", job_id));
@@ -401,7 +407,8 @@ impl JobManager {
             let _ = fs::File::create(&error_file);
 
             let cmd = format!(
-                "nohup {} -c '{}' > {} 2> {} < /dev/null & disown; echo $!",
+                "cd '{}' && nohup {} -c '{}' > {} 2> {} < /dev/null & disown; echo $!",
+                work_dir,
                 shell_path,
                 Self::shell_escape(&command),
                 output_file.display(),
@@ -761,7 +768,7 @@ mod tests {
 
     #[test]
     fn test_execute_sync_special_characters() {
-        let result = execute_sync(r#"echo "hello world" '#'"#"#);
+        let result = execute_sync(r#"echo "hello world" '#'"#);
         assert!(result.stdout.contains("hello world"));
     }
 }
@@ -1016,12 +1023,18 @@ pub fn stream_command(
 }
 
 #[cfg(unix)]
-pub fn exec_simple(command: &str, _working_dir: Option<&str>) -> ! {
+pub fn exec_simple(command: &str, working_dir: Option<&str>) -> ! {
     use std::env;
 
     let shell = env::var("SHELL").unwrap_or_else(|_| "/bin/sh".to_string());
+    let home = env::var("HOME").unwrap_or_else(|_| "/".to_string());
 
-    let _ = _working_dir;
+    // Change to working directory or fallback to HOME
+    let work_dir = working_dir
+        .filter(|d| !d.is_empty())
+        .unwrap_or(home.as_str());
+    
+    let _ = std::env::set_current_dir(work_dir);
 
     exec::execvp(&shell, &["-c", command]);
     std::process::exit(1)
@@ -1032,21 +1045,18 @@ pub fn exec_simple(command: &str, working_dir: Option<&str>) -> i32 {
     use std::env;
 
     let shell = env::var("SHELL").unwrap_or_else(|_| "sh".to_string());
-    let home = env::var("HOME").ok();
+    let home = env::var("HOME").unwrap_or_else(|_| "/".to_string());
 
     let mut cmd = Command::new(&shell);
     cmd.arg("-c").arg(command);
 
-    if let Some(ref dir) = working_dir {
-        let dir = PathBuf::from(dir);
-        if dir.exists() && dir.is_dir() {
-            cmd.current_dir(dir);
-        }
-    }
-
-    if let Some(ref home) = home {
-        cmd.env("HOME", home);
-    }
+    // Use working_dir if valid, otherwise fallback to HOME
+    let work_dir = working_dir
+        .filter(|d| !d.is_empty() && std::path::Path::new(d).exists())
+        .unwrap_or(home.as_str());
+    
+    cmd.current_dir(work_dir);
+    cmd.env("HOME", home);
 
     match cmd.status() {
         Ok(status) => status.code().unwrap_or(0),
