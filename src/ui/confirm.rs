@@ -6,24 +6,42 @@ use ratatui::{
     Frame,
 };
 
-use crate::models::Spell;
-use crate::state::State;
-use crate::ui::Screen;
+use crate::models::{RunMode, Spell};
 
+#[derive(Debug, Clone)]
 pub struct ConfirmDialogState {
     pub spell: Spell,
     pub typed_confirmation: String,
 }
 
+impl Default for ConfirmDialogState {
+    fn default() -> Self {
+        Self {
+            spell: Spell::default(),
+            typed_confirmation: String::new(),
+        }
+    }
+}
+
+impl ConfirmDialogState {
+    pub fn new(spell: Spell) -> Self {
+        Self {
+            spell,
+            typed_confirmation: String::new(),
+        }
+    }
+
+    pub fn requires_typed_confirmation(&self) -> bool {
+        self.spell.confirm
+    }
+}
+
 pub fn render_confirm_dialog(
     f: &mut Frame,
-    state: &State,
-    ui: &crate::ui::UiState,
     area: Rect,
+    theme: &crate::models::RatatuiColors,
+    dialog: &ConfirmDialogState,
 ) {
-    let theme = &state.theme;
-    let dialog = ui.confirm_dialog.as_ref().unwrap();
-
     let block = Block::default()
         .title(" Confirm ")
         .borders(Borders::ALL)
@@ -46,24 +64,36 @@ pub fn render_confirm_dialog(
         ])
         .split(inner);
 
-    let line1 = Line::from(vec![
-        Span::raw("Execute "),
-        Span::styled("elevated", Style::new().fg(theme.accent)),
-        Span::raw(" command?"),
-    ]);
+    let line1 = if dialog.spell.confirm {
+        Line::from(vec![
+            Span::raw("Confirm "),
+            Span::styled("execution", Style::new().fg(theme.accent)),
+            Span::raw("?"),
+        ])
+    } else {
+        Line::from(vec![
+            Span::raw("Execute "),
+            Span::styled("command", Style::new().fg(theme.accent)),
+            Span::raw("?"),
+        ])
+    };
     let para1 = Paragraph::new(line1).style(Style::new().fg(theme.fg));
     f.render_widget(para1, chunks[0]);
 
     let line2 = Line::from(vec![
         Span::styled("Spell: ", Style::new().fg(theme.muted)),
-        Span::styled(&dialog.spell.name, Style::new().fg(theme.fg).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            &dialog.spell.name,
+            Style::new().fg(theme.fg).add_modifier(Modifier::BOLD),
+        ),
     ]);
     let para2 = Paragraph::new(line2);
     f.render_widget(para2, chunks[1]);
 
-    let line3 = Line::from(vec![
-        Span::styled("Command: ", Style::new().fg(theme.muted)),
-    ]);
+    let line3 = Line::from(vec![Span::styled(
+        "Command: ",
+        Style::new().fg(theme.muted),
+    )]);
     let cmd_display = truncate_string(&dialog.spell.incantation, inner_width.saturating_sub(10));
     let cmd_line = Line::from(vec![
         Span::raw("  "),
@@ -72,83 +102,22 @@ pub fn render_confirm_dialog(
     let para3 = Paragraph::new(vec![line3, cmd_line]);
     f.render_widget(para3, chunks[2]);
 
-    let instruction = if dialog.spell.elevated {
+    let run_mode_hint = match dialog.spell.run_mode {
+        RunMode::Simple => "",
+        RunMode::Tui => " (TUI mode)",
+        RunMode::Background => " (background)",
+    };
+    let instruction = if dialog.spell.confirm {
         "Type 'yes' or press Enter to confirm, Esc to cancel"
     } else {
         "Press Enter to confirm, Esc to cancel"
     };
     let line5 = Line::from(vec![
         Span::styled(instruction, Style::new().fg(theme.muted)),
+        Span::styled(run_mode_hint, Style::new().fg(theme.accent)),
     ]);
     let para5 = Paragraph::new(line5);
     f.render_widget(para5, chunks[5]);
-}
-
-pub fn handle_confirm_key(
-    key: crossterm::event::KeyCode,
-    _c: Option<char>,
-    ui: &mut crate::ui::UiState,
-    _state: &mut State,
-) -> Option<bool> {
-    let dialog = ui.confirm_dialog.as_mut()?;
-
-    match key {
-        crossterm::event::KeyCode::Esc => {
-            ui.confirm_dialog = None;
-            ui.screen = Screen::SearchOverlay;
-            ui.copy_feedback = Some("Cancelled".to_string());
-            return Some(false);
-        }
-        crossterm::event::KeyCode::Enter => {
-            let spell = dialog.spell.clone();
-            ui.confirm_dialog = None;
-
-            if spell.background {
-                // Run as background job
-                match crate::invoker::start_spell(
-                    spell.name.clone(),
-                    spell.incantation.clone(),
-                    spell.elevated,
-                    if spell.working_dir.is_empty() { None } else { Some(spell.working_dir.clone()) },
-                ) {
-                    Ok(job_id) => {
-                        ui.copy_feedback = Some(format!("Job {} started: {}", job_id, spell.name));
-                        ui.screen = Screen::SearchOverlay;
-                    }
-                    Err(e) => {
-                        ui.copy_feedback = Some(format!("Failed to start: {}", e));
-                        ui.screen = Screen::SearchOverlay;
-                    }
-                }
-            } else {
-                // Run synchronously and show output
-                let result = crate::invoker::execute_sync(&spell.incantation, spell.elevated);
-                let exec_result = crate::clipboard::ExecutionResult {
-                    command: spell.incantation.clone(),
-                    stdout: result.stdout.clone(),
-                    stderr: result.stderr.clone(),
-                    exit_code: result.exit_code,
-                    full_stdout: result.stdout,
-                    full_stderr: result.stderr,
-                    pid: Some(result.pid),
-                    spell_name: Some(spell.name.clone()),
-                };
-                ui.show_output_popup(exec_result);
-            }
-            return Some(false);
-        }
-        crossterm::event::KeyCode::Backspace => {
-            dialog.typed_confirmation.pop();
-            return Some(false);
-        }
-        crossterm::event::KeyCode::Char(ch) => {
-            dialog.typed_confirmation.push(ch);
-            return Some(false);
-        }
-        _ => {}
-    }
-
-    None
 }
 
 fn truncate_string(s: &str, max_width: usize) -> String {

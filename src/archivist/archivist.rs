@@ -1,45 +1,90 @@
-use crate::models::{Codex, Theme, ThemeConfig, UserSettings};
+use crate::models::{Codex, JobManager, RecentEntry, Theme, ThemeConfig, UserSettings};
 use crate::validation::validate_codex;
-use crate::{log_debug, log_info};
+use crate::{log_debug, log_info, log_warn};
+use serde::{Deserialize, Serialize};
 use std::fs;
+use std::path::PathBuf;
+
+fn atomic_write(path: &str, content: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let tmp_path = format!("{}.tmp", path);
+    fs::write(&tmp_path, content)?;
+    fs::rename(&tmp_path, path)?;
+    Ok(())
+}
+
+fn ensure_spellbook_dir() -> PathBuf {
+    let home = dirs::home_dir().unwrap_or_else(|| PathBuf::from("."));
+    let dir = home.join(".spellbook");
+    if !dir.exists() {
+        let _ = fs::create_dir_all(&dir);
+    }
+    dir
+}
 
 pub struct Archivist;
 
 impl Archivist {
-    /// Loads and validates a Codex from a TOML file.
-    ///
-    /// On load:
-    /// - Generates internal IDs for spells (1, 2, 3...)
-    /// - Resolves spell names to IDs in spellbooks
-    ///
-    /// Validation checks:
-    /// - All spell references in spellbooks exist
-    /// - No duplicate spell or spellbook names
-    /// - No empty names
     pub fn load(path: &str) -> Result<Codex, Box<dyn std::error::Error>> {
         log_info!("Loading codex from: {}", path);
         let contents = fs::read_to_string(path)?;
         log_debug!("Loaded {} bytes from codex", contents.len());
 
-        // First pass: load (IDs default to 0)
         let mut codex: Codex = toml::from_str(&contents)?;
 
-        // Generate IDs for spells (1, 2, 3, ...)
-        for (i, spell) in codex.spells.iter_mut().enumerate() {
-            spell.id = (i + 1) as u64;
+        let needs_migration = codex.spells.iter().any(|s| s.id.is_empty())
+            || codex.spellbooks.iter().any(|sb| !sb.spells.is_empty());
+
+        if needs_migration {
+            log_info!("Migrating codex from v1 to v2 format...");
+            for spell in &mut codex.spells {
+                if spell.id.is_empty() {
+                    spell.id = uuid::Uuid::new_v4().to_string();
+                }
+            }
+            for spellbook in &mut codex.spellbooks {
+                if spellbook.spell_ids.is_empty() && !spellbook.spells.is_empty() {
+                    let resolved_ids: Vec<String> = spellbook
+                        .spells
+                        .iter()
+                        .filter_map(|name| {
+                            codex
+                                .spells
+                                .iter()
+                                .find(|s| &s.name == name)
+                                .map(|s| s.id.clone())
+                        })
+                        .collect();
+                    spellbook.spell_ids = resolved_ids;
+                }
+            }
+            if let Err(e) = Self::save(&codex, path) {
+                log_warn!("Failed to save migrated codex: {}", e);
+            }
+        } else {
+            for spell in &mut codex.spells {
+                if spell.id.is_empty() {
+                    spell.id = uuid::Uuid::new_v4().to_string();
+                }
+            }
         }
 
-        // Resolve spell names to IDs in spellbooks
         for spellbook in &mut codex.spellbooks {
-            let resolved_ids: Vec<u64> = spellbook
-                .spells
-                .iter()
-                .filter_map(|name| codex.spells.iter().find(|s| &s.name == name).map(|s| s.id))
-                .collect();
-            spellbook.spell_ids = resolved_ids;
+            if spellbook.spell_ids.is_empty() && !spellbook.spells.is_empty() {
+                let resolved_ids: Vec<String> = spellbook
+                    .spells
+                    .iter()
+                    .filter_map(|name| {
+                        codex
+                            .spells
+                            .iter()
+                            .find(|s| &s.name == name)
+                            .map(|s| s.id.clone())
+                    })
+                    .collect();
+                spellbook.spell_ids = resolved_ids;
+            }
         }
 
-        // Validate the loaded data
         validate_codex(&codex)?;
 
         log_info!(
@@ -50,7 +95,14 @@ impl Archivist {
         Ok(codex)
     }
 
-    /// Loads the selected theme from config file.
+    pub fn save(codex: &Codex, path: &str) -> Result<(), Box<dyn std::error::Error>> {
+        log_info!("Saving codex to: {}", path);
+        let content = toml::to_string_pretty(codex)?;
+        atomic_write(path, &content)?;
+        log_info!("Codex saved successfully");
+        Ok(())
+    }
+
     pub fn load_theme(path: &str) -> Theme {
         let contents = match fs::read_to_string(path) {
             Ok(c) => c,
@@ -65,7 +117,6 @@ impl Archivist {
         config.selected_theme
     }
 
-    /// Saves the selected theme to config file.
     pub fn save_theme(path: &str, theme: Theme) -> Result<(), Box<dyn std::error::Error>> {
         let contents = match fs::read_to_string(path) {
             Ok(c) => c,
@@ -84,11 +135,10 @@ impl Archivist {
         config.selected_theme = theme;
 
         let new_content = toml::to_string_pretty(&config)?;
-        fs::write(path, new_content)?;
+        atomic_write(path, &new_content)?;
         Ok(())
     }
 
-    /// Loads user settings (view mode, etc.) from config file.
     pub fn load_user_settings(path: &str) -> UserSettings {
         let contents = match fs::read_to_string(path) {
             Ok(c) => c,
@@ -103,7 +153,6 @@ impl Archivist {
         config.settings
     }
 
-    /// Saves user settings to config file.
     pub fn save_user_settings(
         path: &str,
         settings: &UserSettings,
@@ -125,11 +174,61 @@ impl Archivist {
         config.settings = settings.clone();
 
         let new_content = toml::to_string_pretty(&config)?;
-        fs::write(path, new_content)?;
+        atomic_write(path, &new_content)?;
         Ok(())
     }
 
-    /// Appends a spell to the codex file.
+    pub fn load_jobs() -> Result<JobManager, Box<dyn std::error::Error>> {
+        let path = ensure_spellbook_dir().join("jobs.toml");
+        if !path.exists() {
+            return Ok(JobManager::default());
+        }
+        let contents = fs::read_to_string(&path)?;
+        let data: crate::models::JobsData = toml::from_str(&contents)?;
+        Ok(JobManager {
+            jobs: data.jobs,
+            next_id: data.next_id,
+            ..Default::default()
+        })
+    }
+
+    pub fn save_jobs(jobs: &JobManager) -> Result<(), Box<dyn std::error::Error>> {
+        let path = ensure_spellbook_dir().join("jobs.toml");
+        let data = crate::models::JobsData {
+            jobs: jobs.jobs.clone(),
+            next_id: jobs.next_id,
+        };
+        let content = toml::to_string_pretty(&data)?;
+        atomic_write(path.to_str().unwrap_or("jobs.toml"), &content)?;
+        Ok(())
+    }
+
+    pub fn load_recents() -> Result<Vec<RecentEntry>, Box<dyn std::error::Error>> {
+        let path = ensure_spellbook_dir().join("recents.toml");
+        if !path.exists() {
+            return Ok(Vec::new());
+        }
+        let contents = fs::read_to_string(&path)?;
+        #[derive(Deserialize)]
+        struct RecentsFile {
+            recents: Vec<RecentEntry>,
+        }
+        let data: RecentsFile = toml::from_str(&contents)?;
+        Ok(data.recents)
+    }
+
+    pub fn save_recents(recents: &[RecentEntry]) -> Result<(), Box<dyn std::error::Error>> {
+        let path = ensure_spellbook_dir().join("recents.toml");
+        #[derive(Serialize)]
+        struct RecentsFile<'a> {
+            recents: &'a [RecentEntry],
+        }
+        let data = RecentsFile { recents };
+        let content = toml::to_string_pretty(&data)?;
+        atomic_write(path.to_str().unwrap_or("recents.toml"), &content)?;
+        Ok(())
+    }
+
     pub fn append_spell(
         path: &str,
         spell: &crate::models::Spell,
@@ -137,10 +236,8 @@ impl Archivist {
     ) -> Result<(), Box<dyn std::error::Error>> {
         log_info!("Saving spell: {} to codex", spell.name);
 
-        // Read existing content
         let mut contents = fs::read_to_string(path)?;
 
-        // Append the new spell
         contents.push_str("\n[[spells]]\n");
         contents.push_str(&format!("name = \"{}\"\n", spell.name));
         contents.push_str(&format!("incantation = \"{}\"\n", spell.incantation));
@@ -155,18 +252,14 @@ impl Archivist {
         }
         contents.push_str("]\n");
 
-        // If spellbook is specified, add the spell to that spellbook
         if let Some(book_name) = spellbook {
             let spellbook_section = format!("[[spellbooks]]\nname = \"{}\"", book_name);
             if let Some(pos) = contents.find(&spellbook_section) {
-                // Find the end of this spellbook section
                 let rest = &contents[pos..];
 
-                // Find next spellbook or end of file
                 let insert_pos = if let Some(next_pos) = rest[2..].find("[[spellbooks]]") {
                     pos + 2 + next_pos
                 } else {
-                    // Last spellbook - insert at end of file
                     contents.len()
                 };
                 contents.insert_str(insert_pos, &format!(", \"{}\"", spell.name));
@@ -186,7 +279,6 @@ impl Archivist {
         Ok(())
     }
 
-    /// Appends a new spellbook to the codex file.
     pub fn append_spellbook(
         path: &str,
         name: &str,
@@ -195,10 +287,8 @@ impl Archivist {
     ) -> Result<(), Box<dyn std::error::Error>> {
         log_info!("Creating spellbook: {}", name);
 
-        // Read existing content
         let contents = fs::read_to_string(path)?;
 
-        // Build the new spellbook section
         let mut new_spellbook = format!("\n[[spellbooks]]\nname = \"{}\"\n", name);
 
         if let Some(c) = cover {
@@ -213,7 +303,6 @@ impl Archivist {
             }
         }
 
-        // Append to file
         fs::write(path, &contents)?;
         std::io::Write::write_all(
             &mut std::fs::OpenOptions::new().append(true).open(path)?,
@@ -224,7 +313,6 @@ impl Archivist {
         Ok(())
     }
 
-    /// Updates a spell's background preference in the codex file.
     pub fn update_spell_background(
         path: &str,
         spell_name: &str,
@@ -288,7 +376,7 @@ impl Archivist {
         }
 
         let new_contents = lines.join("\n");
-        fs::write(path, new_contents)?;
+        atomic_write(path, &new_contents)?;
 
         log_info!("Spell '{}' updated successfully", spell_name);
         Ok(())

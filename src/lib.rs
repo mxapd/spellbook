@@ -1,9 +1,10 @@
 pub mod archivist;
-pub mod clipboard;
 pub mod cli;
+pub mod clipboard;
 pub mod invoker;
 pub mod logging;
 pub mod models;
 pub mod state;
+pub mod test_utils;
 pub mod ui;
 pub mod validation;

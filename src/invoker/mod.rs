@@ -1,6 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::fs;
+use std::io::{BufRead, BufReader};
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 use std::sync::{Arc, Mutex};
@@ -44,8 +45,6 @@ pub struct Job {
     pub exit_code: Option<i32>,
     pub started_at: DateTime<Utc>,
     pub completed_at: Option<DateTime<Utc>>,
-    #[serde(default)]
-    pub elevated: bool,
     pub output_file: String,
     pub error_file: String,
     #[serde(default)]
@@ -267,7 +266,6 @@ impl JobManager {
         &self,
         name: String,
         command: String,
-        elevated: bool,
         working_dir: Option<String>,
     ) -> Result<u64, ExecutorError> {
         let running = self.running_count();
@@ -293,7 +291,6 @@ impl JobManager {
             exit_code: None,
             started_at: Utc::now(),
             completed_at: None,
-            elevated,
             output_file,
             error_file,
             working_dir: working_dir.unwrap_or_default(),
@@ -303,96 +300,7 @@ impl JobManager {
         drop(registry);
 
         self.save_registry();
-        self.spawn_detached(id, command, elevated, output_path, error_path);
-
-        Ok(id)
-    }
-
-    pub fn start_with_sudo(
-        &self,
-        name: String,
-        command: String,
-        password: String,
-        working_dir: Option<String>,
-    ) -> Result<u64, ExecutorError> {
-        let running = self.running_count();
-        if running >= MAX_CONCURRENT_JOBS {
-            return Err(ExecutorError::JobLimitReached);
-        }
-
-        let mut registry = self.registry.lock().unwrap();
-        let id = registry.next_id;
-        registry.next_id += 1;
-
-        let output_file = format!("job_{:03}.out", id);
-        let error_file = format!("job_{:03}.err", id);
-        let output_path = self.spool_dir.join(&output_file);
-        let error_path = self.spool_dir.join(&error_file);
-
-        let job = Job {
-            id,
-            name: name.clone(),
-            command: command.clone(),
-            status: JobStatus::Running,
-            pid: None,
-            exit_code: None,
-            started_at: Utc::now(),
-            completed_at: None,
-            elevated: true,
-            output_file,
-            error_file,
-            working_dir: working_dir.unwrap_or_default(),
-        };
-
-        registry.job_list.push(job);
-        drop(registry);
-
-        self.save_registry();
-        self.spawn_detached_with_sudo(id, command, password, output_path, error_path);
-
-        Ok(id)
-    }
-
-    pub fn start_with_sudo_cached(
-        &self,
-        name: String,
-        command: String,
-        working_dir: Option<String>,
-    ) -> Result<u64, ExecutorError> {
-        let running = self.running_count();
-        if running >= MAX_CONCURRENT_JOBS {
-            return Err(ExecutorError::JobLimitReached);
-        }
-
-        let mut registry = self.registry.lock().unwrap();
-        let id = registry.next_id;
-        registry.next_id += 1;
-
-        let output_file = format!("job_{:03}.out", id);
-        let error_file = format!("job_{:03}.err", id);
-        let output_path = self.spool_dir.join(&output_file);
-        let error_path = self.spool_dir.join(&error_file);
-
-        let job = Job {
-            id,
-            name: name.clone(),
-            command: command.clone(),
-            status: JobStatus::Running,
-            pid: None,
-            exit_code: None,
-            started_at: Utc::now(),
-            completed_at: None,
-            elevated: true,
-            output_file,
-            error_file,
-            working_dir: working_dir.unwrap_or_default(),
-        };
-
-        registry.job_list.push(job);
-        drop(registry);
-
-        self.save_registry();
-        self.spawn_detached_with_sudo_cached(id, command, output_path, error_path);
+        self.spawn_detached(id, command, output_path, error_path);
 
         Ok(id)
     }
@@ -474,7 +382,7 @@ impl JobManager {
         });
     }
 
-    fn spawn_detached_with_sudo_cached(
+    fn spawn_detached(
         &self,
         job_id: u64,
         command: String,
@@ -492,111 +400,14 @@ impl JobManager {
             let _ = fs::File::create(&output_file);
             let _ = fs::File::create(&error_file);
 
-            let sudo_cmd = format!(
-                "nohup sudo {} -c '{}' > {} 2> {} < /dev/null & disown; echo $!",
+            let cmd = format!(
+                "nohup {} -c '{}' > {} 2> {} < /dev/null & disown; echo $!",
                 shell_path,
                 Self::shell_escape(&command),
                 output_file.display(),
                 error_file.display()
             );
-
-            let result = Command::new("bash")
-                .arg("-c")
-                .arg(&sudo_cmd)
-                .env("SHELL", &shell_path)
-                .env(
-                    "HOME",
-                    std::env::var("HOME").unwrap_or_else(|_| "/".to_string()),
-                )
-                .stdout(Stdio::piped())
-                .stderr(Stdio::piped())
-                .output();
-
-            match result {
-                Ok(output) => {
-                    let stderr_str = String::from_utf8_lossy(&output.stderr);
-                    if stderr_str.contains("incorrect password")
-                        || stderr_str.contains("sudo: a terminal is required")
-                    {
-                        let mut reg = registry.lock().unwrap();
-                        if let Some(job) = reg.job_list.iter_mut().find(|j| j.id == job_id) {
-                            job.status = JobStatus::Failed;
-                            job.exit_code = Some(-1);
-                            job.completed_at = Some(Utc::now());
-                        }
-                        return;
-                    }
-
-                    let pid_str = String::from_utf8_lossy(&output.stdout).trim().to_string();
-                    if let Ok(pid) = pid_str.parse::<u32>() {
-                        let mut reg = registry.lock().unwrap();
-                        if let Some(job) = reg.job_list.iter_mut().find(|j| j.id == job_id) {
-                            job.pid = Some(pid);
-                        }
-                    }
-                }
-                Err(e) => {
-                    eprintln!("Failed to spawn job {}: {}", job_id, e);
-                    let mut reg = registry.lock().unwrap();
-                    if let Some(job) = reg.job_list.iter_mut().find(|j| j.id == job_id) {
-                        job.status = JobStatus::Failed;
-                        job.exit_code = Some(-1);
-                        job.completed_at = Some(Utc::now());
-                    }
-                }
-            }
-        });
-    }
-
-    fn spawn_detached(
-        &self,
-        job_id: u64,
-        command: String,
-        elevated: bool,
-        _output_path: PathBuf,
-        _error_path: PathBuf,
-    ) {
-        let spool_dir = self.spool_dir.clone();
-        let shell_path = self.shell_path.clone();
-        let registry = Arc::clone(&self.registry);
-
-        thread::spawn(move || {
-            let output_file = spool_dir.join(&format!("job_{:03}.out", job_id));
-            let error_file = spool_dir.join(&format!("job_{:03}.err", job_id));
-
-            let _ = fs::File::create(&output_file);
-            let _ = fs::File::create(&error_file);
-
-            let result = if elevated {
-                let cmd = format!(
-                    "nohup {} -c '{}' > {} 2> {} < /dev/null & disown; echo $!",
-                    shell_path,
-                    Self::shell_escape(&command),
-                    output_file.display(),
-                    error_file.display()
-                );
-                Command::new("pkexec")
-                    .arg("bash")
-                    .arg("-lc")
-                    .arg(&cmd)
-                    .env("SHELL", &shell_path)
-                    .env(
-                        "HOME",
-                        std::env::var("HOME").unwrap_or_else(|_| "/".to_string()),
-                    )
-                    .stdout(Stdio::null())
-                    .stderr(Stdio::null())
-                    .output()
-            } else {
-                let cmd = format!(
-                    "nohup {} -c '{}' > {} 2> {} < /dev/null & disown; echo $!",
-                    shell_path,
-                    Self::shell_escape(&command),
-                    output_file.display(),
-                    error_file.display()
-                );
-                Command::new("bash").arg("-c").arg(&cmd).output()
-            };
+            let result = Command::new("bash").arg("-c").arg(&cmd).output();
 
             match result {
                 Ok(output) => {
@@ -809,27 +620,9 @@ pub fn get_job_manager() -> &'static JobManager {
 pub fn start_spell(
     name: String,
     command: String,
-    elevated: bool,
     working_dir: Option<String>,
 ) -> Result<u64, ExecutorError> {
-    get_job_manager().start(name, command, elevated, working_dir)
-}
-
-pub fn start_spell_with_sudo(
-    name: String,
-    command: String,
-    password: String,
-    working_dir: Option<String>,
-) -> Result<u64, ExecutorError> {
-    get_job_manager().start_with_sudo(name, command, password, working_dir)
-}
-
-pub fn start_spell_with_sudo_cached(
-    name: String,
-    command: String,
-    working_dir: Option<String>,
-) -> Result<u64, ExecutorError> {
-    get_job_manager().start_with_sudo_cached(name, command, working_dir)
+    get_job_manager().start(name, command, working_dir)
 }
 
 pub fn kill_job(id: u64) -> Result<(), ExecutorError> {
@@ -921,6 +714,56 @@ mod tests {
         fn check_error<E: std::error::Error>() {}
         check_error::<ExecutorError>();
     }
+
+    #[test]
+    fn test_execute_sync_captures_stdout() {
+        let result = execute_sync("echo hello");
+        assert_eq!(result.stdout.trim(), "hello");
+        assert!(result.stderr.is_empty());
+        assert_eq!(result.exit_code, Some(0));
+    }
+
+    #[test]
+    fn test_execute_sync_captures_stderr() {
+        let result = execute_sync("bash -c 'echo error >&2'");
+        assert_eq!(result.stderr.trim(), "error");
+        assert_eq!(result.exit_code, Some(0));
+    }
+
+    #[test]
+    fn test_execute_sync_exit_code_success() {
+        let result = execute_sync("true");
+        assert_eq!(result.exit_code, Some(0));
+    }
+
+    #[test]
+    fn test_execute_sync_exit_code_failure() {
+        let result = execute_sync("false");
+        assert_eq!(result.exit_code, Some(1));
+    }
+
+    #[test]
+    fn test_execute_sync_handles_invalid_command() {
+        let result = execute_sync("nonexistent_command_12345");
+        assert!(result.exit_code.is_some());
+        assert!(result.exit_code.unwrap() != 0 || !result.stderr.is_empty());
+    }
+
+    #[test]
+    fn test_execute_sync_multiline_output() {
+        let result = execute_sync("echo line1 && echo line2 && echo line3");
+        let lines: Vec<&str> = result.stdout.lines().collect();
+        assert_eq!(lines.len(), 3);
+        assert_eq!(lines[0], "line1");
+        assert_eq!(lines[1], "line2");
+        assert_eq!(lines[2], "line3");
+    }
+
+    #[test]
+    fn test_execute_sync_special_characters() {
+        let result = execute_sync(r#"echo "hello world" '#'"#"#);
+        assert!(result.stdout.contains("hello world"));
+    }
 }
 
 pub struct SyncExecutionResult {
@@ -930,23 +773,8 @@ pub struct SyncExecutionResult {
     pub pid: u32,
 }
 
-pub fn execute_sync(command: &str, elevated: bool) -> SyncExecutionResult {
-    let shell_path = detect_shell_static();
-
-    let output = if elevated {
-        Command::new("pkexec")
-            .arg("bash")
-            .arg("-lc")
-            .arg(command)
-            .env("SHELL", &shell_path)
-            .env(
-                "HOME",
-                std::env::var("HOME").unwrap_or_else(|_| "/".to_string()),
-            )
-            .output()
-    } else {
-        Command::new("bash").arg("-c").arg(command).output()
-    };
+pub fn execute_sync(command: &str) -> SyncExecutionResult {
+    let output = Command::new("bash").arg("-c").arg(command).output();
 
     match output {
         Ok(out) => SyncExecutionResult {
@@ -964,35 +792,15 @@ pub fn execute_sync(command: &str, elevated: bool) -> SyncExecutionResult {
     }
 }
 
-pub fn execute_sync_spawn(
-    command: &str,
-    elevated: bool,
-) -> std::io::Result<(SyncExecutionResult, u32)> {
+pub fn execute_sync_spawn(command: &str) -> std::io::Result<(SyncExecutionResult, u32)> {
     use std::process::{Command, Stdio};
 
-    let shell_path = detect_shell_static();
-
-    let mut child = if elevated {
-        Command::new("pkexec")
-            .arg("bash")
-            .arg("-lc")
-            .arg(command)
-            .env("SHELL", &shell_path)
-            .env(
-                "HOME",
-                std::env::var("HOME").unwrap_or_else(|_| "/".to_string()),
-            )
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()?
-    } else {
-        Command::new("bash")
-            .arg("-c")
-            .arg(command)
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()?
-    };
+    let mut child = Command::new("bash")
+        .arg("-c")
+        .arg(command)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()?;
 
     let pid = child.id();
 
@@ -1112,54 +920,139 @@ pub fn validate_password() -> bool {
     }
 }
 
-pub fn execute_with_sudo(command: &str, password: &str) -> SyncExecutionResult {
+pub struct StreamOutput {
+    pub line: String,
+    pub is_stderr: bool,
+}
+
+static STREAM_TX: std::sync::OnceLock<std::sync::mpsc::Sender<StreamOutput>> =
+    std::sync::OnceLock::new();
+static STREAM_RX: std::sync::OnceLock<
+    std::sync::Mutex<Option<std::sync::mpsc::Receiver<StreamOutput>>>,
+> = std::sync::OnceLock::new();
+
+pub fn get_stream_receiver() -> Option<std::sync::mpsc::Receiver<StreamOutput>> {
+    STREAM_RX.get().and_then(|rx| {
+        let mut guard = match rx.lock() {
+            Ok(g) => g,
+            Err(_) => return None,
+        };
+        guard.take()
+    })
+}
+
+pub fn stream_command(
+    command: &str,
+    working_dir: Option<&str>,
+) -> std::io::Result<(u32, thread::JoinHandle<()>)> {
     let shell = detect_shell_static();
 
-    let mut child = Command::new("sudo")
-        .arg("-S")
-        .arg("bash")
-        .arg("-c")
+    let mut cmd = Command::new(&shell);
+    cmd.arg("-c")
         .arg(command)
-        .env("SHELL", &shell)
-        .env(
-            "HOME",
-            std::env::var("HOME").unwrap_or_else(|_| "/".to_string()),
-        )
-        .stdin(Stdio::piped())
         .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn();
+        .stderr(Stdio::piped());
 
-    match child {
-        Ok(mut child) => {
-            {
-                use std::io::Write;
-                if let Some(ref mut stdin) = child.stdin {
-                    let _ = stdin.write_all(password.as_bytes());
-                    let _ = stdin.write_all(b"\n");
-                }
-            }
-
-            match child.wait_with_output() {
-                Ok(output) => SyncExecutionResult {
-                    stdout: String::from_utf8_lossy(&output.stdout).to_string(),
-                    stderr: String::from_utf8_lossy(&output.stderr).to_string(),
-                    exit_code: output.status.code(),
-                    pid: 0,
-                },
-                Err(e) => SyncExecutionResult {
-                    stdout: String::new(),
-                    stderr: format!("Failed to wait for process: {}", e),
-                    exit_code: Some(1),
-                    pid: 0,
-                },
-            }
+    if let Some(ref dir) = working_dir {
+        let dir = PathBuf::from(dir);
+        if dir.exists() && dir.is_dir() {
+            cmd.current_dir(dir);
         }
-        Err(e) => SyncExecutionResult {
-            stdout: String::new(),
-            stderr: format!("Failed to spawn sudo: {}", e),
-            exit_code: Some(1),
-            pid: 0,
-        },
+    }
+
+    let mut child = cmd.spawn()?;
+
+    let stdout = child.stdout.take();
+    let stderr = child.stderr.take();
+    let pid = child.id();
+
+    let (tx, rx) = std::sync::mpsc::channel::<StreamOutput>();
+    let tx_for_stream = tx.clone();
+    let _ = STREAM_TX.set(tx);
+    let _ = STREAM_RX.set(std::sync::Mutex::new(Some(rx)));
+
+    let handle = thread::spawn(move || {
+        let mut reader_threads = vec![];
+
+        if let Some(stdout) = stdout {
+            let tx_clone = tx_for_stream.clone();
+            let t = thread::spawn(move || {
+                let reader = BufReader::new(stdout);
+                for line in reader.lines().map_while(Result::ok) {
+                    let _ = tx_clone.send(StreamOutput {
+                        line,
+                        is_stderr: false,
+                    });
+                }
+            });
+            reader_threads.push(t);
+        }
+
+        if let Some(stderr) = stderr {
+            let tx_clone = tx_for_stream.clone();
+            let t = thread::spawn(move || {
+                let reader = BufReader::new(stderr);
+                for line in reader.lines().map_while(Result::ok) {
+                    let _ = tx_clone.send(StreamOutput {
+                        line,
+                        is_stderr: true,
+                    });
+                }
+            });
+            reader_threads.push(t);
+        }
+
+        for t in reader_threads {
+            let _ = t.join();
+        }
+
+        let _ = tx_for_stream.send(StreamOutput {
+            line: String::new(),
+            is_stderr: false,
+        });
+    });
+
+    Ok((pid, handle))
+}
+
+#[cfg(unix)]
+pub fn exec_simple(command: &str, _working_dir: Option<&str>) -> ! {
+    use std::env;
+
+    let shell = env::var("SHELL").unwrap_or_else(|_| "/bin/sh".to_string());
+
+    let _ = _working_dir;
+
+    exec::execvp(&shell, &["-c", command]);
+    std::process::exit(1)
+}
+
+#[cfg(not(unix))]
+pub fn exec_simple(command: &str, working_dir: Option<&str>) -> i32 {
+    use std::env;
+
+    let shell = env::var("SHELL").unwrap_or_else(|_| "sh".to_string());
+    let home = env::var("HOME").ok();
+
+    let mut cmd = Command::new(&shell);
+    cmd.arg("-c").arg(command);
+
+    if let Some(ref dir) = working_dir {
+        let dir = PathBuf::from(dir);
+        if dir.exists() && dir.is_dir() {
+            cmd.current_dir(dir);
+        }
+    }
+
+    if let Some(ref home) = home {
+        cmd.env("HOME", home);
+    }
+
+    match cmd.status() {
+        Ok(status) => status.code().unwrap_or(0),
+        Err(e) => {
+            eprintln!("Failed to execute: {}", e);
+            1
+        }
     }
 }

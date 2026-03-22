@@ -4,9 +4,8 @@ use std::sync::{LazyLock, Mutex};
 
 const MAX_DISPLAY_LINES: usize = 500;
 
-static CLIPBOARD: LazyLock<Mutex<Option<Clipboard>>> = LazyLock::new(|| {
-    Mutex::new(Clipboard::new().ok())
-});
+static CLIPBOARD: LazyLock<Mutex<Option<Clipboard>>> =
+    LazyLock::new(|| Mutex::new(Clipboard::new().ok()));
 
 pub fn copy_to_clipboard(text: &str) -> bool {
     let mut guard = match CLIPBOARD.lock() {
@@ -17,9 +16,7 @@ pub fn copy_to_clipboard(text: &str) -> bool {
     match guard.as_mut() {
         Some(cb) => {
             if cb.set_text(text).is_ok() {
-                let _ = Command::new("notify-send")
-                    .args(["Copied!", text])
-                    .spawn();
+                let _ = Command::new("notify-send").args(["Copied!", text]).spawn();
                 true
             } else {
                 false

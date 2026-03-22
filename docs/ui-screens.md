@@ -238,7 +238,7 @@ pub struct SpellFormState {
 | Lore | `::` | Description |
 | School | `^` | Category |
 | Glyphs | `#` | Tags (comma-separated) |
-| Run Mode | `⚡` | Default execution mode (simple/tui/background) |
+| Run Mode | `!!` | Default execution mode (simple/tui/background) |
 | Confirm | `?` | Require confirmation (checkbox) |
 | Working Dir | `/` | Working directory (optional) |
 | Spellbook | `>` | Dropdown to select spellbook |

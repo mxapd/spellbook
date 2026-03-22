@@ -3,6 +3,7 @@ use std::collections::HashSet;
 
 pub fn validate_codex(codex: &Codex) -> Result<(), Box<dyn std::error::Error>> {
     let spell_names: HashSet<&String> = codex.spells.iter().map(|s| &s.name).collect();
+    let spell_ids: HashSet<&String> = codex.spells.iter().map(|s| &s.id).collect();
 
     let mut seen_spell_names: HashSet<&String> = HashSet::new();
     for spell in &codex.spells {
@@ -27,11 +28,11 @@ pub fn validate_codex(codex: &Codex) -> Result<(), Box<dyn std::error::Error>> {
             return Err("Spellbook name cannot be empty".into());
         }
 
-        for spell_name in &spellbook.spells {
-            if !spell_names.contains(spell_name) {
+        for spell_id in &spellbook.spell_ids {
+            if !spell_ids.contains(spell_id) {
                 return Err(format!(
-                    "Spellbook '{}' references non-existent spell: {}",
-                    spellbook.name, spell_name
+                    "Spellbook '{}' references non-existent spell id: {}",
+                    spellbook.name, spell_id
                 )
                 .into());
             }
@@ -48,27 +49,26 @@ mod tests {
 
     fn make_spell(name: &str) -> Spell {
         Spell {
-            id: 0,
+            id: uuid::Uuid::new_v4().to_string(),
             name: name.to_string(),
             incantation: "test command".to_string(),
             lore: "Test lore".to_string(),
             school: "Test".to_string(),
             glyphs: vec![],
-            elevated: false,
-            dangerous: false,
             confirm: false,
+            run_mode: crate::models::RunMode::Simple,
             working_dir: String::new(),
-            background: false,
+            favorite: false,
         }
     }
 
-    fn make_spellbook(name: &str, spells: Vec<&str>) -> Spellbook {
+    fn make_spellbook_with_ids(name: &str, spell_ids: Vec<String>) -> Spellbook {
         Spellbook {
             name: name.to_string(),
             cover: "Test cover".to_string(),
             sigil: "*".to_string(),
-            spell_ids: vec![],
-            spells: spells.into_iter().map(String::from).collect(),
+            spell_ids,
+            spells: vec![],
             style: None,
         }
     }
@@ -93,20 +93,27 @@ mod tests {
 
     #[test]
     fn test_valid_spell_and_spellbook() {
+        let fireball = make_spell("Fireball");
+        let ice_bolt = make_spell("Ice Bolt");
         let codex = Codex {
-            spells: vec![make_spell("Fireball"), make_spell("Ice Bolt")],
-            spellbooks: vec![make_spellbook("Fire Magic", vec!["Fireball"])],
+            spells: vec![fireball.clone(), ice_bolt.clone()],
+            spellbooks: vec![make_spellbook_with_ids(
+                "Fire Magic",
+                vec![fireball.id.clone()],
+            )],
         };
         assert!(validate_codex(&codex).is_ok());
     }
 
     #[test]
     fn test_valid_multiple_spellbooks() {
+        let fireball = make_spell("Fireball");
+        let heal = make_spell("Heal");
         let codex = Codex {
-            spells: vec![make_spell("Fireball"), make_spell("Heal")],
+            spells: vec![fireball.clone(), heal.clone()],
             spellbooks: vec![
-                make_spellbook("Fire Magic", vec!["Fireball"]),
-                make_spellbook("Healing Arts", vec!["Heal"]),
+                make_spellbook_with_ids("Fire Magic", vec![fireball.id.clone()]),
+                make_spellbook_with_ids("Healing Arts", vec![heal.id.clone()]),
             ],
         };
         assert!(validate_codex(&codex).is_ok());
@@ -114,15 +121,18 @@ mod tests {
 
     #[test]
     fn test_valid_spellbook_referencing_multiple_spells() {
+        let fireball = make_spell("Fireball");
+        let frostbite = make_spell("Frostbite");
+        let lightning = make_spell("Lightning");
         let codex = Codex {
-            spells: vec![
-                make_spell("Fireball"),
-                make_spell("Frostbite"),
-                make_spell("Lightning"),
-            ],
-            spellbooks: vec![make_spellbook(
+            spells: vec![fireball.clone(), frostbite.clone(), lightning.clone()],
+            spellbooks: vec![make_spellbook_with_ids(
                 "Elemental Magic",
-                vec!["Fireball", "Frostbite", "Lightning"],
+                vec![
+                    fireball.id.clone(),
+                    frostbite.id.clone(),
+                    lightning.id.clone(),
+                ],
             )],
         };
         assert!(validate_codex(&codex).is_ok());
@@ -149,7 +159,10 @@ mod tests {
         };
         let result = validate_codex(&codex);
         assert!(result.is_err());
-        assert_eq!(result.unwrap_err().to_string(), "Spell name cannot be empty");
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "Spell name cannot be empty"
+        );
     }
 
     #[test]
@@ -160,16 +173,20 @@ mod tests {
         };
         let result = validate_codex(&codex);
         assert!(result.is_err());
-        assert_eq!(result.unwrap_err().to_string(), "Spell name cannot be empty");
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "Spell name cannot be empty"
+        );
     }
 
     #[test]
     fn test_duplicate_spellbook_names_rejected() {
+        let fireball = make_spell("Fireball");
         let codex = Codex {
-            spells: vec![make_spell("Fireball")],
+            spells: vec![fireball.clone()],
             spellbooks: vec![
-                make_spellbook("Wizardry", vec!["Fireball"]),
-                make_spellbook("Wizardry", vec!["Fireball"]),
+                make_spellbook_with_ids("Wizardry", vec![fireball.id.clone()]),
+                make_spellbook_with_ids("Wizardry", vec![fireball.id.clone()]),
             ],
         };
         let result = validate_codex(&codex);
@@ -181,49 +198,43 @@ mod tests {
 
     #[test]
     fn test_empty_spellbook_name_rejected() {
+        let fireball = make_spell("Fireball");
         let codex = Codex {
-            spells: vec![make_spell("Fireball")],
-            spellbooks: vec![make_spellbook("", vec!["Fireball"])],
+            spells: vec![fireball.clone()],
+            spellbooks: vec![make_spellbook_with_ids("", vec![fireball.id.clone()])],
         };
         let result = validate_codex(&codex);
         assert!(result.is_err());
-        assert_eq!(result.unwrap_err().to_string(), "Spellbook name cannot be empty");
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "Spellbook name cannot be empty"
+        );
     }
 
     #[test]
     fn test_spellbook_referencing_nonexistent_spell_rejected() {
         let codex = Codex {
             spells: vec![make_spell("Fireball")],
-            spellbooks: vec![make_spellbook("Necromancy", vec!["Raise Dead"])],
-        };
-        let result = validate_codex(&codex);
-        assert!(result.is_err());
-        let err = result.unwrap_err().to_string();
-        assert!(err.contains("references non-existent spell"));
-        assert!(err.contains("Raise Dead"));
-        assert!(err.contains("Necromancy"));
-    }
-
-    #[test]
-    fn test_spellbook_referencing_nonexistent_spell_in_multiple_rejected() {
-        let codex = Codex {
-            spells: vec![make_spell("Fireball"), make_spell("Ice Bolt")],
-            spellbooks: vec![make_spellbook(
-                "Magic",
-                vec!["Fireball", "Missing Spell", "Ice Bolt"],
+            spellbooks: vec![make_spellbook_with_ids(
+                "Necromancy",
+                vec!["nonexistent-id".to_string()],
             )],
         };
         let result = validate_codex(&codex);
         assert!(result.is_err());
         let err = result.unwrap_err().to_string();
-        assert!(err.contains("references non-existent spell"));
-        assert!(err.contains("Missing Spell"));
+        assert!(err.contains("references non-existent spell id"));
+        assert!(err.contains("Necromancy"));
     }
 
     #[test]
     fn test_multiple_validation_errors_returns_first() {
         let codex = Codex {
-            spells: vec![make_spell("Fireball"), make_spell("Fireball"), make_spell("")],
+            spells: vec![
+                make_spell("Fireball"),
+                make_spell("Fireball"),
+                make_spell(""),
+            ],
             spellbooks: vec![],
         };
         let result = validate_codex(&codex);

@@ -26,12 +26,7 @@ impl Default for JobsPanelState {
     }
 }
 
-pub fn render_jobs_panel(
-    f: &mut Frame,
-    state: &State,
-    ui: &mut crate::ui::UiState,
-    area: Rect,
-) {
+pub fn render_jobs_panel(f: &mut Frame, state: &State, ui: &mut crate::ui::UiState, area: Rect) {
     let theme = &state.theme;
     let jobs = invoker::list_jobs();
 
@@ -105,8 +100,6 @@ pub fn render_jobs_panel(
                 _ => String::new(),
             };
 
-            let elevated_marker = if job.elevated { " ⚡" } else { "" };
-
             let name_style = if is_selected {
                 Style::new().fg(theme.selection)
             } else {
@@ -121,7 +114,6 @@ pub fn render_jobs_panel(
                 Span::raw(status_icon.to_string()),
                 Span::raw(" ".to_string()),
                 Span::styled(job.name.clone(), name_style),
-                Span::raw(elevated_marker.to_string()),
                 Span::raw("  ".to_string()),
                 Span::styled(status_str, status_style),
                 Span::raw("  ".to_string()),
@@ -161,17 +153,19 @@ pub fn render_jobs_panel(
     f.render_widget(help_para, help_area);
 }
 
-pub fn handle_jobs_key(
-    key: crossterm::event::KeyCode,
-    ui: &mut crate::ui::UiState,
-) -> bool {
+pub fn handle_jobs_key(key: crossterm::event::KeyCode, ui: &mut crate::ui::UiState) -> bool {
     let jobs = invoker::list_jobs();
     let job_ids: Vec<u64> = jobs.iter().map(|j| j.id).collect();
 
     match key {
         crossterm::event::KeyCode::Esc => {
-            ui.screen = Screen::SearchOverlay;
-            ui.jobs_panel_state = JobsPanelState::default();
+            if ui.jobs_sidebar_open {
+                ui.jobs_sidebar_open = false;
+                ui.focus = crate::models::FocusTarget::Main;
+            } else {
+                ui.screen = Screen::SearchOverlay;
+                ui.jobs_panel_state = JobsPanelState::default();
+            }
             return false;
         }
         crossterm::event::KeyCode::Up => {

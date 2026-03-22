@@ -78,10 +78,7 @@ impl From<usize> for Theme {
 
 impl From<Theme> for usize {
     fn from(theme: Theme) -> Self {
-        Theme::all()
-            .iter()
-            .position(|t| *t == theme)
-            .unwrap_or(0)
+        Theme::all().iter().position(|t| *t == theme).unwrap_or(0)
     }
 }
 

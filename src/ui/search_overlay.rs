@@ -7,6 +7,125 @@ use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Block, Borders, List, ListItem, Paragraph, Wrap};
 use ratatui::Frame;
 
+const VIRTUAL_FAVORITES_IDX: Option<usize> = Some(0);
+const VIRTUAL_RECENT_IDX: Option<usize> = Some(1);
+
+enum SpellbookItem<'a> {
+    VirtualFavorite {
+        count: usize,
+    },
+    VirtualRecent {
+        count: usize,
+    },
+    Real {
+        spellbook: &'a crate::models::Spellbook,
+    },
+}
+
+impl SpellbookItem<'_> {
+    fn name(&self) -> String {
+        match self {
+            SpellbookItem::VirtualFavorite { .. } => "Favorites".to_string(),
+            SpellbookItem::VirtualRecent { .. } => "Recent".to_string(),
+            SpellbookItem::Real { spellbook } => spellbook.name.clone(),
+        }
+    }
+
+    fn is_virtual(&self) -> bool {
+        matches!(
+            self,
+            SpellbookItem::VirtualFavorite { .. } | SpellbookItem::VirtualRecent { .. }
+        )
+    }
+
+    fn spell_count(&self) -> usize {
+        match self {
+            SpellbookItem::VirtualFavorite { count } => *count,
+            SpellbookItem::VirtualRecent { count } => *count,
+            SpellbookItem::Real { spellbook } => spellbook.spell_ids.len(),
+        }
+    }
+
+    fn icon(&self) -> String {
+        match self {
+            SpellbookItem::VirtualFavorite { .. } => "*".to_string(),
+            SpellbookItem::VirtualRecent { .. } => "~".to_string(),
+            SpellbookItem::Real { spellbook } => {
+                if spellbook.sigil.is_empty() {
+                    String::new()
+                } else {
+                    spellbook.sigil.clone()
+                }
+            }
+        }
+    }
+
+    fn cover(&self) -> String {
+        match self {
+            SpellbookItem::VirtualFavorite { .. } => "starred spells".to_string(),
+            SpellbookItem::VirtualRecent { .. } => "recently used".to_string(),
+            SpellbookItem::Real { spellbook } => spellbook.cover.clone(),
+        }
+    }
+}
+
+fn get_spellbook_item<'a>(state: &'a State, index: usize) -> Option<SpellbookItem<'a>> {
+    let favorites = state
+        .recents
+        .iter()
+        .filter(|r| {
+            state
+                .codex
+                .spells
+                .iter()
+                .any(|s| s.id == r.spell_id && s.favorite)
+        })
+        .count();
+
+    let real_book_index = index.saturating_sub(2);
+
+    if index == 0 {
+        if favorites > 0 {
+            return Some(SpellbookItem::VirtualFavorite { count: favorites });
+        } else {
+            return None;
+        }
+    }
+
+    if index == 1 {
+        let recent_count = state.recents.len();
+        if recent_count > 0 {
+            return Some(SpellbookItem::VirtualRecent {
+                count: recent_count,
+            });
+        } else if favorites > 0 {
+            return Some(SpellbookItem::VirtualFavorite { count: favorites });
+        } else {
+            return None;
+        }
+    }
+
+    state
+        .codex
+        .spellbooks
+        .get(real_book_index)
+        .map(|sb| SpellbookItem::Real { spellbook: sb })
+}
+
+pub fn total_spellbook_count(state: &State) -> usize {
+    let favorites = state.codex.spells.iter().filter(|s| s.favorite).count();
+    let recent = if state.recents.is_empty() { 0 } else { 1 };
+
+    let mut count = 0;
+    if favorites > 0 {
+        count += 1;
+    }
+    if recent > 0 {
+        count += 1;
+    }
+    count + state.codex.spellbooks.len()
+}
+
 fn build_spine_decorations(
     style: SpineStyle,
     spine_width: usize,
@@ -221,6 +340,92 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
     frame.render_widget(hint, chunks[3]);
 }
 
+pub fn render_in_area(
+    frame: &mut Frame,
+    state: &State,
+    ui: &mut UiState,
+    area: ratatui::layout::Rect,
+) {
+    let theme = &state.theme;
+
+    let chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Length(3),
+            Constraint::Min(8),
+            Constraint::Length(4),
+            Constraint::Length(1),
+        ])
+        .split(area);
+
+    let input_text = format!("/{}", ui.search_query());
+    let input_block = Paragraph::new(input_text)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title(" Search ")
+                .border_style(Style::new().fg(theme.accent))
+                .title_style(Style::new().fg(theme.accent)),
+        )
+        .style(Style::new().bg(theme.bg).fg(theme.fg));
+
+    frame.render_widget(input_block, chunks[0]);
+
+    match ui.search_mode {
+        SearchMode::BrowseSpellbooks | SearchMode::BrowseSpells => {
+            if ui.search_mode == SearchMode::BrowseSpells {
+                render_spellbook_spells(frame, state, ui, chunks[1]);
+            } else if ui.search_query().is_empty() && ui.showing_spellbooks() {
+                render_spellbook_browser(frame, state, ui, chunks[1]);
+            } else if ui.search_query().starts_with(':') {
+                render_command_list(frame, state, ui, chunks[1]);
+            } else if ui.filtered_indices().is_empty() {
+                let message = if ui.search_query().is_empty() {
+                    "No spells".to_string()
+                } else {
+                    format!("No matches for '{}'", ui.search_query())
+                };
+                let para = Paragraph::new(message).style(Style::new().fg(theme.muted));
+                frame.render_widget(para, chunks[1]);
+            } else {
+                render_search_results(frame, state, ui, chunks[1]);
+            }
+        }
+        SearchMode::AddSpell => {
+            render_add_spell_form(frame, state, ui, chunks[1]);
+        }
+        SearchMode::AddSpellbook => {
+            render_add_spellbook_form(frame, state, ui, chunks[1]);
+        }
+    }
+
+    let hint = if ui.search_query().starts_with(':') && !ui.search_query().ends_with(' ') {
+        Paragraph::new("type command and press enter")
+            .style(Style::new().fg(theme.muted).bg(theme.bg))
+            .alignment(ratatui::layout::Alignment::Center)
+    } else {
+        let hint_text = match ui.search_mode {
+            SearchMode::BrowseSpellbooks
+                if ui.search_query().is_empty() && ui.showing_spellbooks() =>
+            {
+                "navigate  enter open  : cmd".to_string()
+            }
+            SearchMode::BrowseSpells => "navigate  enter copy  back".to_string(),
+            _ => {
+                if ui.search_query().starts_with(':') {
+                    "navigate  enter run  esc cancel".to_string()
+                } else if ui.filtered_indices().is_empty() && ui.search_query().is_empty() {
+                    "type to search".to_string()
+                } else {
+                    "navigate  enter copy  esc clear".to_string()
+                }
+            }
+        };
+        Paragraph::new(hint_text).style(Style::new().fg(theme.muted).bg(theme.bg))
+    };
+    frame.render_widget(hint, chunks[3]);
+}
+
 fn render_spellbook_browser(
     frame: &mut Frame,
     state: &State,
@@ -228,9 +433,9 @@ fn render_spellbook_browser(
     area: ratatui::layout::Rect,
 ) {
     let theme = &state.theme;
-    let spellbooks = &state.codex.spellbooks;
+    let total_count = total_spellbook_count(state);
 
-    if spellbooks.is_empty() {
+    if total_count == 0 {
         let empty = Paragraph::new("No spellbooks yet\n\nRun: spellbook --add")
             .style(Style::new().fg(theme.muted).bg(theme.bg))
             .block(
@@ -250,23 +455,19 @@ fn render_spellbook_browser(
     let cards_per_row = ((area.width as usize) / (card_width + card_gap)).max(1);
     let spines_per_row = ((area.width as usize) / (min_spine_width + 1)).max(1);
 
-    // Store spines_per_row for use in event handling
     ui.set_search_spines_per_row(spines_per_row);
 
-    // Handle resize - clamp scroll and selection when dimensions change
     let resized = area.width != ui.search_last_width() || area.height != ui.search_last_height();
     if resized {
         ui.set_search_last_width(area.width);
         ui.set_search_last_height(area.height);
 
-        // Clamp scroll to valid range
-        let max_scroll = spellbooks.len().saturating_sub(spines_per_row);
+        let max_scroll = total_count.saturating_sub(spines_per_row);
         ui.set_search_spellbook_scroll(ui.search_spellbook_scroll().min(max_scroll));
 
-        // Clamp selection to visible range
         if let Some(idx) = ui.search_spellbook_index() {
-            if idx >= spellbooks.len() {
-                ui.set_search_spellbook_index(Some(spellbooks.len().saturating_sub(1)));
+            if idx >= total_count {
+                ui.set_search_spellbook_index(Some(total_count.saturating_sub(1)));
             }
         }
     }
@@ -279,9 +480,6 @@ fn render_spellbook_browser(
 
     let inner = block.inner(area);
 
-    let books_that_fit = (inner.width as usize) / (card_width + card_gap);
-    let all_books_fit = spellbooks.len() <= books_that_fit;
-
     frame.render_widget(block, area);
 
     let view_mode = state.user_settings.view_mode;
@@ -291,7 +489,6 @@ fn render_spellbook_browser(
         ViewMode::List => ShowAs::List,
     };
 
-    // Store unified items_per_row for navigation
     match show_as {
         ShowAs::List => {
             ui.set_search_items_per_row(1);
@@ -408,95 +605,97 @@ fn render_spellbook_cards(
     cards_per_row: usize,
 ) {
     let theme = &state.theme;
-    let spellbooks = &state.codex.spellbooks;
+    let total_count = total_spellbook_count(state);
 
     let selected = ui
         .search_spellbook_index()
         .unwrap_or(0)
-        .min(spellbooks.len() - 1);
+        .min(total_count.saturating_sub(1));
 
     let card_unit = card_width as u16 + card_gap as u16;
 
     let grid_width = cards_per_row as u16 * card_unit - card_gap as u16;
     let grid_offset = ((area.width as i32 - grid_width as i32) / 2).max(0) as u16;
 
-    for (i, spellbook) in spellbooks.iter().enumerate() {
-        let row = i / cards_per_row;
-        let col = i % cards_per_row;
+    for i in 0..total_count {
+        if let Some(item) = get_spellbook_item(state, i) {
+            let row = i / cards_per_row;
+            let col = i % cards_per_row;
 
-        let x = area.x + grid_offset + (col as u16) * card_unit;
-        let y = area.y + (row as u16) * (card_height as u16 + 1);
+            let x = area.x + grid_offset + (col as u16) * card_unit;
+            let y = area.y + (row as u16) * (card_height as u16 + 1);
 
-        if y >= area.y + area.height || x >= area.x + area.width {
-            break;
+            if y >= area.y + area.height || x >= area.x + area.width {
+                break;
+            }
+
+            let card_area = ratatui::layout::Rect {
+                x,
+                y,
+                width: card_width as u16,
+                height: card_height as u16,
+            };
+
+            let is_selected = i == selected;
+            let is_virtual = item.is_virtual();
+            let card_style = if is_selected {
+                if is_virtual {
+                    Style::new().fg(theme.accent).add_modifier(Modifier::BOLD)
+                } else {
+                    Style::new()
+                        .fg(theme.selection)
+                        .add_modifier(Modifier::BOLD)
+                }
+            } else {
+                Style::new().fg(theme.fg)
+            };
+
+            let spell_count = item.spell_count();
+            let spell_count_str = format!(
+                "{} spell{}",
+                spell_count,
+                if spell_count != 1 { "s" } else { "" }
+            );
+
+            let icon = item.icon();
+            let name = item.name();
+            let cover = item.cover();
+
+            let card_text = Text::from(vec![
+                Line::from(vec![Span::styled(
+                    icon,
+                    Style::new().fg(theme.accent).add_modifier(Modifier::BOLD),
+                )]),
+                Line::from(""),
+                Line::from(vec![Span::styled(name, card_style)]),
+                Line::from(""),
+                Line::from(vec![Span::styled(cover, Style::new().fg(theme.muted))]),
+                Line::from(""),
+                Line::from(""),
+                Line::from(vec![Span::styled(
+                    &spell_count_str,
+                    Style::new().fg(theme.muted),
+                )]),
+            ]);
+
+            let card_block = if is_selected {
+                Block::default()
+                    .borders(Borders::ALL)
+                    .border_style(Style::new().fg(theme.accent))
+            } else {
+                Block::default()
+                    .borders(Borders::ALL)
+                    .border_style(Style::new().fg(theme.border))
+            };
+
+            let card = Paragraph::new(card_text)
+                .block(card_block)
+                .style(Style::new().bg(theme.bg).fg(theme.fg))
+                .alignment(Alignment::Center)
+                .wrap(Wrap { trim: true });
+
+            frame.render_widget(card, card_area);
         }
-
-        let card_area = ratatui::layout::Rect {
-            x,
-            y,
-            width: card_width as u16,
-            height: card_height as u16,
-        };
-
-        let is_selected = i == selected;
-        let card_style = if is_selected {
-            Style::new()
-                .fg(theme.selection)
-                .add_modifier(Modifier::BOLD)
-        } else {
-            Style::new().fg(theme.fg)
-        };
-
-        let spell_count = spellbook.spell_ids.len();
-        let spell_count_str = format!(
-            "{} spell{}",
-            spell_count,
-            if spell_count != 1 { "s" } else { "" }
-        );
-
-        let sigil_line = if !spellbook.sigil.is_empty() {
-            format!(" {}", spellbook.sigil)
-        } else {
-            String::new()
-        };
-
-        let card_text = Text::from(vec![
-            Line::from(vec![Span::styled(
-                &sigil_line,
-                Style::new().fg(theme.accent).add_modifier(Modifier::BOLD),
-            )]),
-            Line::from(""),
-            Line::from(vec![Span::styled(&spellbook.name, card_style)]),
-            Line::from(""),
-            Line::from(vec![Span::styled(
-                &spellbook.cover,
-                Style::new().fg(theme.muted),
-            )]),
-            Line::from(""),
-            Line::from(""),
-            Line::from(vec![Span::styled(
-                &spell_count_str,
-                Style::new().fg(theme.muted),
-            )]),
-        ]);
-
-        let card_block = if is_selected {
-            Block::default()
-                .borders(Borders::ALL)
-                .border_style(Style::new().fg(theme.accent))
-        } else {
-            Block::default()
-                .borders(Borders::ALL)
-                .border_style(Style::new().fg(theme.border))
-        };
-
-        let card = Paragraph::new(card_text)
-            .block(card_block)
-            .style(Style::new().bg(theme.bg).fg(theme.fg))
-            .alignment(Alignment::Center)
-            .wrap(Wrap { trim: true });
-
-        frame.render_widget(card, card_area);
     }
 }
 
@@ -509,31 +708,28 @@ fn render_spellbook_spines(
     spines_per_row: usize,
 ) {
     let theme = &state.theme;
-    let spellbooks = &state.codex.spellbooks;
+    let total_count = total_spellbook_count(state);
 
     let selected = ui
         .search_spellbook_index()
         .unwrap_or(0)
-        .min(spellbooks.len().saturating_sub(1));
+        .min(total_count.saturating_sub(1));
 
     let scroll = ui.search_spellbook_scroll();
-    let visible_count = spellbooks.len().saturating_sub(scroll);
+    let visible_count = total_count.saturating_sub(scroll);
     let show_right_indicator = visible_count > spines_per_row;
     let visible_items = visible_count.min(spines_per_row);
 
-    // Calculate visible range based on scroll
     let start_idx = scroll;
-    let display_end_idx = (scroll + visible_items).min(spellbooks.len());
+    let display_end_idx = (scroll + visible_items).min(total_count);
     let end_idx = display_end_idx;
     let actual_visible = end_idx - start_idx;
 
-    // Calculate number of visible rows based on actual items being displayed
     let visible_rows = (actual_visible + spines_per_row - 1) / spines_per_row;
     let spine_height = (area.height.saturating_sub(1) as usize) / visible_rows.max(1);
     let actual_spine_width = ((area.width as usize) / spines_per_row).saturating_sub(1);
     let spine_unit = actual_spine_width as u16 + 1;
 
-    // Draw indicator row at the bottom
     let indicator_y = area.y + area.height - 1;
     let indicator_area = ratatui::layout::Rect {
         x: area.x,
@@ -542,11 +738,10 @@ fn render_spellbook_spines(
         height: 1,
     };
 
-    // Position indicator: "1-3 of 7" or "1 of 7"
     let pos_text = if visible_count > spines_per_row {
-        format!("{}-{} of {}", scroll + 1, display_end_idx, spellbooks.len())
+        format!("{}-{} of {}", scroll + 1, display_end_idx, total_count)
     } else {
-        format!("{}/{}", selected + 1, spellbooks.len())
+        format!("{}/{}", selected + 1, total_count)
     };
 
     let left_indicator = if scroll > 0 { "<" } else { " " };
@@ -560,81 +755,89 @@ fn render_spellbook_spines(
 
     frame.render_widget(indicator, indicator_area);
 
-    // Draw spines
     for i in start_idx..end_idx {
-        let local_idx = i - scroll;
-        let spellbook = &spellbooks[i];
+        if let Some(item) = get_spellbook_item(state, i) {
+            let local_idx = i - scroll;
 
-        let row = local_idx / spines_per_row;
-        let col = local_idx % spines_per_row;
+            let row = local_idx / spines_per_row;
+            let col = local_idx % spines_per_row;
 
-        let x = area.x + (col as u16) * spine_unit;
-        let y = area.y + (row as u16) * (spine_height as u16);
+            let x = area.x + (col as u16) * spine_unit;
+            let y = area.y + (row as u16) * (spine_height as u16);
 
-        if y >= area.y + area.height - 1 || x >= area.x + area.width {
-            break;
+            if y >= area.y + area.height - 1 || x >= area.x + area.width {
+                break;
+            }
+
+            let spine_area = ratatui::layout::Rect {
+                x,
+                y,
+                width: actual_spine_width as u16,
+                height: spine_height as u16,
+            };
+
+            let is_selected = i == selected;
+            let is_virtual = item.is_virtual();
+
+            let name_style = if is_selected {
+                if is_virtual {
+                    Style::new().fg(theme.accent).add_modifier(Modifier::BOLD)
+                } else {
+                    Style::new().fg(theme.fg).add_modifier(Modifier::BOLD)
+                }
+            } else {
+                Style::new().fg(theme.fg)
+            };
+
+            let spine_bg = theme.bg;
+            let accent = theme.accent;
+            let decor_style = Style::new().fg(accent);
+
+            let style = if is_virtual {
+                SpineStyle::StarsAndDiamonds
+            } else if let SpellbookItem::Real { spellbook } = &item {
+                spellbook.style.unwrap_or_else(|| {
+                    let hash = spellbook
+                        .name
+                        .bytes()
+                        .fold(0u32, |acc, b| acc.wrapping_add(b as u32));
+                    SpineStyle::from_index((hash % 6) as usize)
+                })
+            } else {
+                SpineStyle::Minimal
+            };
+
+            let spine_text = build_spine_decorations(
+                style,
+                actual_spine_width,
+                &item.name(),
+                decor_style,
+                name_style,
+                spine_height as usize,
+            );
+
+            let spine_block = if is_selected {
+                Block::default()
+                    .borders(Borders::ALL)
+                    .border_style(Style::new().fg(theme.accent))
+            } else {
+                Block::default()
+                    .borders(Borders::ALL)
+                    .border_style(Style::new().fg(theme.border))
+            };
+
+            let spine = Paragraph::new(spine_text)
+                .block(spine_block)
+                .style(Style::new().bg(spine_bg).fg(theme.fg))
+                .alignment(Alignment::Left)
+                .wrap(Wrap { trim: true });
+
+            frame.render_widget(spine, spine_area);
         }
-
-        let spine_area = ratatui::layout::Rect {
-            x,
-            y,
-            width: actual_spine_width as u16,
-            height: spine_height as u16,
-        };
-
-        let is_selected = i == selected;
-
-        let name_style = if is_selected {
-            Style::new().fg(theme.fg).add_modifier(Modifier::BOLD)
-        } else {
-            Style::new().fg(theme.fg)
-        };
-
-        let spine_bg = theme.bg;
-        let accent = theme.accent;
-        let decor_style = Style::new().fg(accent);
-
-        // Get spine style: use explicit style, or derive from book name hash for consistency
-        let style = spellbook.style.unwrap_or_else(|| {
-            let hash = spellbook
-                .name
-                .bytes()
-                .fold(0u32, |acc, b| acc.wrapping_add(b as u32));
-            SpineStyle::from_index((hash % 6) as usize)
-        });
-
-        // Build spine text with centered name and style-based decorations
-        let spine_text = build_spine_decorations(
-            style,
-            actual_spine_width,
-            &spellbook.name,
-            decor_style,
-            name_style,
-            spine_height as usize,
-        );
-
-        let spine_block = if is_selected {
-            Block::default()
-                .borders(Borders::ALL)
-                .border_style(Style::new().fg(theme.accent))
-        } else {
-            Block::default()
-                .borders(Borders::ALL)
-                .border_style(Style::new().fg(theme.border))
-        };
-
-        let spine = Paragraph::new(spine_text)
-            .block(spine_block)
-            .style(Style::new().bg(spine_bg).fg(theme.fg))
-            .alignment(Alignment::Left)
-            .wrap(Wrap { trim: true });
-
-        frame.render_widget(spine, spine_area);
     }
 
-    // Render peek spine at the end of the last row (if there's more content)
     let peek_idx = display_end_idx;
-    if peek_idx < spellbooks.len() {
+    if peek_idx < total_count {
         let total_in_view = display_end_idx - start_idx;
         let items_in_last_row = if total_in_view > 0 {
             let items = total_in_view % spines_per_row;
@@ -684,9 +887,9 @@ fn render_spellbook_list(
     use ratatui::widgets::{List, ListItem};
 
     let theme = &state.theme;
-    let spellbooks = &state.codex.spellbooks;
+    let total_count = total_spellbook_count(state);
 
-    if spellbooks.is_empty() {
+    if total_count == 0 {
         let empty = Paragraph::new("No spellbooks yet")
             .style(Style::new().fg(theme.muted).bg(theme.bg))
             .block(
@@ -700,12 +903,21 @@ fn render_spellbook_list(
 
     let selected = ui.search_spellbook_index().unwrap_or(0);
 
-    let items: Vec<ListItem> = spellbooks
-        .iter()
-        .enumerate()
-        .map(|(i, sb)| {
+    let items: Vec<ListItem> = (0..total_count)
+        .filter_map(|i| {
+            let item = get_spellbook_item(state, i)?;
+            let icon = item.icon();
+            let name = item.name();
             let prefix = if i == selected { "> " } else { "  " };
-            ListItem::new(format!("{}{}", prefix, sb.name)).style(Style::new().fg(theme.fg))
+            let display_name = if icon.is_empty() {
+                name.to_string()
+            } else {
+                format!("{} {}", icon, name)
+            };
+            Some(
+                ListItem::new(format!("{}{}", prefix, display_name))
+                    .style(Style::new().fg(theme.fg)),
+            )
         })
         .collect();
 
@@ -957,28 +1169,74 @@ fn render_spellbook_spells(
         None => return,
     };
 
-    let spellbook = &state.codex.spellbooks[spellbook_index];
+    let favorites_count = state.codex.spells.iter().filter(|s| s.favorite).count();
+    let has_favorites = favorites_count > 0;
+    let has_recent = !state.recents.is_empty();
 
-    let spells: Vec<ListItem> = spellbook
-        .spell_ids
+    let (spells, title) = if has_favorites && spellbook_index == 0 {
+        let fav_spells: Vec<_> = state.codex.spells.iter().filter(|s| s.favorite).collect();
+        (fav_spells, "* Favorites".to_string())
+    } else if has_recent {
+        let recent_idx = if has_favorites { 1 } else { 0 };
+        if spellbook_index == recent_idx {
+            let recent_spells: Vec<_> = state
+                .recents
+                .iter()
+                .filter_map(|r| state.codex.spells.iter().find(|s| s.id == r.spell_id))
+                .collect();
+            (recent_spells, "~ Recent".to_string())
+        } else {
+            let real_idx = if has_favorites && spellbook_index > 1 {
+                spellbook_index - 2
+            } else if has_recent && !has_favorites && spellbook_index > 0 {
+                spellbook_index - 1
+            } else {
+                spellbook_index
+            };
+            let real_idx = spellbook_index.saturating_sub(if has_favorites { 2 } else { 1 });
+            if let Some(spellbook) = state.codex.spellbooks.get(real_idx) {
+                let spells: Vec<_> = spellbook
+                    .spell_ids
+                    .iter()
+                    .filter_map(|spell_id| state.codex.spells.iter().find(|s| s.id == *spell_id))
+                    .collect();
+                (spells, spellbook.name.clone())
+            } else {
+                return;
+            }
+        }
+    } else {
+        let real_idx = spellbook_index.saturating_sub(if has_favorites { 2 } else { 1 });
+        if let Some(spellbook) = state.codex.spellbooks.get(real_idx) {
+            let spells: Vec<_> = spellbook
+                .spell_ids
+                .iter()
+                .filter_map(|spell_id| state.codex.spells.iter().find(|s| s.id == *spell_id))
+                .collect();
+            (spells, spellbook.name.clone())
+        } else {
+            return;
+        }
+    };
+
+    let items: Vec<ListItem> = spells
         .iter()
-        .filter_map(|spell_id| state.codex.spells.iter().find(|s| s.id == *spell_id))
         .map(|spell| ListItem::new(spell.name.clone()).style(Style::new().fg(theme.fg)))
         .collect();
 
     let list_block = Block::bordered()
-        .title(spellbook.name.clone())
+        .title(title)
         .border_style(Style::new().fg(theme.border))
         .title_style(Style::new().fg(theme.accent));
 
-    if spells.is_empty() {
+    if items.is_empty() {
         let inner = list_block.inner(area);
         frame.render_widget(list_block, area);
         let empty_message = Paragraph::new("No spells in this spellbook")
             .style(Style::new().fg(theme.muted).bg(theme.bg));
         frame.render_widget(empty_message, inner);
     } else {
-        let list = List::new(spells)
+        let list = List::new(items)
             .block(list_block)
             .highlight_style(
                 Style::new()

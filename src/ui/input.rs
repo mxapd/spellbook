@@ -3,7 +3,6 @@ use crate::models::Spell;
 
 #[derive(PartialEq, Clone, Copy)]
 pub enum InputPhase {
-    Password,
     Arguments,
 }
 
@@ -13,8 +12,7 @@ pub struct InputPopupState {
     pub spell: Option<Spell>,
     pub resolved_command: String,
     pub placeholders: Vec<PlaceholderInput>,
-    pub password: String,
-    pub show_password: bool,
+    pub placeholder_index: usize,
     pub run_background: bool,
 }
 
@@ -44,21 +42,9 @@ impl InputPopupState {
             spell: Some(spell),
             resolved_command: command,
             placeholders: placeholder_inputs,
-            password: String::new(),
-            show_password: false,
+            placeholder_index: 0,
             run_background,
         }
-    }
-
-    pub fn with_password(
-        spell: Spell,
-        placeholders: Vec<Placeholder>,
-        command: String,
-        run_background: bool,
-    ) -> Self {
-        let mut state = Self::new(spell, placeholders, command, run_background);
-        state.phase = InputPhase::Password;
-        state
     }
 
     pub fn substitute(&self) -> String {
@@ -71,9 +57,6 @@ impl InputPopupState {
     }
 
     pub fn validate(&self) -> bool {
-        match self.phase {
-            InputPhase::Password => !self.password.is_empty(),
-            InputPhase::Arguments => self.placeholders.iter().all(|p| !p.value.is_empty()),
-        }
+        self.placeholders.iter().all(|p| !p.value.is_empty())
     }
 }

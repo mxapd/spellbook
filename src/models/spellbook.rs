@@ -87,9 +87,15 @@ mod tests {
 
     #[test]
     fn test_spine_style_from_str_parses_correctly() {
-        assert_eq!(SpineStyle::from_str("stars_and_diamonds"), SpineStyle::StarsAndDiamonds);
+        assert_eq!(
+            SpineStyle::from_str("stars_and_diamonds"),
+            SpineStyle::StarsAndDiamonds
+        );
         assert_eq!(SpineStyle::from_str("celestial"), SpineStyle::Celestial);
-        assert_eq!(SpineStyle::from_str("dots_and_therefore"), SpineStyle::DotsAndTherefore);
+        assert_eq!(
+            SpineStyle::from_str("dots_and_therefore"),
+            SpineStyle::DotsAndTherefore
+        );
         assert_eq!(SpineStyle::from_str("alchemy"), SpineStyle::Alchemy);
         assert_eq!(SpineStyle::from_str("geometric"), SpineStyle::Geometric);
         assert_eq!(SpineStyle::from_str("minimal"), SpineStyle::Minimal);
@@ -97,14 +103,23 @@ mod tests {
 
     #[test]
     fn test_spine_style_from_str_case_sensitive() {
-        assert_eq!(SpineStyle::from_str("CELESTIAL"), SpineStyle::StarsAndDiamonds);
-        assert_eq!(SpineStyle::from_str("Celestial"), SpineStyle::StarsAndDiamonds);
+        assert_eq!(
+            SpineStyle::from_str("CELESTIAL"),
+            SpineStyle::StarsAndDiamonds
+        );
+        assert_eq!(
+            SpineStyle::from_str("Celestial"),
+            SpineStyle::StarsAndDiamonds
+        );
         assert_eq!(SpineStyle::from_str("minimal"), SpineStyle::Minimal);
     }
 
     #[test]
     fn test_spine_style_from_str_defaults_on_unknown() {
-        assert_eq!(SpineStyle::from_str("unknown_style"), SpineStyle::StarsAndDiamonds);
+        assert_eq!(
+            SpineStyle::from_str("unknown_style"),
+            SpineStyle::StarsAndDiamonds
+        );
         assert_eq!(SpineStyle::from_str(""), SpineStyle::StarsAndDiamonds);
         assert_eq!(SpineStyle::from_str("asdf"), SpineStyle::StarsAndDiamonds);
     }
@@ -137,20 +152,42 @@ mod tests {
     fn test_spine_style_default_is_stars_and_diamonds() {
         assert_eq!(SpineStyle::default(), SpineStyle::StarsAndDiamonds);
     }
+
+    #[test]
+    fn test_spellbook_default() {
+        let sb = Spellbook::default();
+        assert!(sb.name.is_empty());
+        assert!(sb.cover.is_empty());
+        assert!(sb.sigil.is_empty());
+        assert!(sb.spell_ids.is_empty());
+        assert!(sb.style.is_none());
+    }
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Spellbook {
     pub name: String,
-    pub cover: String,
-    pub sigil: String,
-    /// References spells by ID (populated after load)
     #[serde(default)]
-    pub spell_ids: Vec<u64>,
-    /// References spells by name (from TOML file)
+    pub cover: String,
+    #[serde(default)]
+    pub sigil: String,
+    #[serde(default)]
+    pub spell_ids: Vec<String>,
     #[serde(default)]
     pub spells: Vec<String>,
-    /// Spine decoration style (auto-assigned by default)
     #[serde(default)]
     pub style: Option<SpineStyle>,
+}
+
+impl Default for Spellbook {
+    fn default() -> Self {
+        Self {
+            name: String::new(),
+            cover: String::new(),
+            sigil: String::new(),
+            spell_ids: Vec::new(),
+            spells: Vec::new(),
+            style: None,
+        }
+    }
 }

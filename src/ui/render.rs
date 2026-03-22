@@ -9,6 +9,11 @@ use ratatui::{
 };
 
 pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
+    if ui.jobs_sidebar_open {
+        render_with_sidebar(frame, state, ui);
+        return;
+    }
+
     match &ui.screen {
         Screen::SpellList => {
             spell_list::render(frame, state, ui);
@@ -40,6 +45,87 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
             }
         }
     }
+}
+
+fn render_with_sidebar(frame: &mut Frame, state: &State, ui: &mut UiState) {
+    let area = frame.area();
+    let theme = &state.theme;
+    let sidebar_width: u16 = 40;
+    let sidebar_min_width: u16 = 30;
+
+    let actual_sidebar_width = sidebar_width.min(area.width / 3).max(sidebar_min_width);
+
+    let chunks = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([Constraint::Min(1), Constraint::Length(actual_sidebar_width)])
+        .split(area);
+
+    match &ui.screen {
+        Screen::SpellList => {
+            spell_list::render_in_area(frame, state, ui, chunks[0]);
+        }
+        Screen::SearchOverlay => {
+            search_overlay::render_in_area(frame, state, ui, chunks[0]);
+        }
+        Screen::AddSpell => {
+            add_spell::render_in_area(frame, state, ui, chunks[0]);
+        }
+        Screen::OutputPopup => {
+            search_overlay::render_in_area(frame, state, ui, chunks[0]);
+            render_output_popup(frame, state, ui);
+        }
+        Screen::ConfirmDialog => {
+            search_overlay::render_in_area(frame, state, ui, chunks[0]);
+            if ui.confirm_dialog.is_some() {
+                render_confirm_popup(frame, state, ui);
+            }
+        }
+        Screen::InputPopup => {
+            search_overlay::render_in_area(frame, state, ui, chunks[0]);
+            if ui.input_popup.is_some() {
+                render_input_popup_overlay(frame, state, ui);
+            }
+        }
+        _ => {
+            search_overlay::render_in_area(frame, state, ui, chunks[0]);
+        }
+    }
+
+    let border_style = if ui.focus == crate::models::FocusTarget::JobsSidebar {
+        Style::new().fg(theme.accent).add_modifier(Modifier::BOLD)
+    } else {
+        Style::new().fg(theme.muted)
+    };
+
+    let jobs_block = Block::default()
+        .title(" Jobs ")
+        .borders(Borders::ALL)
+        .border_style(border_style)
+        .title_style(if ui.focus == crate::models::FocusTarget::JobsSidebar {
+            Style::new().fg(theme.accent).add_modifier(Modifier::BOLD)
+        } else {
+            Style::new().fg(theme.muted)
+        });
+
+    frame.render_widget(&jobs_block, chunks[1]);
+    let inner = jobs_block.inner(chunks[1]);
+    jobs::render_jobs_panel(frame, state, ui, inner);
+
+    let focus_hint = if ui.focus == crate::models::FocusTarget::JobsSidebar {
+        "[Tab] Main  [Esc] Close"
+    } else {
+        "[Tab] Jobs"
+    };
+    let focus_para = Paragraph::new(focus_hint)
+        .style(Style::new().fg(theme.muted))
+        .alignment(Alignment::Center);
+    let focus_area = ratatui::layout::Rect {
+        x: chunks[1].x,
+        y: chunks[1].y + chunks[1].height - 1,
+        width: chunks[1].width,
+        height: 1,
+    };
+    frame.render_widget(focus_para, focus_area);
 }
 
 fn render_output_popup(frame: &mut Frame, state: &State, ui: &UiState) {
@@ -284,9 +370,9 @@ fn render_confirm_popup(frame: &mut Frame, state: &State, ui: &UiState) {
 
     if let Some(ref dialog) = ui.confirm_dialog {
         let line1 = Line::from(vec![
-            Span::raw("Execute "),
-            Span::styled("elevated", Style::new().fg(theme.accent)),
-            Span::raw(" command?"),
+            Span::raw("Confirm "),
+            Span::styled("execution", Style::new().fg(theme.accent)),
+            Span::raw("?"),
         ]);
         let para1 = Paragraph::new(line1).style(Style::new().fg(theme.fg));
         frame.render_widget(para1, layout[0]);
@@ -314,11 +400,7 @@ fn render_confirm_popup(frame: &mut Frame, state: &State, ui: &UiState) {
         let para3 = Paragraph::new(vec![line3, cmd_line]);
         frame.render_widget(para3, layout[2]);
 
-        let instruction = if dialog.spell.elevated {
-            "Type 'yes' or press Enter to confirm, Esc to cancel"
-        } else {
-            "Press Enter to confirm, Esc to cancel"
-        };
+        let instruction = "Press Enter to confirm, Esc to cancel";
         let line5 = Line::from(vec![Span::styled(
             instruction,
             Style::new().fg(theme.muted),
@@ -359,31 +441,14 @@ fn render_input_popup_overlay(frame: &mut Frame, state: &State, ui: &UiState) {
         height: 10,
     };
 
-    let title = match input_state.phase {
-        input::InputPhase::Password => " Password ",
-        input::InputPhase::Arguments => " Arguments ",
-    };
-
     let block = Block::default()
-        .title(title)
+        .title(" Arguments ")
         .borders(Borders::ALL)
         .border_style(Style::new().fg(theme.accent));
 
     frame.render_widget(&block, popup_area);
 
     let inner = block.inner(popup_area);
-
-    let display_password = if input_state.show_password {
-        input_state.password.clone()
-    } else {
-        input_state.password.chars().map(|_| '*').collect()
-    };
-
-    let toggle = if input_state.show_password {
-        "[x]"
-    } else {
-        "[ ]"
-    };
 
     let mut lines: Vec<Line> = Vec::new();
 
@@ -393,46 +458,18 @@ fn render_input_popup_overlay(frame: &mut Frame, state: &State, ui: &UiState) {
     ]));
     lines.push(Line::from(""));
 
-    match input_state.phase {
-        input::InputPhase::Password => {
-            lines.push(Line::from(vec![
-                Span::styled("Password: ", Style::new().fg(theme.muted)),
-                Span::styled("[", Style::new().fg(theme.muted)),
-                Span::raw(&display_password),
-                Span::styled("]", Style::new().fg(theme.muted)),
-            ]));
-
-            if !input_state.placeholders.is_empty() {
-                lines.push(Line::from(""));
-                for p in &input_state.placeholders {
-                    let val = if p.value.is_empty() { "_" } else { &p.value };
-                    lines.push(Line::from(vec![
-                        Span::styled("  ", Style::new().fg(theme.muted)),
-                        Span::styled(&p.placeholder.display_name, Style::new().fg(theme.fg)),
-                        Span::raw(": "),
-                        Span::styled(val, Style::new().fg(theme.accent)),
-                    ]));
-                }
-            }
-        }
-        input::InputPhase::Arguments => {
-            for p in &input_state.placeholders {
-                let val = if p.value.is_empty() { "_" } else { &p.value };
-                lines.push(Line::from(vec![
-                    Span::styled(&p.placeholder.display_name, Style::new().fg(theme.fg)),
-                    Span::raw(": "),
-                    Span::styled(val, Style::new().fg(theme.accent)),
-                ]));
-            }
-        }
+    for p in &input_state.placeholders {
+        let val = if p.value.is_empty() { "_" } else { &p.value };
+        lines.push(Line::from(vec![
+            Span::styled(&p.placeholder.display_name, Style::new().fg(theme.fg)),
+            Span::raw(": "),
+            Span::styled(val, Style::new().fg(theme.accent)),
+        ]));
     }
 
     lines.push(Line::from(""));
 
-    let help = match input_state.phase {
-        input::InputPhase::Password => "[Enter] Next  [x] Toggle  [Esc] Cancel",
-        input::InputPhase::Arguments => "[Enter] Execute  [Esc] Cancel",
-    };
+    let help = "[Enter] Execute  [Esc] Cancel";
     lines.push(Line::from(vec![Span::styled(
         help,
         Style::new().fg(theme.muted),

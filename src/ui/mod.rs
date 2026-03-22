@@ -1,7 +1,7 @@
 use ratatui::widgets::ListState;
 
 pub use crate::clipboard::ExecutionResult;
-pub use crate::models::ViewMode;
+pub use crate::models::{FocusTarget, ViewMode};
 
 pub mod add_spell;
 pub mod add_spell_form;
@@ -65,6 +65,8 @@ pub struct UiState {
     pub jobs_panel_state: JobsPanelState,
     pub confirm_dialog: Option<ConfirmDialogState>,
     pub input_popup: Option<InputPopupState>,
+    pub focus: FocusTarget,
+    pub jobs_sidebar_open: bool,
 }
 
 impl UiState {
@@ -93,6 +95,8 @@ impl UiState {
             jobs_panel_state: JobsPanelState::default(),
             confirm_dialog: None,
             input_popup: None,
+            focus: FocusTarget::Main,
+            jobs_sidebar_open: false,
         }
     }
 
@@ -234,5 +238,33 @@ impl UiState {
         let needs = self.needs_redraw;
         self.needs_redraw = false;
         needs
+    }
+
+    pub fn toggle_jobs_sidebar(&mut self) {
+        self.jobs_sidebar_open = !self.jobs_sidebar_open;
+        if self.jobs_sidebar_open {
+            self.focus = FocusTarget::JobsSidebar;
+            self.jobs_panel_state.selected_index = Some(0);
+        } else {
+            self.focus = FocusTarget::Main;
+        }
+    }
+
+    pub fn cycle_focus(&mut self) {
+        if !self.jobs_sidebar_open {
+            return;
+        }
+        match self.focus {
+            FocusTarget::Main => self.focus = FocusTarget::JobsSidebar,
+            FocusTarget::JobsSidebar => self.focus = FocusTarget::Main,
+        }
+    }
+
+    pub fn main_has_focus(&self) -> bool {
+        self.focus == FocusTarget::Main
+    }
+
+    pub fn sidebar_has_focus(&self) -> bool {
+        self.focus == FocusTarget::JobsSidebar
     }
 }

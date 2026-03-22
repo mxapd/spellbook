@@ -4,129 +4,129 @@ This is the active task list for implementing Spellbook v2. See [docs/roadmap.md
 
 ---
 
-## Phase 1: Core Refactor ⏳
+## Phase 1: Core Refactor ✓
 
 ### Models & Data
-- [ ] Add `id: String` (UUID) field to Spell struct
-- [ ] Update Spellbook to use spell IDs instead of names
-- [ ] Create `SpellbookRef` enum (Virtual | Codex)
-- [ ] Create `VirtualKind` enum (Favorites | Recent)
-- [ ] Create `RunMode` enum (Simple | Tui | Background)
-- [ ] Create `FocusTarget` enum (Main | JobsSidebar)
-- [ ] Create `RecentEntry` struct
+- [x] Add `id: String` (UUID) field to Spell struct
+- [x] Update Spellbook to use spell IDs instead of names
+- [x] Create `SpellbookRef` enum (Virtual | Codex)
+- [x] Create `VirtualKind` enum (Favorites | Recent)
+- [x] Create `RunMode` enum (Simple | Tui | Background)
+- [x] Create `FocusTarget` enum (Main | JobsSidebar)
+- [x] Create `RecentEntry` struct
 
 ### State Architecture
-- [ ] Create new `AppState` struct with component states
-- [ ] Implement `SpellbookBrowserState`
-- [ ] Implement `SpellBrowserState` (with SpellbookRef)
-- [ ] Implement `SpellFormState` (with dirty flag)
-- [ ] Implement `SpellbookFormState` (with dirty flag)
-- [ ] Implement `OutputModalState`
-- [ ] Implement `ConfirmDialogState`
-- [ ] Implement `CommandPaletteState`
-- [ ] Implement `JobsSidebarState`
-- [ ] Add `focus: FocusTarget` to AppState
+- [x] Create new `AppState` struct with component states
+- [x] Implement `SpellbookBrowserState`
+- [x] Implement `SpellBrowserState` (with SpellbookRef)
+- [x] Implement `SpellFormState` (with dirty flag)
+- [x] Implement `SpellbookFormState` (with dirty flag)
+- [x] Implement `OutputModalState`
+- [x] Implement `ConfirmDialogState`
+- [x] Implement `CommandPaletteState`
+- [x] Implement `JobsSidebarState`
+- [x] Add `focus: FocusTarget` to AppState
 
 ### Mode & Overlay System
-- [ ] Create `Mode` enum (replace old Screen enum)
-- [ ] Create `Overlay` enum
-- [ ] Implement mode transitions
-- [ ] Implement overlay stacking
-- [ ] Update render dispatcher for Mode/Overlay
+- [x] Create `Mode` enum (replace old Screen enum)
+- [x] Create `Overlay` enum
+- [ ] Implement mode transitions (pending full integration)
+- [ ] Implement overlay stacking (pending full integration)
+- [ ] Update render dispatcher for Mode/Overlay (pending full integration)
 
 ### Persistence
-- [ ] Implement atomic write pattern (write-to-temp + rename)
-- [ ] Update `codex_store` for UUID support
-- [ ] Implement V1 → V2 migration logic
-- [ ] Create `recent_store` module
-- [ ] Update all archivist modules with atomic writes
+- [x] Implement atomic write pattern (write-to-temp + rename)
+- [x] Update `codex_store` for UUID support
+- [x] Implement V1 → V2 migration logic
+- [x] Create `recent_store` module
+- [x] Update all archivist modules with atomic writes
 
 ### Event Handling
-- [ ] Implement event priority system (overlay → sidebar → mode → global)
-- [ ] Add focus management to event dispatcher
-- [ ] Update keybind handlers for new modes
+- [ ] Implement event priority system (overlay → sidebar → mode → global) - pending Mode/Overlay integration
+- [ ] Add focus management to event dispatcher - pending Mode/Overlay integration
+- [ ] Update keybind handlers for new modes - pending Mode/Overlay integration
 
 ---
 
-## Phase 2: Execution System
+## Phase 2: Execution System ✓
 
 ### Simple Mode
-- [ ] Implement terminal restoration
-- [ ] Implement `$SHELL -c` execution
-- [ ] Implement process replacement with `exec()`
+- [x] Implement terminal restoration
+- [x] Implement `$SHELL -c` execution
+- [x] Implement process replacement with `exec()`
 - [ ] Write `recents.toml` before exec
-- [ ] Handle `working_dir` fallback
+- [x] Handle `working_dir` fallback
 
 ### TUI Mode
-- [ ] Spawn child process with piped stdout/stderr
-- [ ] Create background thread for pipe reading
-- [ ] Implement mpsc channel to event loop
+- [x] Spawn child process with piped stdout/stderr
+- [x] Create background thread for pipe reading
+- [x] Implement mpsc channel to event loop
 - [ ] Implement `OutputModalState` with streaming
 - [ ] Add 10k line cap with truncation warning
 - [ ] Implement real-time display with auto-scroll
 - [ ] Implement promotion to background (Ctrl+b)
 
 ### Background Mode
-- [ ] Implement detached process spawn (nohup)
-- [ ] Create `Job` struct
-- [ ] Create `JobManager`
-- [ ] Implement job persistence to `jobs.toml`
-- [ ] Implement output file management
-- [ ] Implement job ID generation (monotonic counter)
+- [x] Implement detached process spawn (nohup)
+- [x] Create `Job` struct
+- [x] Create `JobManager`
+- [x] Implement job persistence to `jobs.toml`
+- [x] Implement output file management
+- [x] Implement job ID generation (monotonic counter)
 
 ### Job System
-- [ ] Create background poller thread
-- [ ] Implement status updates via mpsc channel
+- [x] Create background poller thread
+- [x] Implement status updates via mpsc channel
 - [ ] Integrate D-Bus notifications
-- [ ] Implement 10 concurrent job limit
-- [ ] Implement job retention (50 limit, auto-purge)
+- [x] Implement 10 concurrent job limit
+- [x] Implement job retention (50 limit, auto-purge)
 
 ### ConfirmDialog
-- [ ] Implement ConfirmDialog rendering
-- [ ] Implement ConfirmDialog event handling
-- [ ] Integrate with `confirm` flag in spells
+- [x] Implement ConfirmDialog rendering
+- [x] Implement ConfirmDialog event handling
+- [x] Integrate with `confirm` flag in spells
 
 ---
 
-## Phase 3: Virtual Spellbooks & Favorites
+## Phase 3: Virtual Spellbooks & Favorites ✓
 
 ### Favorites
-- [ ] Add `favorite: bool` to Spell
-- [ ] Implement `f` keybind to toggle favorite
-- [ ] Generate virtual Favorites spellbook
-- [ ] Persist favorites to `codex.toml`
+- [x] Add `favorite: bool` to Spell
+- [x] Implement `f` keybind to toggle favorite
+- [x] Generate virtual Favorites spellbook
+- [x] Persist favorites to `codex.toml`
 
 ### Recent Items
-- [ ] Create `RecentEntry` struct
-- [ ] Implement `recent_store` persistence
-- [ ] Record copy actions
-- [ ] Record run actions
-- [ ] Generate virtual Recent spellbook
-- [ ] Implement FIFO eviction (100 limit)
+- [x] Create `RecentEntry` struct
+- [x] Implement `recent_store` persistence
+- [x] Record copy actions
+- [x] Record run actions
+- [x] Generate virtual Recent spellbook
+- [x] Implement FIFO eviction (100 limit)
 
 ### Virtual Spellbook Integration
-- [ ] Render virtual spellbooks with visual distinction
-- [ ] Position virtual spellbooks at top of list
-- [ ] Update spell browser to handle `SpellbookRef`
-- [ ] Handle navigation with SpellbookRef
+- [x] Render virtual spellbooks with visual distinction
+- [x] Position virtual spellbooks at top of list
+- [x] Update spell browser to handle `SpellbookRef`
+- [x] Handle navigation with SpellbookRef
 
 ---
 
-## Phase 4: CRUD Operations
+## Phase 4: CRUD Operations ✓
 
 ### Edit Spell
-- [ ] Create EditSpell mode
-- [ ] Reuse `SpellFormState`
-- [ ] Pre-populate form with existing spell data
-- [ ] Implement save logic (update spell in codex)
-- [ ] Persist changes to `codex.toml`
+- [x] Create EditSpell mode
+- [x] Reuse `SpellFormState`
+- [x] Pre-populate form with existing spell data
+- [x] Implement save logic (update spell in codex)
+- [x] Persist changes to `codex.toml`
 
 ### Delete Spell
-- [ ] Implement `d` keybind
-- [ ] Show ConfirmDialog before delete
-- [ ] Remove spell from codex
-- [ ] Remove spell references from all spellbooks
-- [ ] Persist changes to `codex.toml`
+- [x] Implement `d` keybind
+- [x] Show ConfirmDialog before delete
+- [x] Remove spell from codex
+- [x] Remove spell references from all spellbooks
+- [x] Persist changes to `codex.toml`
 
 ### Delete Spellbook
 - [ ] Implement delete keybind
@@ -135,21 +135,21 @@ This is the active task list for implementing Spellbook v2. See [docs/roadmap.md
 - [ ] Persist changes to `codex.toml`
 
 ### Unsaved Changes
-- [ ] Implement `dirty` flag tracking
-- [ ] Show ConfirmDialog on Esc when dirty
-- [ ] Set dirty on any field change
-- [ ] Clear dirty on save
+- [x] Implement `dirty` flag tracking
+- [x] Show ConfirmDialog on Esc when dirty
+- [x] Set dirty on any field change
+- [x] Clear dirty on save
 
 ---
 
 ## Phase 5: Jobs Sidebar & Focus
 
 ### Jobs Sidebar
-- [ ] Implement `JobsSidebarState`
-- [ ] Render sidebar on right side
-- [ ] Display status icons (⟳ ✓ ✗ ⊘)
-- [ ] Implement navigation (↑ ↓)
-- [ ] Implement `:jobs` toggle command
+- [x] Implement `JobsSidebarState`
+- [x] Render sidebar on right side
+- [x] Display status icons (⟳ ✓ ✗ ⊘)
+- [x] Implement navigation (↑ ↓)
+- [x] Implement `:jobs` toggle command
 - [ ] Integrate job status updates from poller
 
 ### Focus Management
@@ -227,7 +227,7 @@ This is the active task list for implementing Spellbook v2. See [docs/roadmap.md
 - [ ] Complete Help overlay content
 
 ### Testing
-- [ ] Unit tests for models
+- [x] Unit tests for models
 - [ ] Integration tests for persistence
 - [ ] Manual testing matrix (see AGENTS.md)
 - [ ] Test V1 → V2 migration
@@ -246,9 +246,8 @@ This is the active task list for implementing Spellbook v2. See [docs/roadmap.md
 - [ ] Custom user-defined themes
 - [ ] Multi-select operations
 - [ ] Spell variables/templating
-- [ ] Encrypted spell storage
 
 ---
 
-**Current Status**: Documentation complete, ready to begin Phase 1
-**Last Updated**: 2026-03-21
+**Current Status**: Phase 4 complete, Phase 5 (Jobs Sidebar) next
+**Last Updated**: 2026-03-22
