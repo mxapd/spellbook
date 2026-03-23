@@ -1,2 +1,151 @@
+[[spells]]
+id = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+name = "List Files"
+incantation = "ls -la"
+lore = "List all files in current directory with details"
+school = "Filesystem"
+glyphs = ["file", "list"]
+confirm = false
+run_mode = "Simple"
+working_dir = ""
+favorite = true
+
+[[spells]]
+id = "b2c3d4e5-f6a7-8901-bcde-f12345678901"
+name = "Find Large Files"
+incantation = "find . -type f -size +100M -exec ls -lh {} \\; | awk '{print $5, $9}' | sort -hr"
+lore = "Find files larger than 100MB in current directory tree"
+school = "Filesystem"
+glyphs = ["file", "search", "size"]
+confirm = false
+run_mode = "Simple"
+working_dir = ""
+favorite = false
+
+[[spells]]
+id = "c3d4e5f6-a7b8-9012-cdef-123456789012"
+name = "Git Status"
+incantation = "git status -sb"
+lore = "Show git repository status in short format"
+school = "Git"
+glyphs = ["git", "status"]
+confirm = false
+run_mode = "Simple"
+working_dir = ""
+favorite = true
+
+[[spells]]
+id = "d4e5f6a7-b8c9-0123-def1-234567890123"
+name = "Git Log Graph"
+incantation = "git log --graph --oneline --all --decorate -20"
+lore = "Show git history as a graph with last 20 commits"
+school = "Git"
+glyphs = ["git", "log", "graph"]
+confirm = false
+run_mode = "Simple"
+working_dir = ""
+favorite = false
+
+[[spells]]
+id = "e5f6a7b8-c9d0-1234-ef12-345678901234"
+name = "Docker PS"
+incantation = "docker ps -a --format 'table {{.Names}}\\t{{.Status}}\\t{{.Image}}'"
+lore = "List all Docker containers with their status"
+school = "Docker"
+glyphs = ["docker", "container"]
+confirm = false
+run_mode = "Simple"
+working_dir = ""
+favorite = false
+
+[[spells]]
+id = "f6a7b8c9-d0e1-2345-f123-456789012345"
+name = "Kill Port Process"
+incantation = "lsof -ti:3000 | xargs kill -9"
+lore = "Kill process running on port 3000"
+school = "System"
+glyphs = ["port", "process", "kill"]
+confirm = true
+run_mode = "Simple"
+working_dir = ""
+favorite = false
+
+[[spells]]
+id = "a7b8c9d0-e1f2-3456-a123-567890123456"
+name = "Serve Directory"
+incantation = "python3 -m http.server 8080"
+lore = "Start a simple HTTP server on port 8080"
+school = "Web"
+glyphs = ["http", "server", "python"]
+confirm = false
+run_mode = "Background"
+working_dir = ""
+favorite = false
+
+[[spells]]
+id = "b8c9d0e1-f2a3-4567-b234-678901234567"
+name = "Clear Node Modules"
+incantation = "rm -rf node_modules && npm install"
+lore = "Remove node_modules and reinstall packages"
+school = "Node"
+glyphs = ["node", "npm", "clean"]
+confirm = true
+run_mode = "Simple"
+working_dir = ""
+favorite = false
+
+[[spells]]
+id = "c9d0e1f2-a3b4-5678-c345-789012345678"
+name = "Watch Logs"
+incantation = "tail -f /var/log/syslog"
+lore = "Follow system logs in real-time"
+school = "System"
+glyphs = ["log", "tail", "watch"]
+confirm = false
+run_mode = "Tui"
+working_dir = ""
+favorite = false
+
+[[spells]]
+id = "d0e1f2a3-b4c5-6789-d456-890123456789"
+name = "Network Connections"
+incantation = "ss -tulpn"
+lore = "Show all listening TCP and UDP ports"
+school = "Network"
+glyphs = ["network", "port", "listener"]
+confirm = false
+run_mode = "Simple"
+working_dir = ""
+favorite = false
+
+[[spellbooks]]
+name = "File Operations"
+cover = ""
+sigil = "*"
+spell_ids = ["a1b2c3d4-e5f6-7890-abcd-ef1234567890", "b2c3d4e5-f6a7-8901-bcde-f12345678901"]
 spells = []
-spellbooks = []
+style = null
+
+[[spellbooks]]
+name = "Git Quick Actions"
+cover = ""
+sigil = "*"
+spell_ids = ["c3d4e5f6-a7b8-9012-cdef-123456789012", "d4e5f6a7-b8c9-0123-def1-234567890123"]
+spells = []
+style = null
+
+[[spellbooks]]
+name = "DevOps"
+cover = ""
+sigil = "*"
+spell_ids = ["e5f6a7b8-c9d0-1234-ef12-345678901234", "f6a7b8c9-d0e1-2345-f123-456789012345", "c9d0e1f2-a3b4-5678-c345-789012345678"]
+spells = []
+style = null
+
+[[spellbooks]]
+name = "Utilities"
+cover = ""
+sigil = "*"
+spell_ids = ["a7b8c9d0-e1f2-3456-a123-567890123456", "b8c9d0e1-f2a3-4567-b234-678901234567", "d0e1f2a3-b4c5-6789-d456-890123456789"]
+spells = []
+style = null
