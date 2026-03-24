@@ -3,7 +3,7 @@ use crate::clipboard;
 use crate::models::FocusTarget;
 use crate::state::State;
 use crate::ui::search_overlay::{find_nearest_card, total_spellbook_count, CardDirection};
-use crate::ui::{Screen, SearchMode, UiState, ViewMode};
+use crate::ui::{streaming_modal, Mode, Overlay, SearchMode, UiState, ViewMode};
 use crate::{log_debug, log_error, log_info, log_warn};
 use crossterm::event::{KeyCode, KeyModifiers};
 
@@ -179,8 +179,7 @@ fn execute_command_by_action(action: &CommandAction, state: &mut State, ui: &mut
             log_info!("Command: cycle theme");
         }
         CommandAction::Help => {
-            ui.previous_screen = Some(ui.screen);
-            ui.screen = Screen::Help;
+            ui.push_overlay(Overlay::Help);
             log_info!("Command: help");
         }
         CommandAction::Jobs => {
@@ -209,117 +208,181 @@ fn execute_command_by_action(action: &CommandAction, state: &mut State, ui: &mut
     }
 }
 
-/// Main event handler - routes key events to the appropriate screen handler.
+/// Main event handler - implements event priority: Overlay → Sidebar → Mode → Global
 pub fn handle_event(
     key: KeyCode,
     state: &mut State,
     ui: &mut UiState,
     modifiers: KeyModifiers,
 ) -> bool {
-    // Handle Ctrl+C to quit
+    // Priority 1: Active overlays (topmost first)
+    if let Some(overlay) = ui.top_overlay() {
+        let consumed = handle_overlay(overlay, key, state, ui, modifiers);
+        if consumed {
+            return false; // Event consumed by overlay
+        }
+        // If overlay didn't consume, fall through to next priority
+    }
+
+    // Priority 2: Jobs sidebar (if focused and open)
+    if ui.jobs_sidebar_open && ui.focus == FocusTarget::JobsSidebar {
+        log_debug!("Routing to jobs sidebar");
+        return crate::ui::jobs::handle_jobs_key(key, ui);
+    }
+
+    // Priority 3: Global keybinds (available in all modes when not typing)
+    if let Some(should_quit) = handle_global_keys(key, ui, state, modifiers) {
+        return should_quit;
+    }
+
+    // Priority 4: Current mode handler
+    handle_mode(ui.mode, key, state, ui, modifiers)
+}
+
+/// Handle global keybinds available in all modes
+/// Returns Some(true) to quit, Some(false) to consume without quit, None to pass through
+fn handle_global_keys(
+    key: KeyCode,
+    ui: &mut UiState,
+    state: &mut State,
+    modifiers: KeyModifiers,
+) -> Option<bool> {
+    // Ctrl+C to quit
     if key == KeyCode::Char('c') && modifiers.contains(KeyModifiers::CONTROL) {
         log_info!("Quit via Ctrl+C");
-        return true;
+        return Some(true);
     }
 
-    // Handle Ctrl+Z - intercept but don't process (let terminal handle job control)
-    // Returning false without doing anything prevents it from being added to search
+    // Ctrl+Z - let terminal handle job control
     if key == KeyCode::Char('z') && modifiers.contains(KeyModifiers::CONTROL) {
         log_info!("Ctrl+Z intercepted - terminal should handle suspend");
-        return false;
+        return Some(false);
     }
 
-    // Handle Alt+R to refresh/reload the codex
+    // Alt+R to refresh codex
     if key == KeyCode::Char('r') && modifiers.contains(KeyModifiers::ALT) {
         log_info!("Alt+R detected - reloading codex");
         state.reload_codex();
         ui.copy_feedback = Some("Codex refreshed".to_string());
         ui.request_redraw();
-        return false;
+        return Some(false);
     }
 
-    // Handle theme cycling with 't' - disabled while typing
+    // Theme cycling with 't' - disabled while typing
     if key == KeyCode::Char('t') && !ui.is_typing {
         state.cycle_theme();
-        return false;
+        return Some(false);
     }
 
-    // Handle view mode cycling with 'v' - disabled while typing
+    // View mode cycling with 'v' - disabled while typing
     if key == KeyCode::Char('v') && !ui.is_typing {
         state.cycle_view_mode();
-        return false;
+        return Some(false);
     }
 
-    // Handle Tab to cycle focus between main and jobs sidebar
-    if key == KeyCode::Tab {
-        if ui.jobs_sidebar_open {
-            ui.cycle_focus();
-            log_debug!("Focus cycled to: {:?}", ui.focus);
-            return false;
-        }
+    // Tab to cycle focus when sidebar is open
+    if key == KeyCode::Tab && ui.jobs_sidebar_open {
+        ui.cycle_focus();
+        log_debug!("Focus cycled to: {:?}", ui.focus);
+        return Some(false);
     }
 
-    // Route events based on focus when sidebar is open
-    if ui.jobs_sidebar_open {
-        match ui.focus {
-            FocusTarget::JobsSidebar => {
-                log_debug!("Routing to jobs sidebar");
-                return crate::ui::jobs::handle_jobs_key(key, ui);
+    // Help overlay
+    if key == KeyCode::Char('?') && !ui.is_typing {
+        ui.push_overlay(Overlay::Help);
+        log_info!("Help overlay opened");
+        return Some(false);
+    }
+
+    None // Pass through to mode handler
+}
+
+/// Handle overlay-specific events
+/// Returns true if event was consumed
+fn handle_overlay(
+    overlay: Overlay,
+    key: KeyCode,
+    state: &mut State,
+    ui: &mut UiState,
+    modifiers: KeyModifiers,
+) -> bool {
+    match overlay {
+        Overlay::OutputModal => {
+            // Use new streaming modal if active, otherwise fall back to legacy
+            if ui.streaming_modal.streaming.is_some() || ui.streaming_modal.output.is_streaming {
+                let should_close = streaming_modal::handle_streaming_modal_key(key, modifiers, ui);
+                if should_close {
+                    ui.pop_overlay();
+                }
+            } else {
+                handle_output_popup(key, state, ui);
             }
-            FocusTarget::Main => {
-                // Continue to normal routing below
-            }
+            true
         }
-    }
-
-    // Sync view_mode from state to ui for render functions
-    ui.view_mode = state.user_settings.view_mode;
-
-    match &ui.screen {
-        Screen::SpellList => {
-            log_debug!("Screen: SpellList");
-            handle_spell_list(key, state, ui, modifiers)
+        Overlay::ConfirmDialog => {
+            handle_confirm_dialog(key, state, ui);
+            true
         }
-        Screen::SearchOverlay => {
-            log_debug!("Screen: SearchOverlay");
-            handle_search(key, state, ui, modifiers)
-        }
-        Screen::AddSpell => {
-            log_debug!("Screen: AddSpell");
-            handle_add_spell(key, state, ui, modifiers)
-        }
-        Screen::OutputPopup => {
-            log_debug!("Screen: OutputPopup");
-            handle_output_popup(key, state, ui);
+        Overlay::CommandPalette => {
+            // Command palette handles its own input
             false
         }
-        Screen::JobsPanel => {
-            log_debug!("Screen: JobsPanel");
-            crate::ui::jobs::handle_jobs_key(key, ui)
+        Overlay::Help => {
+            if key == KeyCode::Esc {
+                ui.pop_overlay();
+            }
+            true
         }
-        Screen::ConfirmDialog => {
-            log_debug!("Screen: ConfirmDialog");
-            handle_confirm_dialog(key, state, ui)
-        }
-        Screen::InputPopup => {
-            log_debug!("Screen: InputPopup");
-            handle_input_popup(key, state, ui)
-        }
-        Screen::Help => {
-            log_debug!("Screen: Help");
-            handle_help(key, ui)
+        Overlay::InputPopup => {
+            if ui.input_popup.is_some() {
+                let close = handle_input_popup(key, state, ui);
+                if close {
+                    ui.input_popup = None;
+                    ui.pop_overlay();
+                }
+            }
+            true
         }
     }
 }
 
-fn handle_help(key: KeyCode, ui: &mut UiState) -> bool {
-    match key {
-        KeyCode::Esc => {
-            ui.screen = ui.previous_screen.take().unwrap_or(Screen::SearchOverlay);
-            false
+/// Handle mode-specific events
+fn handle_mode(
+    mode: Mode,
+    key: KeyCode,
+    state: &mut State,
+    ui: &mut UiState,
+    modifiers: KeyModifiers,
+) -> bool {
+    // Sync view_mode from state to ui for render functions
+    ui.view_mode = state.user_settings.view_mode;
+
+    match mode {
+        Mode::BrowseSpellbooks => {
+            log_debug!("Mode: BrowseSpellbooks");
+            // Use search overlay handler for now (they're equivalent)
+            handle_search(key, state, ui, modifiers)
         }
-        _ => false,
+        Mode::BrowseSpells => {
+            log_debug!("Mode: BrowseSpells");
+            // Map to legacy spell list handler
+            handle_spell_list(key, state, ui, modifiers)
+        }
+        Mode::AddSpell | Mode::EditSpell => {
+            log_debug!("Mode: {:?}", mode);
+            handle_add_spell(key, state, ui, modifiers)
+        }
+        Mode::AddSpellbook => {
+            log_debug!("Mode: AddSpellbook");
+            handle_add_spellbook(key, state, ui, modifiers)
+        }
     }
+}
+
+fn handle_help(_key: KeyCode, _ui: &mut UiState) -> bool {
+    // Help overlay is now handled via the Overlay system in handle_overlay
+    // This function is kept for compatibility but should not be called directly
+    false
 }
 
 /// Handles key events on the spell list (inside a spellbook).
@@ -344,7 +407,7 @@ fn handle_spell_list(
 
     match key {
         KeyCode::Esc => {
-            ui.screen = Screen::SearchOverlay;
+            ui.mode = Mode::BrowseSpellbooks;
             ui.spell_list_state.select(None);
             false
         }
@@ -460,8 +523,7 @@ fn handle_search(
             Some(index) => index,
             None => return false,
         };
-        let spellbook = &state.codex.spellbooks[spellbook_index];
-        let spell_count = spellbook.spell_ids.len();
+        let spell_count = get_spell_count_for_spellbook(state, spellbook_index);
         log_info!(
             "spell_count: {}, selected: {:?}",
             spell_count,
@@ -531,7 +593,7 @@ fn handle_search(
                 if let Some(spell) = state.get_spell(&spell_id) {
                     ui.add_spell.start_edit(spell, Some(spellbook_index));
                     ui.search_mode = SearchMode::AddSpell;
-                    ui.screen = Screen::AddSpell;
+                    ui.mode = Mode::EditSpell;
                     log_info!("Editing spell: {}", spell.name);
                     return false;
                 }
@@ -546,8 +608,7 @@ fn handle_search(
             {
                 if let Some(spell) = state.get_spell(&spell_id) {
                     ui.confirm_dialog = Some(crate::ui::confirm::ConfirmDialogState::delete_spell(spell.clone()));
-                    ui.previous_screen = Some(ui.screen.clone());
-                    ui.screen = Screen::ConfirmDialog;
+                    ui.push_overlay(Overlay::ConfirmDialog);
                     log_info!("Delete confirmation requested for: {}", spell_id);
                     return false;
                 }
@@ -565,6 +626,80 @@ fn handle_search(
                     current + page_size
                 };
                 ui.spell_list_state.select(Some(next));
+            }
+            return false;
+        }
+
+        // 's' - simple execution (exit TUI and run via exec)
+        if key == KeyCode::Char('s') && !modifiers.contains(KeyModifiers::CONTROL) && spell_count > 0 {
+            let spell_idx = ui.spell_list_state.selected().unwrap_or(0);
+            if let Some(spell) = get_spell_by_index(state, spellbook_index, spell_idx) {
+                if spell.confirm {
+                    // Show confirmation dialog first
+                    ui.confirm_dialog = Some(crate::ui::confirm::ConfirmDialogState::execute_spell(spell.clone()));
+                    ui.push_overlay(Overlay::ConfirmDialog);
+                    return false;
+                }
+                
+                // Execute in simple mode
+                execute_simple_mode(&spell, state, ui);
+            }
+            return false;
+        }
+
+        // Ctrl+r - TUI execution with streaming
+        if key == KeyCode::Char('r') && modifiers.contains(KeyModifiers::CONTROL) && spell_count > 0 {
+            let spell_idx = ui.spell_list_state.selected().unwrap_or(0);
+            if let Some(spell) = get_spell_by_index(state, spellbook_index, spell_idx) {
+                log_info!("Ctrl+r: Executing spell '{}' in TUI mode with streaming", spell.name);
+                state.add_recent(
+                    spell.id.clone(),
+                    spell.name.clone(),
+                    crate::models::RecentAction::Run,
+                );
+                let working_dir = if spell.working_dir.is_empty() {
+                    None
+                } else {
+                    Some(spell.working_dir.clone())
+                };
+                if let Err(e) = streaming_modal::start_tui_execution(
+                    ui,
+                    spell.incantation.clone(),
+                    Some(spell.name.clone()),
+                    working_dir,
+                ) {
+                    ui.copy_feedback = Some(format!("Failed to start TUI mode: {}", e));
+                }
+            }
+            return false;
+        }
+
+        // Ctrl+b - background execution
+        if key == KeyCode::Char('b') && modifiers.contains(KeyModifiers::CONTROL) && spell_count > 0 {
+            let spell_idx = ui.spell_list_state.selected().unwrap_or(0);
+            if let Some(spell) = get_spell_by_index(state, spellbook_index, spell_idx) {
+                log_info!("Ctrl+b: Starting spell '{}' in background", spell.name);
+                match crate::invoker::start_spell(
+                    spell.name.clone(),
+                    spell.incantation.clone(),
+                    if spell.working_dir.is_empty() {
+                        None
+                    } else {
+                        Some(spell.working_dir.clone())
+                    },
+                ) {
+                    Ok(job_id) => {
+                        ui.copy_feedback = Some(format!("Job {} started: {}", job_id, spell.name));
+                        state.add_recent(
+                            spell.id.clone(),
+                            spell.name.clone(),
+                            crate::models::RecentAction::Run,
+                        );
+                    }
+                    Err(e) => {
+                        ui.copy_feedback = Some(format!("Failed to start: {}", e));
+                    }
+                }
             }
             return false;
         }
@@ -671,6 +806,28 @@ fn handle_search(
             return false;
         }
 
+        if key == KeyCode::Up {
+            if spellbook_count > 0 {
+                let current = ui.search_spellbook_index().unwrap_or(0);
+                let prev = find_nearest_card(
+                    current,
+                    CardDirection::Up,
+                    spellbook_count,
+                    cards_per_row,
+                    card_width,
+                    card_height,
+                    card_gap,
+                    grid_offset,
+                );
+                ui.set_search_spellbook_index(Some(prev));
+
+                if prev < scroll {
+                    ui.set_search_spellbook_scroll(prev);
+                }
+            }
+            return false;
+        }
+
         // Shift+D - Delete spellbook
         if key == KeyCode::Char('D') {
             if let Some(idx) = ui.search_spellbook_index() {
@@ -684,8 +841,7 @@ fn handle_search(
                         }
                         let name = item.name();
                         ui.confirm_dialog = Some(crate::ui::confirm::ConfirmDialogState::delete_spellbook(name));
-                        ui.previous_screen = Some(ui.screen);
-                        ui.screen = Screen::ConfirmDialog;
+                        ui.push_overlay(Overlay::ConfirmDialog);
                     }
                 }
             }
@@ -949,22 +1105,85 @@ fn execute_spell_at_index(
         spellbook_index,
         spell_index
     );
-    let spellbook = match state.codex.spellbooks.get(spellbook_index) {
-        Some(sb) => sb,
-        None => return,
+
+    let spell = get_spell_by_index(state, spellbook_index, spell_index);
+    if let Some(spell) = spell {
+        start_spell_execution(&spell, state, ui, false);
+    }
+}
+
+/// Gets the spell count for a specific spellbook (handles virtual spellbooks).
+fn get_spell_count_for_spellbook(state: &State, spellbook_index: usize) -> usize {
+    let favorites_count = state.codex.spells.iter().filter(|s| s.favorite).count();
+    let has_favorites = favorites_count > 0;
+    let has_recent = !state.recents.is_empty();
+
+    if has_favorites && spellbook_index == 0 {
+        return favorites_count;
+    }
+
+    if has_recent {
+        let recent_idx = if has_favorites { 1 } else { 0 };
+        if spellbook_index == recent_idx {
+            return state.recents.len();
+        }
+    }
+
+    let real_idx = if has_favorites && spellbook_index > 1 {
+        spellbook_index - 2
+    } else if has_recent && !has_favorites && spellbook_index > 0 {
+        spellbook_index - 1
+    } else {
+        spellbook_index
     };
 
-    let spell_id = match spellbook.spell_ids.get(spell_index) {
-        Some(id) => id,
-        None => return,
+    state
+        .codex
+        .spellbooks
+        .get(real_idx)
+        .map(|sb| sb.spell_ids.len())
+        .unwrap_or(0)
+}
+
+/// Gets the full Spell object at a specific index in a spellbook (handles virtual spellbooks).
+fn get_spell_by_index(
+    state: &State,
+    spellbook_index: usize,
+    spell_index: usize,
+) -> Option<crate::models::Spell> {
+    let favorites_count = state.codex.spells.iter().filter(|s| s.favorite).count();
+    let has_favorites = favorites_count > 0;
+    let has_recent = !state.recents.is_empty();
+
+    if has_favorites && spellbook_index == 0 {
+        let fav_spells: Vec<_> = state.codex.spells.iter().filter(|s| s.favorite).collect();
+        return fav_spells.get(spell_index).map(|spell| {
+            let s: &crate::models::Spell = spell;
+            s.clone()
+        });
+    }
+
+    if has_recent {
+        let recent_idx = if has_favorites { 1 } else { 0 };
+        if spellbook_index == recent_idx {
+            if let Some(recent) = state.recents.get(spell_index) {
+                return state.codex.spells.iter().find(|s| s.id == recent.spell_id).map(|s| s.clone());
+            }
+            return None;
+        }
+    }
+
+    let real_idx = if has_favorites && spellbook_index > 1 {
+        spellbook_index - 2
+    } else if has_recent && !has_favorites && spellbook_index > 0 {
+        spellbook_index - 1
+    } else {
+        spellbook_index
     };
 
-    let spell = match state.codex.spells.iter().find(|s| s.id == *spell_id) {
-        Some(s) => s.clone(),
-        None => return,
-    };
-
-    start_spell_execution(&spell, state, ui, false);
+    let spellbook = state.codex.spellbooks.get(real_idx)?;
+    let spell_id = spellbook.spell_ids.get(spell_index)?;
+    state.codex.spells.iter().find(|s| s.id == *spell_id).map(|s| s.clone())
 }
 
 /// Gets spell info at a specific index in a spellbook. Returns (spell_id, spell_name).
@@ -1088,43 +1307,43 @@ fn start_spell_execution(
     };
 
     if spell.confirm {
-        ui.previous_screen = Some(ui.screen);
-        ui.screen = Screen::ConfirmDialog;
         ui.confirm_dialog = Some(crate::ui::confirm::ConfirmDialogState::execute_spell(spell.clone()));
+        ui.push_overlay(Overlay::ConfirmDialog);
         return;
     }
 
     match run_mode {
         RunMode::Simple => {
-            if crate::clipboard::copy_to_clipboard(&spell.incantation) {
-                ui.copy_feedback = Some("Copied! Paste into terminal to run.".to_string());
-                state.add_recent(
-                    spell.id.clone(),
-                    spell.name.clone(),
-                    crate::models::RecentAction::Copy,
-                );
-            } else {
-                ui.copy_feedback = Some("Copy failed".to_string());
-            }
+            // Execute in simple mode (writes recents then exec())
+            execute_simple_mode(spell, state, ui);
+            // NOTE: On Unix, execute_simple_mode never returns (exec replaces process)
+            // On non-Unix, it returns after command completion
         }
         RunMode::Tui => {
-            let result = crate::invoker::execute_sync(&spell.incantation);
-            state.add_recent(
-                spell.id.clone(),
-                spell.name.clone(),
-                crate::models::RecentAction::Run,
-            );
-            let exec_result = crate::clipboard::ExecutionResult {
-                command: spell.incantation.clone(),
-                stdout: result.stdout.clone(),
-                stderr: result.stderr.clone(),
-                exit_code: result.exit_code,
-                full_stdout: result.stdout,
-                full_stderr: result.stderr,
-                pid: Some(result.pid),
-                spell_name: Some(spell.name.clone()),
+            // Start TUI streaming execution
+            let working_dir = if spell.working_dir.is_empty() {
+                None
+            } else {
+                Some(spell.working_dir.clone())
             };
-            ui.show_output_popup(exec_result);
+            
+            match streaming_modal::start_tui_execution(
+                ui,
+                spell.incantation.clone(),
+                Some(spell.name.clone()),
+                working_dir,
+            ) {
+                Ok(_pid) => {
+                    state.add_recent(
+                        spell.id.clone(),
+                        spell.name.clone(),
+                        crate::models::RecentAction::Run,
+                    );
+                }
+                Err(e) => {
+                    ui.copy_feedback = Some(format!("Failed to start TUI mode: {}", e));
+                }
+            }
         }
         RunMode::Background => {
             match crate::invoker::start_spell(
@@ -1239,8 +1458,7 @@ fn handle_input_popup(key: KeyCode, _state: &mut State, ui: &mut UiState) -> boo
     match key {
         KeyCode::Esc => {
             ui.input_popup = None;
-            ui.screen = ui.previous_screen.take().unwrap_or(Screen::SearchOverlay);
-            false
+            true // Close on Esc
         }
         KeyCode::Char(c) => {
             if let Some(placeholder) = input_state
@@ -1266,7 +1484,6 @@ fn handle_input_popup(key: KeyCode, _state: &mut State, ui: &mut UiState) -> boo
             let run_background = input_state.run_background;
 
             ui.input_popup = None;
-            ui.screen = ui.previous_screen.take().unwrap_or(Screen::SearchOverlay);
 
             if let Some(spell) = spell {
                 if run_background {
@@ -1303,7 +1520,7 @@ fn handle_input_popup(key: KeyCode, _state: &mut State, ui: &mut UiState) -> boo
                     ui.show_output_popup(exec_result);
                 }
             }
-            false
+            true // Close after Enter
         }
         _ => false,
     }
@@ -1318,7 +1535,7 @@ fn handle_confirm_dialog(key: KeyCode, state: &mut State, ui: &mut UiState) -> b
     match key {
         KeyCode::Esc => {
             ui.confirm_dialog = None;
-            ui.screen = ui.previous_screen.take().unwrap_or(Screen::SearchOverlay);
+            ui.pop_overlay();
             false
         }
         KeyCode::Enter => {
@@ -1330,7 +1547,7 @@ fn handle_confirm_dialog(key: KeyCode, state: &mut State, ui: &mut UiState) -> b
             }
             
             ui.confirm_dialog = None;
-            ui.screen = ui.previous_screen.take().unwrap_or(Screen::SearchOverlay);
+            ui.pop_overlay();
 
             match action {
                 crate::ui::confirm::ConfirmAction::DeleteSpell(spell) => {
@@ -1357,25 +1574,27 @@ fn handle_confirm_dialog(key: KeyCode, state: &mut State, ui: &mut UiState) -> b
                 crate::ui::confirm::ConfirmAction::ExecuteSpell(spell) => {
                     match spell.run_mode {
                         crate::models::RunMode::Simple => {
-                            if crate::clipboard::copy_to_clipboard(&spell.incantation) {
-                                ui.copy_feedback = Some("Copied! Paste into terminal to run.".to_string());
-                            } else {
-                                ui.copy_feedback = Some("Copy failed".to_string());
-                            }
+                            // Execute in simple mode (writes recents then exec())
+                            execute_simple_mode(&spell, state, ui);
+                            // NOTE: On Unix, execute_simple_mode never returns (exec replaces process)
+                            // On non-Unix, it returns after command completion
                         }
                         crate::models::RunMode::Tui => {
-                            let result = crate::invoker::execute_sync(&spell.incantation);
-                            let exec_result = crate::clipboard::ExecutionResult {
-                                command: spell.incantation.clone(),
-                                stdout: result.stdout.clone(),
-                                stderr: result.stderr.clone(),
-                                exit_code: result.exit_code,
-                                full_stdout: result.stdout,
-                                full_stderr: result.stderr,
-                                pid: Some(result.pid),
-                                spell_name: Some(spell.name.clone()),
+                            // Start TUI streaming execution
+                            let working_dir = if spell.working_dir.is_empty() {
+                                None
+                            } else {
+                                Some(spell.working_dir.clone())
                             };
-                            ui.show_output_popup(exec_result);
+                            
+                            if let Err(e) = streaming_modal::start_tui_execution(
+                                ui,
+                                spell.incantation.clone(),
+                                Some(spell.name.clone()),
+                                working_dir,
+                            ) {
+                                ui.copy_feedback = Some(format!("Failed to start TUI mode: {}", e));
+                            }
                         }
                         crate::models::RunMode::Background => {
                             match crate::invoker::start_spell(
@@ -1463,13 +1682,16 @@ fn save_spell(state: &mut State, ui: &mut UiState) {
 
     let spell_name = spell.name.clone();
     if is_editing {
+        ui.start_loading("Updating spell...");
         match state.update_spell(spell) {
             Ok(_) => {
+                ui.stop_loading();
                 ui.add_spell.message = Some(("Spell updated!".to_string(), false));
                 ui.add_spell.has_unsaved = false;
                 log_info!("Spell updated: {}", spell_name);
             }
             Err(e) => {
+                ui.stop_loading();
                 ui.add_spell.message = Some((format!("Update failed: {}", e), true));
                 log_error!("Update failed: {}", e);
                 return;
@@ -1485,13 +1707,16 @@ fn save_spell(state: &mut State, ui: &mut UiState) {
                 .map(|b| b.name.clone())
         };
 
+        ui.start_loading("Saving spell...");
         match Archivist::append_spell("codex.toml", &spell, spellbook_name.as_deref()) {
             Ok(_) => {
+                ui.stop_loading();
                 ui.add_spell.message = Some(("Spell saved!".to_string(), false));
                 ui.add_spell.has_unsaved = false;
                 log_info!("Spell saved: {}", spell.name);
             }
             Err(e) => {
+                ui.stop_loading();
                 ui.add_spell.message = Some((format!("Save failed: {}", e), true));
                 log_error!("Save failed: {}", e);
                 return;
@@ -1790,23 +2015,25 @@ fn execute_command_legacy(cmd: &str, state: &mut State, ui: &mut UiState) {
         }
         // Help
         "?" | "help" | "commands" => {
-            ui.previous_screen = Some(ui.screen);
-            ui.screen = Screen::Help;
+            ui.push_overlay(Overlay::Help);
             log_info!("Command: help");
         }
         // Export commands
         cmd if cmd.starts_with("export") || cmd.starts_with("ex") => {
             let args = cmd.strip_prefix("export").unwrap_or(cmd).strip_prefix("ex").unwrap_or(cmd).trim();
+            ui.start_loading("Exporting...");
             if args.is_empty() {
                 // Export full codex
                 let filename = format!("spellbook_export_{}.toml", 
                     chrono::Utc::now().format("%Y%m%d_%H%M%S"));
                 match Archivist::export_codex(&state.codex, &filename) {
                     Ok(_) => {
+                        ui.stop_loading();
                         ui.copy_feedback = Some(format!("Exported codex to {}", filename));
                         log_info!("Command: export codex to {}", filename);
                     }
                     Err(e) => {
+                        ui.stop_loading();
                         ui.copy_feedback = Some(format!("Export failed: {}", e));
                         log_info!("Export failed: {}", e);
                     }
@@ -1819,10 +2046,12 @@ fn execute_command_legacy(cmd: &str, state: &mut State, ui: &mut UiState) {
                         spellbook_name.replace(' ', "_"));
                     match Archivist::export_spellbook(&state.codex, spellbook_name, &filename) {
                         Ok(_) => {
+                            ui.stop_loading();
                             ui.copy_feedback = Some(format!("Exported '{}' to {}", spellbook_name, filename));
                             log_info!("Command: export spellbook '{}' to {}", spellbook_name, filename);
                         }
                         Err(e) => {
+                            ui.stop_loading();
                             ui.copy_feedback = Some(format!("Export failed: {}", e));
                             log_info!("Export failed: {}", e);
                         }
@@ -1831,10 +2060,12 @@ fn execute_command_legacy(cmd: &str, state: &mut State, ui: &mut UiState) {
                     // Treat as filename for full codex export
                     match Archivist::export_codex(&state.codex, spellbook_name) {
                         Ok(_) => {
+                            ui.stop_loading();
                             ui.copy_feedback = Some(format!("Exported codex to {}", spellbook_name));
                             log_info!("Command: export codex to {}", spellbook_name);
                         }
                         Err(e) => {
+                            ui.stop_loading();
                             ui.copy_feedback = Some(format!("Export failed: {}", e));
                             log_info!("Export failed: {}", e);
                         }
@@ -1850,6 +2081,7 @@ fn execute_command_legacy(cmd: &str, state: &mut State, ui: &mut UiState) {
                 log_info!("Command: import - no file specified");
             } else {
                 let filename = args.trim();
+                ui.start_loading("Importing...");
                 match Archivist::import_codex(filename) {
                     Ok(imported) => {
                         let imported_spells = imported.spells.len();
@@ -1860,9 +2092,11 @@ fn execute_command_legacy(cmd: &str, state: &mut State, ui: &mut UiState) {
                         
                         // Save the merged codex
                         if let Err(e) = Archivist::save(&state.codex, "codex.toml") {
+                            ui.stop_loading();
                             ui.copy_feedback = Some(format!("Import succeeded but save failed: {}", e));
                             log_info!("Import save failed: {}", e);
                         } else {
+                            ui.stop_loading();
                             let mut msg = format!("Imported {} spell(s), {} spellbook(s)", 
                                 result.added_spells.len(), result.added_spellbooks.len());
                             if !result.conflicts.is_empty() {
@@ -1874,6 +2108,7 @@ fn execute_command_legacy(cmd: &str, state: &mut State, ui: &mut UiState) {
                         }
                     }
                     Err(e) => {
+                        ui.stop_loading();
                         ui.copy_feedback = Some(format!("Import failed: {}", e));
                         log_info!("Import failed: {}", e);
                     }
@@ -1884,6 +2119,173 @@ fn execute_command_legacy(cmd: &str, state: &mut State, ui: &mut UiState) {
         _ => {
             ui.copy_feedback = Some(format!("Unknown command: {}", cmd));
             log_info!("Unknown command: {}", cmd);
+        }
+    }
+}
+
+/// Execute a spell in simple mode: write recents, then exec() the command.
+/// 
+/// This function NEVER RETURNS on Unix (replaces process via exec).
+/// On non-Unix platforms, it runs the command and returns the exit code.
+/// 
+/// # Critical
+/// Must write recents.toml BEFORE calling exec() because exec() replaces
+/// the current process and we get no chance to write after.
+fn execute_simple_mode(spell: &crate::models::Spell, state: &mut State, _ui: &mut UiState) {
+    use crate::archivist::Archivist;
+    
+    // Step 1: Add to recents (in memory)
+    state.add_recent(
+        spell.id.clone(),
+        spell.name.clone(),
+        crate::models::RecentAction::Run,
+    );
+    
+    // Step 2: CRITICAL - Persist recents to disk BEFORE exec()
+    // After exec(), this process is replaced and we never return
+    if let Err(e) = Archivist::save_recents(&state.recents) {
+        log_error!("Failed to write recents before exec: {}", e);
+        // Continue anyway - better to run the command than fail entirely
+    } else {
+        log_info!("Recents persisted before simple mode exec");
+    }
+    
+    // Step 3: Determine working directory
+    let working_dir = if spell.working_dir.is_empty() {
+        None
+    } else {
+        Some(spell.working_dir.clone())
+    };
+    
+    // Step 4: Restore terminal (clean shutdown)
+    // Note: We need to disable raw mode before exec
+    let _ = crossterm::terminal::disable_raw_mode();
+    
+    // Step 5: Execute via exec() - this replaces our process
+    log_info!("Executing spell '{}' in simple mode: {}", spell.name, spell.incantation);
+    crate::invoker::exec_simple(&spell.incantation, working_dir.as_deref());
+}
+
+/// Handles key events in the Add Spellbook screen.
+fn handle_add_spellbook(
+    key: KeyCode,
+    state: &mut State,
+    ui: &mut UiState,
+    modifiers: KeyModifiers,
+) -> bool {
+    use crate::ui::add_spellbook_form::AddSpellbookField;
+    
+    if key == KeyCode::Char('s') && modifiers.contains(KeyModifiers::CONTROL) {
+        save_spellbook(state, ui);
+        return false;
+    }
+
+    match key {
+        KeyCode::Esc => {
+            if ui.add_spellbook.has_unsaved {
+                ui.add_spellbook.message = Some((
+                    "Unsaved changes - press Esc again to discard".to_string(),
+                    true,
+                ));
+                ui.add_spellbook.has_unsaved = false;
+            } else {
+                ui.add_spellbook.clear();
+                ui.mode = Mode::BrowseSpellbooks;
+            }
+            false
+        }
+        KeyCode::Tab => {
+            ui.add_spellbook.next_field();
+            false
+        }
+        KeyCode::BackTab => {
+            ui.add_spellbook.prev_field();
+            false
+        }
+        KeyCode::Up => {
+            ui.add_spellbook.prev_field();
+            false
+        }
+        KeyCode::Down | KeyCode::Enter => {
+            if key == KeyCode::Enter && ui.add_spellbook.field == AddSpellbookField::Sigil {
+                save_spellbook(state, ui);
+            } else {
+                ui.add_spellbook.next_field();
+            }
+            false
+        }
+        KeyCode::Backspace => {
+            match ui.add_spellbook.field {
+                AddSpellbookField::Name => {
+                    ui.add_spellbook.name.pop();
+                }
+                AddSpellbookField::Cover => {
+                    ui.add_spellbook.cover.pop();
+                }
+                AddSpellbookField::Sigil => {
+                    ui.add_spellbook.sigil.pop();
+                }
+            }
+            ui.add_spellbook.has_unsaved = true;
+            ui.add_spellbook.message = None;
+            false
+        }
+        KeyCode::Char(c) => {
+            match ui.add_spellbook.field {
+                AddSpellbookField::Name => {
+                    ui.add_spellbook.name.push(c);
+                }
+                AddSpellbookField::Cover => {
+                    ui.add_spellbook.cover.push(c);
+                }
+                AddSpellbookField::Sigil => {
+                    ui.add_spellbook.sigil.push(c);
+                }
+            }
+            ui.add_spellbook.has_unsaved = true;
+            ui.add_spellbook.message = None;
+            false
+        }
+        _ => false,
+    }
+}
+
+/// Saves the current spellbook and returns to the spellbook list.
+fn save_spellbook(_state: &mut State, ui: &mut UiState) {
+    use crate::archivist::Archivist;
+    
+    if ui.add_spellbook.name.trim().is_empty() {
+        ui.add_spellbook.message = Some(("Name is required".to_string(), true));
+        return;
+    }
+
+    // Take ownership of values to pass to archivist (clean borrowck-friendly approach)
+    let name = std::mem::take(&mut ui.add_spellbook.name);
+    let cover = if ui.add_spellbook.cover.is_empty() {
+        None
+    } else {
+        Some(std::mem::take(&mut ui.add_spellbook.cover))
+    };
+    let sigil = if ui.add_spellbook.sigil.is_empty() {
+        None
+    } else {
+        Some(std::mem::take(&mut ui.add_spellbook.sigil))
+    };
+
+    ui.start_loading("Saving spellbook...");
+    match Archivist::append_spellbook("codex.toml", name, cover, sigil) {
+        Ok(_) => {
+            ui.stop_loading();
+            ui.add_spellbook.message = Some(("Spellbook saved!".to_string(), false));
+            ui.add_spellbook.has_unsaved = false;
+            log_info!("Spellbook saved");
+            ui.add_spellbook.clear();
+            ui.mode = Mode::BrowseSpellbooks;
+        }
+        Err(e) => {
+            ui.stop_loading();
+            ui.add_spellbook.message = Some((format!("Save failed: {}", e), true));
+            log_error!("Save failed: {}", e);
         }
     }
 }

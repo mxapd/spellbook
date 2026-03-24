@@ -216,7 +216,7 @@ pub enum VirtualKind {
 When testing v2:
 
 1. **Navigation**
-   - [ ] Browse spellbooks with arrows/hjkl
+   - [ ] Browse spellbooks with arrows
    - [ ] Enter to open spellbook
    - [ ] Navigate spells with Up/Down
    - [ ] Back with Esc or ←
@@ -262,6 +262,47 @@ When testing v2:
    - [ ] `v` cycles view modes
    - [ ] Preferences persist across restarts
 
+9. **AddSpellbook Mode**
+   - [ ] `:nb` opens AddSpellbook form
+   - [ ] Tab/Arrow keys navigate fields
+   - [ ] All fields (Name, Cover, Sigil) accept input
+   - [ ] Ctrl+S or Enter on last field saves
+   - [ ] Esc cancels (with confirmation if dirty)
+   - [ ] Spellbook appears in list after save
+
+10. **Streaming Output**
+    - [ ] `Ctrl+r` shows streaming output modal
+    - [ ] Output streams in real-time
+    - [ ] `Ctrl+C` kills running process
+    - [ ] `Ctrl+B` promotes to background job
+    - [ ] Auto-scroll keeps view at bottom
+    - [ ] Scroll up/down disables auto-scroll
+    - [ ] `s` toggles auto-scroll on/off
+
+11. **Loading States**
+    - [ ] Spinner appears during spell save
+    - [ ] Spinner appears during import/export
+    - [ ] "Loading..." message shows operation
+
+## Known Issues & Pending Fixes
+
+The following issues require manual testing and potential fixes:
+
+### High Priority
+- **Simple Mode Recents**: Verify recents.toml is written BEFORE exec() replaces process
+- **TUI Streaming Edge Cases**: Test with commands that produce massive output (>10k lines)
+- **Job Promotion**: Verify Ctrl+B in streaming modal correctly moves job to background
+
+### Medium Priority
+- **Input Popup**: Legacy input popup (for command arguments) needs Overlay migration
+- **Focus Edge Cases**: Test rapid Tab switching between main and sidebar
+- **Theme Persistence**: Verify theme changes survive app restart
+
+### Low Priority
+- **Windows Compatibility**: exec() is Unix-only; test fallback on Windows
+- **Very Long Commands**: Test display truncation in forms
+- **Unicode Handling**: Test spell names/commands with emojis/unicode
+
 ## Migration Notes
 
 ### V1 → V2
@@ -286,6 +327,7 @@ Backup `codex.toml` before migration (automatic).
 
 - [refactor.md](refactor.md) - Complete v2 specification (source of truth)
 - [docs/architecture.md](docs/architecture.md) - System design
+- [docs/architecture-diagram.md](docs/architecture-diagram.md) - Visual architecture diagrams (DEBUGGING AID)
 - [docs/data-model.md](docs/data-model.md) - Data structures
 - [docs/ui-screens.md](docs/ui-screens.md) - UI details
 - [docs/roadmap.md](docs/roadmap.md) - Implementation phases

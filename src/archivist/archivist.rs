@@ -281,9 +281,9 @@ impl Archivist {
 
     pub fn append_spellbook(
         path: &str,
-        name: &str,
-        cover: Option<&str>,
-        sigil: Option<&str>,
+        name: String,
+        cover: Option<String>,
+        sigil: Option<String>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         log_info!("Creating spellbook: {}", name);
 

@@ -614,20 +614,32 @@ mod tests {
     use crate::models::{Theme, ThemeConfig, UserSettings, ViewMode};
     use serial_test::serial;
     use std::fs;
-    use std::path::Path;
+    use std::path::PathBuf;
+    use tempfile::TempDir;
 
-    struct TestFileGuard;
+    struct TestGuard {
+        _temp_dir: TempDir,
+        original_cwd: PathBuf,
+    }
 
-    impl Drop for TestFileGuard {
+    impl Drop for TestGuard {
         fn drop(&mut self) {
-            let _ = fs::remove_file("codex.toml");
+            let _ = std::env::set_current_dir(&self.original_cwd);
         }
     }
 
-    fn setup_test_file() -> TestFileGuard {
+    fn setup_test_env() -> TestGuard {
+        let temp_dir = tempfile::tempdir().expect("Failed to create temp dir");
+        let original_cwd = std::env::current_dir().expect("Failed to get current dir");
+        std::env::set_current_dir(temp_dir.path()).expect("Failed to set current dir");
+        
         let content = r#"[spellbook]"#;
-        let _ = fs::write("codex.toml", content);
-        TestFileGuard
+        fs::write("codex.toml", content).expect("Failed to write test codex");
+        
+        TestGuard {
+            _temp_dir: temp_dir,
+            original_cwd,
+        }
     }
 
     fn make_test_state(codex: Codex) -> State {
@@ -648,7 +660,7 @@ mod tests {
     #[test]
     #[serial]
     fn test_update_spell_modifies_existing() {
-        let _guard = setup_test_file();
+        let _guard = setup_test_env();
         let spell_id = uuid::Uuid::new_v4().to_string();
         let original_spell = Spell {
             id: spell_id.clone(),
@@ -719,7 +731,7 @@ mod tests {
     #[test]
     #[serial]
     fn test_delete_spell_removes_from_codex() {
-        let _guard = setup_test_file();
+        let _guard = setup_test_env();
         let spell_id = uuid::Uuid::new_v4().to_string();
         let mut state = make_test_state(Codex {
             spells: vec![Spell {
@@ -746,7 +758,7 @@ mod tests {
     #[test]
     #[serial]
     fn test_delete_spell_removes_from_spellbooks() {
-        let _guard = setup_test_file();
+        let _guard = setup_test_env();
         let spell_id = uuid::Uuid::new_v4().to_string();
 
         let mut state = make_test_state(Codex {

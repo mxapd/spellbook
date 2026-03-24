@@ -96,16 +96,16 @@ V1 delivered a functional TUI with:
   - [ ] OutputModal state and rendering
   - [ ] Real-time streaming with 10k line cap
   - [ ] Promotion to background
-- [ ] Background mode invoker
-  - [ ] Detached process spawn (nohup)
-  - [ ] Job struct and JobManager
-  - [ ] Job persistence (jobs.toml)
-  - [ ] Output file management
-- [ ] Job polling system
-  - [ ] Background poller thread
-  - [ ] Status updates via mpsc channel
-  - [ ] D-Bus notifications on completion
-- [ ] ConfirmDialog overlay
+  - [x] Background mode invoker
+  - [x] Detached process spawn (nohup)
+  - [x] Job struct and JobManager
+  - [x] Job persistence (jobs.toml)
+  - [x] Output file management
+  - [x] Job polling system
+  - [x] Background poller thread
+  - [x] Status updates via mpsc channel
+  - [x] D-Bus/notify-send notifications on completion
+  - [x] ConfirmDialog overlay
   - [ ] Rendering and event handling
   - [ ] Integration with `confirm` flag
 
@@ -118,22 +118,22 @@ V1 delivered a functional TUI with:
 **Goal**: Dynamic spellbook generation and favorites system.
 
 **Tasks**:
-- [ ] Favorites system
-  - [ ] Add `favorite: bool` to Spell
-  - [ ] Toggle favorite keybind (`f`)
-  - [ ] Generate virtual Favorites spellbook
-- [ ] Recent items system
-  - [ ] RecentEntry struct
-  - [ ] recent_store persistence
-  - [ ] Record actions (copy/run)
-  - [ ] Generate virtual Recent spellbook
-  - [ ] FIFO eviction (100 limit)
-- [ ] Virtual spellbook rendering
-  - [ ] Visual distinction (muted border)
-  - [ ] Top-of-list positioning
-  - [ ] SpellbookRef navigation
-- [ ] Update spell browser
-  - [ ] Handle SpellbookRef in BrowseSpells
+- [x] Favorites system
+  - [x] Add `favorite: bool` to Spell
+  - [x] Toggle favorite keybind (`f`)
+  - [x] Generate virtual Favorites spellbook
+- [x] Recent items system
+  - [x] RecentEntry struct
+  - [x] recent_store persistence
+  - [x] Record actions (copy/run)
+  - [x] Generate virtual Recent spellbook
+  - [x] FIFO eviction (100 limit)
+- [x] Virtual spellbook rendering
+  - [x] Visual distinction (muted border)
+  - [x] Top-of-list positioning
+  - [x] SpellbookRef navigation
+- [x] Update spell browser
+  - [x] Handle SpellbookRef in BrowseSpells
 
 **Deliverable**: Favorites and Recent spellbooks appear and function
 
@@ -175,24 +175,24 @@ V1 delivered a functional TUI with:
 **Goal**: Jobs sidebar UI and focus management.
 
 **Tasks**:
-- [ ] Jobs sidebar component
-  - [ ] JobsSidebarState
-  - [ ] Rendering (right side panel)
-  - [ ] Status icons (⟳ ✓ ✗ ⊘)
-  - [ ] Navigation (↑ ↓)
-  - [ ] Toggle with `:jobs`
-- [ ] Focus management
-  - [ ] FocusTarget tracking in AppState
-  - [ ] Tab key cycling
-  - [ ] Visual focus indicators
-  - [ ] Event routing based on focus
-- [ ] Job actions
-  - [ ] View output (Enter → OutputModal)
-  - [ ] Kill running job (`k`)
-  - [ ] Cancel queued job (`c`)
-- [ ] Integration
-  - [ ] Sidebar visible across all modes
-  - [ ] Job status updates from poller
+- [x] Jobs sidebar component
+  - [x] JobsSidebarState
+  - [x] Rendering (right side panel)
+  - [x] Status icons (⟳ ✓ ✗ ⊘)
+  - [x] Navigation (↑ ↓)
+  - [x] Toggle with `:jobs`
+- [x] Focus management
+  - [x] FocusTarget tracking in AppState
+  - [x] Tab key cycling
+  - [x] Visual focus indicators
+  - [x] Event routing based on focus
+- [x] Job actions
+  - [x] View output (Enter → OutputModal)
+  - [x] Kill running job (`k`)
+  - [x] Cancel queued job (`c`)
+- [x] Integration
+  - [x] Sidebar visible across all modes
+  - [x] Job status updates from poller
 
 **Deliverable**: Jobs sidebar functional with focus management
 
@@ -203,21 +203,21 @@ V1 delivered a functional TUI with:
 **Goal**: Inline search with `/` activation.
 
 **Tasks**:
-- [ ] Search mode activation
-  - [ ] `/` key handler
-  - [ ] `search_active` flag in browser states
-  - [ ] Visual indicator (search bar highlight)
-- [ ] BrowseSpellbooks search
-  - [ ] Filter by spellbook name
-  - [ ] Real-time filtering
-  - [ ] Update filtered_indices
-- [ ] BrowseSpells search
-  - [ ] Filter by name, lore, school, glyphs
-  - [ ] Real-time filtering
-  - [ ] Update filtered_indices
-- [ ] Search deactivation
-  - [ ] Esc clears query and deactivates
-  - [ ] Navigation switches to filtered view
+- [x] Search mode activation
+  - [x] `/` key handler
+  - [x] `search_active` flag in browser states
+  - [x] Visual indicator (search bar highlight)
+- [x] BrowseSpellbooks search
+  - [x] Filter by spellbook name
+  - [x] Real-time filtering
+  - [x] Update filtered_indices
+- [x] BrowseSpells search
+  - [x] Filter by name, lore, school, glyphs
+  - [x] Real-time filtering
+  - [x] Update filtered_indices
+- [x] Search deactivation
+  - [x] Esc clears query and deactivates
+  - [x] Navigation switches to filtered view
 
 **Deliverable**: `/` search works in both browse modes
 
@@ -228,18 +228,18 @@ V1 delivered a functional TUI with:
 **Goal**: Share spell collections as TOML files.
 
 **Tasks**:
-- [ ] Export command
-  - [ ] `:export [file]` - full codex
-  - [ ] `:export <spellbook>` - single spellbook
-  - [ ] Generate valid TOML
-  - [ ] Success notification
-- [ ] Import command
-  - [ ] `:import <file>` - load external TOML
-  - [ ] Parse and validate
-  - [ ] Conflict detection (duplicate IDs/names)
-  - [ ] Conflict resolution overlay
-  - [ ] Merge options: Skip / Overwrite / Rename
-  - [ ] Persist merged codex
+- [x] Export command
+  - [x] `:export [file]` - full codex
+  - [x] `:export <spellbook>` - single spellbook
+  - [x] Generate valid TOML
+  - [x] Success notification
+- [x] Import command
+  - [x] `:import <file>` - load external TOML
+  - [x] Parse and validate
+  - [x] Conflict detection (duplicate IDs/names)
+  - [x] Conflict resolution overlay
+  - [x] Merge options: Skip / Overwrite / Rename
+  - [x] Persist merged codex
 
 **Deliverable**: Import/export functional with conflict handling
 

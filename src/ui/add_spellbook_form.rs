@@ -1,8 +1,24 @@
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum AddSpellbookField {
+    Name,
+    Cover,
+    Sigil,
+}
+
+impl Default for AddSpellbookField {
+    fn default() -> Self {
+        AddSpellbookField::Name
+    }
+}
+
 #[derive(Debug, Clone, Default)]
 pub struct AddSpellbookForm {
+    pub field: AddSpellbookField,
     pub name: String,
     pub cover: String,
     pub sigil: String,
+    pub message: Option<(String, bool)>, // (message, is_error)
+    pub has_unsaved: bool,
 }
 
 impl AddSpellbookForm {
@@ -10,5 +26,150 @@ impl AddSpellbookForm {
         self.name.clear();
         self.cover.clear();
         self.sigil.clear();
+        self.field = AddSpellbookField::Name;
+        self.message = None;
+        self.has_unsaved = false;
     }
+
+    pub fn is_valid(&self) -> bool {
+        !self.name.trim().is_empty()
+    }
+
+    pub fn next_field(&mut self) {
+        self.field = match self.field {
+            AddSpellbookField::Name => AddSpellbookField::Cover,
+            AddSpellbookField::Cover => AddSpellbookField::Sigil,
+            AddSpellbookField::Sigil => AddSpellbookField::Name,
+        };
+    }
+
+    pub fn prev_field(&mut self) {
+        self.field = match self.field {
+            AddSpellbookField::Name => AddSpellbookField::Sigil,
+            AddSpellbookField::Cover => AddSpellbookField::Name,
+            AddSpellbookField::Sigil => AddSpellbookField::Cover,
+        };
+    }
+}
+
+use ratatui::{
+    layout::{Constraint, Direction, Layout, Rect},
+    style::{Color, Modifier, Style},
+    text::{Line, Span},
+    widgets::{Block, Borders, Paragraph},
+    Frame,
+};
+
+pub fn render(frame: &mut Frame, state: &crate::state::State, ui: &mut crate::ui::UiState) {
+    let area = frame.area();
+    render_in_area(frame, state, ui, area);
+}
+
+pub fn render_in_area(frame: &mut Frame, state: &crate::state::State, ui: &mut crate::ui::UiState, area: Rect) {
+    let theme = &state.theme;
+    let form = &ui.add_spellbook;
+
+    // Main layout
+    let chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .margin(2)
+        .constraints([
+            Constraint::Length(3), // Title
+            Constraint::Min(10),   // Form fields
+            Constraint::Length(3), // Message area
+        ])
+        .split(area);
+
+    // Title
+    let title = Paragraph::new("Add New Spellbook")
+        .style(Style::new().fg(theme.accent).add_modifier(Modifier::BOLD))
+        .alignment(ratatui::layout::Alignment::Center);
+    frame.render_widget(title, chunks[0]);
+
+    // Form fields
+    let form_chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Length(3), // Name
+            Constraint::Length(3), // Cover
+            Constraint::Length(3), // Sigil
+        ])
+        .split(chunks[1]);
+
+    // Name field
+    render_field(
+        frame,
+        form_chunks[0],
+        "Name",
+        '*',
+        &form.name,
+        form.field == AddSpellbookField::Name,
+        theme,
+    );
+
+    // Cover field
+    render_field(
+        frame,
+        form_chunks[1],
+        "Cover",
+        ':',
+        &form.cover,
+        form.field == AddSpellbookField::Cover,
+        theme,
+    );
+
+    // Sigil field
+    render_field(
+        frame,
+        form_chunks[2],
+        "Sigil",
+        '@',
+        &form.sigil,
+        form.field == AddSpellbookField::Sigil,
+        theme,
+    );
+
+    // Message area
+    let message_text = if let Some((msg, is_error)) = &form.message {
+        Line::from(vec![Span::styled(
+            msg.clone(),
+            Style::new().fg(if *is_error { Color::Red } else { theme.accent }),
+        )])
+    } else {
+        Line::from("Tab: next field | Enter: save | Ctrl+S: save | Esc: cancel")
+    };
+    let message = Paragraph::new(message_text)
+        .alignment(ratatui::layout::Alignment::Center)
+        .style(Style::new().fg(theme.muted));
+    frame.render_widget(message, chunks[2]);
+}
+
+fn render_field(
+    frame: &mut Frame,
+    area: Rect,
+    label: &str,
+    icon: char,
+    value: &str,
+    is_active: bool,
+    theme: &crate::models::RatatuiColors,
+) {
+    let block = Block::default()
+        .borders(Borders::ALL)
+        .border_style(if is_active {
+            Style::new().fg(theme.accent)
+        } else {
+            Style::new().fg(theme.muted)
+        })
+        .title(format!("{} {}", icon, label))
+        .title_style(if is_active {
+            Style::new().fg(theme.accent).add_modifier(Modifier::BOLD)
+        } else {
+            Style::new().fg(theme.fg)
+        });
+
+    let text = Paragraph::new(value)
+        .block(block)
+        .style(Style::new().fg(theme.fg).bg(theme.bg));
+
+    frame.render_widget(text, area);
 }

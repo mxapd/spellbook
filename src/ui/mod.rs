@@ -8,6 +8,7 @@ pub mod add_spell_form;
 pub mod add_spellbook_form;
 pub mod confirm;
 pub mod events;
+pub mod footer;
 pub mod help;
 pub mod input;
 pub mod jobs;
@@ -16,9 +17,10 @@ pub mod search_overlay;
 pub mod search_state;
 pub mod spell_list;
 pub mod spellbook_browser;
+pub mod streaming_modal;
 
 pub use add_spell_form::{AddSpellField, AddSpellForm};
-pub use add_spellbook_form::AddSpellbookForm;
+pub use add_spellbook_form::{AddSpellbookField, AddSpellbookForm};
 pub use confirm::ConfirmDialogState;
 pub use events::filter_commands;
 pub use events::handle_event;
@@ -27,17 +29,27 @@ pub use jobs::JobsPanelState;
 pub use render::render;
 pub use search_state::SearchState;
 pub use spellbook_browser::SpellbookBrowserState;
+pub use streaming_modal::StreamingModalState;
 
-#[derive(PartialEq, Clone, Copy)]
-pub enum Screen {
-    SpellList,
-    SearchOverlay,
+/// Application modes - represents the main view state
+#[derive(PartialEq, Clone, Copy, Debug, Default)]
+pub enum Mode {
+    #[default]
+    BrowseSpellbooks,
+    BrowseSpells,
     AddSpell,
-    OutputPopup,
-    JobsPanel,
+    EditSpell,
+    AddSpellbook,
+}
+
+/// Overlays render on top of the current mode
+#[derive(PartialEq, Clone, Copy, Debug)]
+pub enum Overlay {
+    OutputModal,
     ConfirmDialog,
-    InputPopup,
+    CommandPalette,
     Help,
+    InputPopup,
 }
 
 #[derive(PartialEq, Clone, Copy, Default)]
@@ -50,7 +62,10 @@ pub enum SearchMode {
 }
 
 pub struct UiState {
-    pub screen: Screen,
+    // Mode/overlay system
+    pub mode: Mode,
+    pub overlays: Vec<Overlay>,
+
     pub spell_list_state: ListState,
     pub selected_spellbook: Option<usize>,
     pub is_typing: bool,
@@ -62,25 +77,32 @@ pub struct UiState {
     pub add_spell: AddSpellForm,
     pub add_spellbook: AddSpellbookForm,
     pub output_popup: Option<ExecutionResult>,
-    pub previous_screen: Option<Screen>,
     pub needs_redraw: bool,
     pub jobs_panel_state: JobsPanelState,
+    
+    // Loading state for long-running operations
+    pub loading_message: Option<String>,
+    pub loading_spinner: u8,
     pub confirm_dialog: Option<ConfirmDialogState>,
     pub input_popup: Option<InputPopupState>,
     pub focus: FocusTarget,
     pub jobs_sidebar_open: bool,
+
+    // Streaming output modal state
+    pub streaming_modal: StreamingModalState,
 }
 
 impl UiState {
     pub fn new(start_in_add_mode: bool) -> Self {
-        let screen = if start_in_add_mode {
-            Screen::AddSpell
+        let mode = if start_in_add_mode {
+            Mode::AddSpell
         } else {
-            Screen::SearchOverlay
+            Mode::BrowseSpellbooks
         };
 
         Self {
-            screen,
+            mode,
+            overlays: Vec::new(),
             spell_list_state: ListState::default(),
             selected_spellbook: None,
             is_typing: false,
@@ -92,19 +114,92 @@ impl UiState {
             add_spell: AddSpellForm::default(),
             add_spellbook: AddSpellbookForm::default(),
             output_popup: None,
-            previous_screen: None,
             needs_redraw: false,
             jobs_panel_state: JobsPanelState::default(),
             confirm_dialog: None,
             input_popup: None,
             focus: FocusTarget::Main,
             jobs_sidebar_open: false,
+
+            streaming_modal: StreamingModalState::default(),
+            
+            loading_message: None,
+            loading_spinner: 0,
         }
     }
-
+    
+    /// Show a loading message for long-running operations
+    pub fn start_loading(&mut self, message: impl Into<String>) {
+        self.loading_message = Some(message.into());
+        self.loading_spinner = 0;
+        self.request_redraw();
+    }
+    
+    /// Clear the loading state
+    pub fn stop_loading(&mut self) {
+        self.loading_message = None;
+        self.request_redraw();
+    }
+    
+    /// Update the spinner animation (call periodically)
+    pub fn tick_spinner(&mut self) {
+        if self.loading_message.is_some() {
+            self.loading_spinner = (self.loading_spinner + 1) % 4;
+            self.request_redraw();
+        }
+    }
+    
+    /// Get the current spinner character
+    pub fn spinner_char(&self) -> char {
+        match self.loading_spinner {
+            0 => '|',
+            1 => '/',
+            2 => '-',
+            3 => '\\',
+            _ => '|',
+        }
+    }
+    
+    /// Check if currently loading
+    pub fn is_loading(&self) -> bool {
+        self.loading_message.is_some()
+    }
+    
+    // Mode/Overlay management
+    pub fn push_overlay(&mut self, overlay: Overlay) {
+        if !self.overlays.contains(&overlay) {
+            self.overlays.push(overlay);
+        }
+    }
+    
+    pub fn pop_overlay(&mut self) {
+        self.overlays.pop();
+    }
+    
+    pub fn clear_overlays(&mut self) {
+        self.overlays.clear();
+    }
+    
+    pub fn has_overlay(&self, overlay: Overlay) -> bool {
+        self.overlays.contains(&overlay)
+    }
+    
+    pub fn top_overlay(&self) -> Option<Overlay> {
+        self.overlays.last().copied()
+    }
+    
+    pub fn set_mode(&mut self, mode: Mode) {
+        self.mode = mode;
+    }
+    
+    /// Check if any overlay is active
+    pub fn has_any_overlay(&self) -> bool {
+        !self.overlays.is_empty()
+    }
+    
     pub fn open_search(&mut self) {
         self.search.open();
-        self.screen = Screen::SearchOverlay;
+        self.mode = Mode::BrowseSpellbooks;
         self.is_typing = true;
         self.spellbook_browser.reset();
     }
@@ -115,16 +210,16 @@ impl UiState {
 
     pub fn clear_add_spell_form(&mut self) {
         self.add_spell.clear();
-        self.screen = Screen::SearchOverlay;
+        self.mode = Mode::BrowseSpellbooks;
         self.exit_typing_mode();
     }
 
     pub fn update_typing_state(&mut self) {
-        match &self.screen {
-            Screen::AddSpell => {
+        match self.mode {
+            Mode::AddSpell | Mode::EditSpell => {
                 self.is_typing = self.add_spell.is_typing();
             }
-            Screen::SearchOverlay => {
+            Mode::BrowseSpellbooks | Mode::BrowseSpells => {
                 self.is_typing = true;
             }
             _ => {
@@ -234,17 +329,12 @@ impl UiState {
     }
 
     pub fn show_output_popup(&mut self, result: ExecutionResult) {
-        self.previous_screen = Some(self.screen.clone());
         self.output_popup = Some(result);
-        self.screen = Screen::OutputPopup;
+        self.push_overlay(Overlay::OutputModal);
     }
 
     pub fn hide_output_popup(&mut self) {
-        if let Some(prev) = self.previous_screen.take() {
-            self.screen = prev;
-        } else {
-            self.screen = Screen::SearchOverlay;
-        }
+        self.pop_overlay();
         self.output_popup = None;
     }
 
@@ -284,5 +374,30 @@ impl UiState {
 
     pub fn sidebar_has_focus(&self) -> bool {
         self.focus == FocusTarget::JobsSidebar
+    }
+    
+    // Mode transition helpers
+    pub fn enter_browse_spells(&mut self, spellbook_index: usize) {
+        self.mode = Mode::BrowseSpells;
+        self.selected_spellbook = Some(spellbook_index);
+        self.spell_list_state.select(Some(0));
+    }
+    
+    pub fn enter_browse_spellbooks(&mut self) {
+        self.mode = Mode::BrowseSpellbooks;
+        self.selected_spellbook = None;
+    }
+    
+    pub fn enter_add_spell(&mut self) {
+        self.mode = Mode::AddSpell;
+        self.add_spell.clear();
+        self.is_typing = true;
+    }
+    
+    pub fn enter_edit_spell(&mut self, spellbook_index: usize, spell_index: usize) {
+        self.mode = Mode::EditSpell;
+        self.selected_spellbook = Some(spellbook_index);
+        self.spell_list_state.select(Some(spell_index));
+        self.is_typing = true;
     }
 }

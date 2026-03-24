@@ -1,5 +1,5 @@
 use crate::state::State;
-use crate::ui::{add_spell, add_spell_form, add_spellbook_form, confirm, help, input, jobs, search_overlay, spell_list, Screen, UiState};
+use crate::ui::{add_spell, add_spellbook_form, confirm, help, jobs, search_overlay, spell_list, streaming_modal, Mode, Overlay, UiState};
 use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout},
     style::{Modifier, Style},
@@ -8,50 +8,127 @@ use ratatui::{
     Frame,
 };
 
+/// Main render dispatcher - renders current mode, then overlays on top
 pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
+    // Collect overlays first to avoid borrow issues
+    let overlays: Vec<Overlay> = ui.overlays.clone();
+    
     if ui.jobs_sidebar_open {
-        render_with_sidebar(frame, state, ui);
-        return;
+        render_with_sidebar(frame, state, ui, &overlays);
+    } else {
+        render_mode(ui.mode, frame, state, ui, frame.area());
+        // Render overlays on top (modal windows)
+        for overlay in &overlays {
+            render_overlay(*overlay, frame, state, ui);
+        }
     }
 
-    match &ui.screen {
-        Screen::SpellList => {
-            spell_list::render(frame, state, ui);
+    // Render loading indicator on top if active
+    if ui.is_loading() {
+        render_loading_indicator(frame, ui, &state.theme);
+    }
+}
+
+/// Render a loading indicator overlay
+fn render_loading_indicator(frame: &mut Frame, ui: &UiState, theme: &crate::models::RatatuiColors) {
+    use ratatui::layout::{Alignment, Rect};
+    use ratatui::style::{Modifier, Style};
+    use ratatui::text::{Line, Span};
+    use ratatui::widgets::{Block, Borders, Paragraph};
+    
+    let area = frame.area();
+    
+    // Create a small popup in the bottom-right corner
+    let message = ui.loading_message.as_deref().unwrap_or("Loading...");
+    let spinner = ui.spinner_char();
+    let text = format!("{} {}", spinner, message);
+    
+    let width = text.len() as u16 + 4; // padding
+    let height = 3;
+    let x = area.width.saturating_sub(width + 2);
+    let y = area.height.saturating_sub(height + 1);
+    
+    let popup_area = Rect::new(x, y, width, height);
+    
+    // Semi-transparent background effect by rendering a block
+    let block = Block::default()
+        .borders(Borders::ALL)
+        .border_style(Style::new().fg(theme.accent))
+        .style(Style::new().bg(theme.bg));
+    
+    let line = Line::from(vec![
+        Span::styled(
+            format!(" {} ", text),
+            Style::new()
+                .fg(theme.fg)
+                .bg(theme.bg)
+                .add_modifier(Modifier::BOLD),
+        ),
+    ]);
+    
+    let paragraph = Paragraph::new(line)
+        .alignment(Alignment::Center)
+        .block(block);
+    
+    frame.render_widget(paragraph, popup_area);
+}
+
+/// Render the current mode
+fn render_mode(mode: Mode, frame: &mut Frame, state: &State, ui: &mut UiState, area: ratatui::layout::Rect) {
+    match mode {
+        Mode::BrowseSpellbooks => {
+            search_overlay::render_in_area(frame, state, ui, area);
         }
-        Screen::SearchOverlay => {
-            search_overlay::render(frame, state, ui);
+        Mode::BrowseSpells => {
+            spell_list::render_in_area(frame, state, ui, area);
         }
-        Screen::AddSpell => {
-            add_spell::render(frame, state, ui);
+        Mode::AddSpell | Mode::EditSpell => {
+            add_spell::render_in_area(frame, state, ui, area);
         }
-        Screen::OutputPopup => {
-            search_overlay::render(frame, state, ui);
-            render_output_popup(frame, state, ui);
-        }
-        Screen::JobsPanel => {
-            search_overlay::render(frame, state, ui);
-            render_jobs_popup(frame, state, ui);
-        }
-        Screen::ConfirmDialog => {
-            search_overlay::render(frame, state, ui);
-            if let Some(_) = &ui.confirm_dialog {
-                render_confirm_popup(frame, state, ui);
-            }
-        }
-        Screen::InputPopup => {
-            search_overlay::render(frame, state, ui);
-            if let Some(_) = &ui.input_popup {
-                render_input_popup_overlay(frame, state, ui);
-            }
-        }
-        Screen::Help => {
-            search_overlay::render(frame, state, ui);
-            render_help_overlay(frame, state);
+        Mode::AddSpellbook => {
+            add_spellbook_form::render_in_area(frame, state, ui, area);
         }
     }
 }
 
-fn render_with_sidebar(frame: &mut Frame, state: &State, ui: &mut UiState) {
+/// Render an overlay on top of the current mode
+fn render_overlay(overlay: Overlay, frame: &mut Frame, state: &State, ui: &mut UiState) {
+    match overlay {
+        Overlay::OutputModal => {
+            // Use new streaming modal if streaming is active, otherwise fall back to legacy
+            if ui.streaming_modal.streaming.is_some() || ui.streaming_modal.output.is_streaming {
+                streaming_modal::render_streaming_modal(frame, ui, &state.theme);
+            } else if ui.output_popup.is_some() {
+                render_output_popup(frame, state, ui);
+            }
+        }
+        Overlay::ConfirmDialog => {
+            if ui.confirm_dialog.is_some() {
+                render_confirm_popup(frame, state, ui);
+            }
+        }
+        Overlay::CommandPalette => {
+            // Command palette is rendered as part of search overlay
+        }
+        Overlay::Help => {
+            render_help_overlay(frame, state);
+        }
+        Overlay::InputPopup => {
+            if ui.input_popup.is_some() {
+                render_input_popup_overlay(frame, state, ui);
+            }
+        }
+    }
+}
+
+/// Render input popup overlay if active
+fn render_input_popup_if_active(frame: &mut Frame, state: &State, ui: &mut UiState) {
+    if ui.input_popup.is_some() {
+        render_input_popup_overlay(frame, state, ui);
+    }
+}
+
+fn render_with_sidebar(frame: &mut Frame, state: &State, ui: &mut UiState, overlays: &[Overlay]) {
     let area = frame.area();
     let theme = &state.theme;
     let sidebar_width: u16 = 40;
@@ -64,35 +141,12 @@ fn render_with_sidebar(frame: &mut Frame, state: &State, ui: &mut UiState) {
         .constraints([Constraint::Min(1), Constraint::Length(actual_sidebar_width)])
         .split(area);
 
-    match &ui.screen {
-        Screen::SpellList => {
-            spell_list::render_in_area(frame, state, ui, chunks[0]);
-        }
-        Screen::SearchOverlay => {
-            search_overlay::render_in_area(frame, state, ui, chunks[0]);
-        }
-        Screen::AddSpell => {
-            add_spell::render_in_area(frame, state, ui, chunks[0]);
-        }
-        Screen::OutputPopup => {
-            search_overlay::render_in_area(frame, state, ui, chunks[0]);
-            render_output_popup(frame, state, ui);
-        }
-        Screen::ConfirmDialog => {
-            search_overlay::render_in_area(frame, state, ui, chunks[0]);
-            if ui.confirm_dialog.is_some() {
-                render_confirm_popup(frame, state, ui);
-            }
-        }
-        Screen::InputPopup => {
-            search_overlay::render_in_area(frame, state, ui, chunks[0]);
-            if ui.input_popup.is_some() {
-                render_input_popup_overlay(frame, state, ui);
-            }
-        }
-        _ => {
-            search_overlay::render_in_area(frame, state, ui, chunks[0]);
-        }
+    // Render the current mode in the main area
+    render_mode(ui.mode, frame, state, ui, chunks[0]);
+    
+    // Render overlays on top
+    for overlay in overlays {
+        render_overlay(*overlay, frame, state, ui);
     }
 
     let border_style = if ui.focus == crate::models::FocusTarget::JobsSidebar {
@@ -135,23 +189,25 @@ fn render_with_sidebar(frame: &mut Frame, state: &State, ui: &mut UiState) {
 fn render_output_popup(frame: &mut Frame, state: &State, ui: &UiState) {
     let theme = &state.theme;
     let area = frame.area();
+    render_output_popup_in_area(frame, state, ui, area);
+}
 
-    // 1. Dim the entire background FIRST (before popup)
-    let overlay_rect = ratatui::layout::Rect {
-        x: 0,
-        y: 0,
-        width: area.width,
-        height: area.height,
-    };
-    let overlay = Paragraph::new("").style(Style::new().bg(ratatui::style::Color::Indexed(0)));
+fn render_output_popup_in_area(frame: &mut Frame, state: &State, ui: &UiState, area: ratatui::layout::Rect) {
+    let theme = &state.theme;
+
+    // Full-screen overlay to hide content behind popup
+    let overlay_rect = area;
+    let overlay = Paragraph::new("").style(Style::new().bg(theme.bg));
     frame.render_widget(overlay, overlay_rect);
 
-    // 2. Calculate popup dimensions
-    let popup_width = (area.width * 3).min(80).max(40);
-    let popup_height = (area.height * 3 / 5).max(10).min(area.height - 4);
+    // Calculate popup dimensions (relative to available area)
+    let max_width = area.width.saturating_sub(4).max(20);
+    let max_height = area.height.saturating_sub(4).max(6);
+    let popup_width = max_width.min(80);
+    let popup_height = max_height.min(area.height.saturating_sub(2)).max(6);
 
-    let popup_x = (area.width - popup_width) / 2;
-    let popup_y = (area.height - popup_height) / 2;
+    let popup_x = (area.width.saturating_sub(popup_width)) / 2;
+    let popup_y = (area.height.saturating_sub(popup_height)) / 2;
 
     let popup_area = ratatui::layout::Rect {
         x: popup_x,
@@ -166,7 +222,7 @@ fn render_output_popup(frame: &mut Frame, state: &State, ui: &UiState) {
         .title(" Output ")
         .title_style(Style::new().fg(theme.accent).add_modifier(Modifier::BOLD));
 
-    // 3. Render popup background (clears the dimmed area)
+    // Draw border
     frame.render_widget(&block, popup_area);
 
     let inner = block.inner(popup_area);
@@ -182,6 +238,8 @@ fn render_output_popup(frame: &mut Frame, state: &State, ui: &UiState) {
         ])
         .split(inner);
 
+    let popup_bg = theme.bg;
+
     // 4. Render popup content
     if let Some(ref result) = ui.output_popup {
         let exit_indicator = match result.exit_code {
@@ -196,7 +254,7 @@ fn render_output_popup(frame: &mut Frame, state: &State, ui: &UiState) {
                 Style::new().fg(theme.accent).add_modifier(Modifier::BOLD),
             ),
         ]);
-        let cmd_para = Paragraph::new(command_line).style(Style::new().bg(theme.bg).fg(theme.fg));
+        let cmd_para = Paragraph::new(command_line).style(Style::new().bg(popup_bg).fg(theme.fg));
         frame.render_widget(cmd_para, layout[0]);
 
         // Output area
@@ -240,7 +298,7 @@ fn render_output_popup(frame: &mut Frame, state: &State, ui: &UiState) {
 
         let output_text = Text::from(output_lines);
         let output_para = Paragraph::new(output_text)
-            .style(Style::new().bg(theme.bg).fg(theme.fg))
+            .style(Style::new().bg(popup_bg).fg(theme.fg))
             .wrap(Wrap { trim: true })
             .scroll((0, 0));
 
@@ -257,7 +315,7 @@ fn render_output_popup(frame: &mut Frame, state: &State, ui: &UiState) {
             Span::styled(exit_str, Style::new().fg(theme.muted)),
         ]);
         let footer_para = Paragraph::new(footer)
-            .style(Style::new().bg(theme.bg).fg(theme.fg))
+            .style(Style::new().bg(popup_bg).fg(theme.fg))
             .alignment(Alignment::Center);
         frame.render_widget(footer_para, layout[2]);
     }

@@ -2,4 +2,4 @@ selected_theme = "GruvboxDark"
 
 [settings]
 view_mode = "Cards"
-experimental_mode = true
+experimental_mode = false

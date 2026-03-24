@@ -8,7 +8,6 @@ use ratatui::{
 
 use crate::invoker::{self, Job, JobStatus};
 use crate::state::State;
-use crate::ui::Screen;
 
 pub struct JobsPanelState {
     pub selected_index: Option<usize>,
@@ -30,25 +29,14 @@ pub fn render_jobs_panel(f: &mut Frame, state: &State, ui: &mut crate::ui::UiSta
     let theme = &state.theme;
     let jobs = invoker::list_jobs();
 
-    let title = format!(" Jobs ({} jobs) ", jobs.len());
-
-    let block = Block::default()
-        .title(title.as_str())
-        .borders(Borders::ALL)
-        .border_style(Style::new().fg(theme.border));
-
-    f.render_widget(block, area);
-
-    let inner = Rect::new(area.x + 1, area.y + 1, area.width - 2, area.height - 2);
-
     if jobs.is_empty() {
         let empty_msg = Paragraph::new("No jobs yet. Run a spell with Alt+Enter to start.")
             .style(Style::new().fg(theme.muted));
-        f.render_widget(empty_msg, inner);
+        f.render_widget(empty_msg, area);
         return;
     }
 
-    let visible_height = inner.height as usize;
+    let visible_height = area.height as usize;
     let total_height = jobs.len();
 
     if ui.jobs_panel_state.selected_index.is_none() && !jobs.is_empty() {
@@ -129,7 +117,7 @@ pub fn render_jobs_panel(f: &mut Frame, state: &State, ui: &mut crate::ui::UiSta
         .block(Block::default())
         .style(Style::new().bg(theme.bg));
 
-    f.render_widget(list, inner);
+    f.render_widget(list, area);
 
     let help_text = Line::from(vec![
         Span::raw("["),
@@ -159,12 +147,10 @@ pub fn handle_jobs_key(key: crossterm::event::KeyCode, ui: &mut crate::ui::UiSta
 
     match key {
         crossterm::event::KeyCode::Esc => {
+            // Close jobs sidebar if open, otherwise nothing (Esc handled by mode handler)
             if ui.jobs_sidebar_open {
                 ui.jobs_sidebar_open = false;
                 ui.focus = crate::models::FocusTarget::Main;
-            } else {
-                ui.screen = Screen::SearchOverlay;
-                ui.jobs_panel_state = JobsPanelState::default();
             }
             return false;
         }

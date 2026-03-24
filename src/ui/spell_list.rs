@@ -40,7 +40,7 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
     if spells.is_empty() {
         let inner = list_block.inner(chunks[0]);
         frame.render_widget(list_block, chunks[0]);
-        let empty_message = Paragraph::new("No spells in this spellbook\n\nRun: spellbook --add")
+        let empty_message = Paragraph::new("No spells\n\nPress :n to add one")
             .style(Style::new().fg(theme.muted).bg(theme.bg));
         frame.render_widget(empty_message, inner);
     } else {
@@ -113,8 +113,7 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
             .alignment(ratatui::layout::Alignment::Center)
     } else {
         Paragraph::new(format!(
-            "↑↓ navigate  enter copy  / search  t {}  esc back  q quit",
-            state.current_theme.name()
+            "↑↓ navigate  enter copy  s simple  Ctrl+r tui  Ctrl+b bg  esc back  q quit",
         ))
         .style(Style::new().fg(theme.muted).bg(theme.bg))
     };
@@ -231,7 +230,7 @@ pub fn render_in_area(
             .style(Style::new().fg(ratatui::style::Color::Green).bg(theme.bg))
             .alignment(ratatui::layout::Alignment::Center)
     } else {
-        Paragraph::new("navigate  enter copy  / search  esc back")
+        Paragraph::new("↑↓ navigate  enter copy  s simple  Ctrl+r tui  Ctrl+b bg  esc back")
             .style(Style::new().fg(theme.muted).bg(theme.bg))
     };
     frame.render_widget(footer, chunks[2]);

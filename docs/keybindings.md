@@ -92,18 +92,28 @@ Available in all modes and overlays.
 
 ## Overlay Keybinds
 
-### OutputModal
+### OutputModal (Streaming)
 
 | Key | Action |
 |-----|--------|
-| `↑` / `k` | Scroll up |
-| `↓` / `j` | Scroll down |
+| `↑` / `k` | Scroll up (disables auto-scroll) |
+| `↓` / `j` | Scroll down (disables auto-scroll) |
 | `Page Up` | Scroll up one page |
 | `Page Down` | Scroll down one page |
 | `Home` | Jump to top |
 | `End` | Jump to bottom |
-| `Ctrl+b` | Promote to background (if TUI run) |
-| `Esc` | Close modal |
+| `s` | Toggle auto-scroll on/off |
+| `Ctrl+c` | **Kill** running process (sends SIGKILL) |
+| `Ctrl+b` | **Promote to background** (restarts as detached job) |
+| `Esc` | Close modal (only when process finished) |
+
+**Streaming Features**:
+- **Real-time output**: Lines appear as they're produced
+- **10,000 line cap**: Old lines discarded automatically (FIFO)
+- **Auto-scroll**: View stays at bottom (toggle with `s`)
+- **Color coding**: Stderr highlighted in red
+- **Status indicator**: Title shows ⟳ (running), ✓ (success), ✗ (failure)
+- **Footer hints**: Context-aware based on process state
 
 ### ConfirmDialog
 

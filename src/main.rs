@@ -64,9 +64,12 @@ fn run(terminal: &mut DefaultTerminal) -> io::Result<()> {
     let mut state = state::State::new(codex);
     let mut ui_state = ui::UiState::new(mode == AppMode::AddSpell);
 
-    // Start on SearchOverlay by default (unless --add is passed for AddSpell screen)
+    // Start on BrowseSpellbooks mode by default (unless --add is passed for AddSpell mode)
     if mode == AppMode::Browse {
         ui_state.open_search();
+        ui_state.set_mode(ui::Mode::BrowseSpellbooks);
+    } else {
+        ui_state.set_mode(ui::Mode::AddSpell);
     }
 
     logging::init_logging();
@@ -116,7 +119,14 @@ fn run(terminal: &mut DefaultTerminal) -> io::Result<()> {
                 }
             }
             Ok(false) => {
-                // Timeout elapsed - redraw to update job statuses etc.
+                // Timeout elapsed - poll for streaming output, update spinner, and redraw
+                ui::streaming_modal::poll_stream_output(&mut ui_state);
+                ui_state.tick_spinner();
+                if ui_state.is_loading() {
+                    terminal.draw(|frame| {
+                        ui::render(frame, &state, &mut ui_state);
+                    })?;
+                }
             }
             Err(e) => {
                 log_debug!("Event poll error: {}", e);

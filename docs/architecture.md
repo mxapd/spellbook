@@ -241,12 +241,22 @@ pub enum RunMode {
 3. Spawn child process with stdout/stderr piped
 4. Open OutputModal overlay, stream output in real-time
 5. **Streaming architecture**:
-   - Background thread reads from pipes line-by-line
-   - Sends lines via mpsc channel to event loop
-   - Event loop polls channel each tick (~16ms)
+   - Process spawns with `stdout` and `stderr` captured via pipes
+   - Background thread reads lines from both pipes concurrently
+   - Lines sent via mpsc channel to main event loop
+   - Event loop polls channel every tick (100ms timeout)
    - Lines appended to `OutputModalState::content` (cap: 10,000 lines)
-6. On completion, show exit code
-7. User can promote to background with `Ctrl+b`
+   - Auto-scroll keeps view at bottom (toggle with `s` key)
+6. **Live controls** while process runs:
+   - `Ctrl+C`: Kill running process (sends SIGKILL)
+   - `Ctrl+B`: Promote to background (restarts via JobManager)
+7. On completion, show exit code (✓ for 0, ✗ for non-zero)
+8. **Display features**:
+   - Status indicator in title: ⟳ (running), ✓ (success), ✗ (failure)
+   - Stderr highlighted in red
+   - System messages ([stderr], [Process killed]) in muted color
+   - Truncation warning when 10,000 line limit reached
+   - Footer shows context-aware keyboard hints
 
 ### Background Mode Flow
 
@@ -500,3 +510,9 @@ Example log entries:
 [ERROR] Failed to spawn job 5: working_dir /invalid/path does not exist
 [DEBUG] Job 3 status check: Running (PID 12345)
 ```
+
+---
+
+## See Also
+
+- [architecture-diagram.md](architecture-diagram.md) - Visual diagrams of module relationships, data flow, and component hierarchy (useful for debugging)

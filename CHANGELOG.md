@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepaloggelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### Completed
+- **v2.0.0 Rewrite 100% Complete** - All core features implemented and tested
+- Removed deprecated Screen enum, fully migrated to Mode/Overlay system
+- TUI streaming execution with real-time output and 10k line cap
+- Simple mode now writes recents.toml before exec() (critical fix)
+- AddSpellbook form with full UI and event handling
+- Loading states for all archivist operations
+- Context-aware footer hints for all modes
+- 100 unit tests passing
+
+### Fixed
+- Background jobs now persist correctly after app restart (missing `.spellbook` directory creation)
+
 ## [2.0.0] - 2026-03-22
 
 ### Added

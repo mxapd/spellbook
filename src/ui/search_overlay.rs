@@ -70,40 +70,25 @@ impl SpellbookItem<'_> {
 }
 
 pub fn get_spellbook_item<'a>(state: &'a State, index: usize) -> Option<SpellbookItem<'a>> {
-    let favorites = state
-        .recents
-        .iter()
-        .filter(|r| {
-            state
-                .codex
-                .spells
-                .iter()
-                .any(|s| s.id == r.spell_id && s.favorite)
-        })
-        .count();
+    let favorites_count = state.codex.spells.iter().filter(|s| s.favorite).count();
+    let has_favorites = favorites_count > 0;
+    let has_recent = !state.recents.is_empty();
 
-    let real_book_index = index.saturating_sub(2);
-
-    if index == 0 {
-        if favorites > 0 {
-            return Some(SpellbookItem::VirtualFavorite { count: favorites });
-        } else {
-            return None;
-        }
+    if has_favorites && index == 0 {
+        return Some(SpellbookItem::VirtualFavorite { count: favorites_count });
     }
 
-    if index == 1 {
-        let recent_count = state.recents.len();
-        if recent_count > 0 {
+    if has_recent {
+        let recent_idx = if has_favorites { 1 } else { 0 };
+        if index == recent_idx {
             return Some(SpellbookItem::VirtualRecent {
-                count: recent_count,
+                count: state.recents.len(),
             });
-        } else if favorites > 0 {
-            return Some(SpellbookItem::VirtualFavorite { count: favorites });
-        } else {
-            return None;
         }
     }
+
+    let offset = (if has_favorites { 1 } else { 0 }) + (if has_recent { 1 } else { 0 });
+    let real_book_index = index.saturating_sub(offset);
 
     state
         .codex
@@ -230,6 +215,12 @@ fn build_spine_decorations(
 
 pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
     let area = frame.area();
+
+    if ui.output_popup.is_some() {
+        render_output_mode(frame, state, ui, area);
+        return;
+    }
+
     let theme = &state.theme;
 
     let chunks = Layout::default()
@@ -324,7 +315,7 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
             {
                 "←→↑↓ navigate  enter open  : cmd".to_string()
             }
-            SearchMode::BrowseSpells => "↑↓ navigate  enter copy  ← back".to_string(),
+            SearchMode::BrowseSpells => "↑↓ navigate  enter copy  s simple  Ctrl+r tui  Ctrl+b bg  ← back".to_string(),
             _ => {
                 if ui.search_query().starts_with(':') {
                     "↑↓ navigate  enter run  esc cancel".to_string()
@@ -346,6 +337,11 @@ pub fn render_in_area(
     ui: &mut UiState,
     area: ratatui::layout::Rect,
 ) {
+    if ui.output_popup.is_some() {
+        render_output_mode(frame, state, ui, area);
+        return;
+    }
+
     let theme = &state.theme;
 
     let chunks = Layout::default()
@@ -436,7 +432,7 @@ fn render_spellbook_browser(
     let total_count = total_spellbook_count(state);
 
     if total_count == 0 {
-        let empty = Paragraph::new("No spellbooks yet\n\nRun: spellbook --add")
+        let empty = Paragraph::new("No spellbooks yet\n\nPress :nb to create one")
             .style(Style::new().fg(theme.muted).bg(theme.bg))
             .block(
                 Block::default()
@@ -1340,4 +1336,76 @@ fn render_add_spellbook_form(
     let paragraph = Paragraph::new(content).style(Style::new().bg(theme.bg).fg(theme.fg));
 
     frame.render_widget(paragraph, inner_area);
+}
+
+pub fn render_output_mode(frame: &mut Frame, state: &State, ui: &UiState, area: ratatui::layout::Rect) {
+    let theme = &state.theme;
+    let output = match &ui.output_popup {
+        Some(o) => o,
+        None => return,
+    };
+
+    let chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Length(3),
+            Constraint::Min(8),
+            Constraint::Length(4),
+            Constraint::Length(1),
+        ])
+        .split(area);
+
+    let exit_indicator = match output.exit_code {
+        Some(0) => "✓",
+        Some(_) => "✗",
+        None => "?",
+    };
+
+    let truncated_command = if output.command.len() > (chunks[0].width as usize).saturating_sub(6) {
+        format!("{}...", &output.command[..(chunks[0].width as usize).saturating_sub(9)])
+    } else {
+        output.command.clone()
+    };
+    let command_with_text = format!("$ {} {}", exit_indicator, truncated_command);
+    let command_para = Paragraph::new(command_with_text)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title(" Output ")
+                .border_style(Style::new().fg(theme.accent))
+                .title_style(Style::new().fg(theme.accent).bold()),
+        )
+        .style(Style::new().bg(theme.bg).fg(theme.fg));
+    frame.render_widget(command_para, chunks[0]);
+
+    let mut output_text = String::new();
+    if !output.stderr.is_empty() {
+        output_text.push_str(&output.stderr);
+        if !output.stdout.is_empty() {
+            output_text.push('\n');
+        }
+    }
+    if !output.stdout.is_empty() {
+        output_text.push_str(&output.stdout);
+    }
+
+    let output_para = Paragraph::new(output_text.clone())
+        .style(Style::new().bg(theme.bg).fg(theme.fg))
+        .wrap(Wrap { trim: true });
+    frame.render_widget(output_para, chunks[1]);
+
+    let details_text = if let Some(code) = output.exit_code {
+        format!("Exit code: {}", code)
+    } else {
+        "Running...".to_string()
+    };
+    let details_para = Paragraph::new(details_text)
+        .style(Style::new().fg(theme.muted).bg(theme.bg));
+    frame.render_widget(details_para, chunks[2]);
+
+    let hint_text = "any key: close";
+    let hint_para = Paragraph::new(hint_text)
+        .style(Style::new().fg(theme.muted).bg(theme.bg))
+        .alignment(Alignment::Center);
+    frame.render_widget(hint_para, chunks[3]);
 }

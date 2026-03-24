@@ -309,31 +309,60 @@ pub struct SpellbookFormState {
 
 ## Overlays
 
-### OutputModal
+### OutputModal (Streaming)
 
-**Purpose**: Display command output (TUI runs and job output).
+**Purpose**: Display real-time command output with streaming support.
 
-**State** (`OutputModalState`):
+**State** (`StreamingModalState`):
 ```rust
-pub struct OutputModalState {
-    pub content: Vec<String>,    // Output lines (cap: 10,000)
-    pub scroll_offset: usize,
-    pub is_streaming: bool,      // True while command running
-    pub exit_code: Option<i32>,
-    pub source: OutputSource,    // Job or TUI run
+pub struct StreamingModalState {
+    pub output: OutputModalState,
+    pub streaming: Option<StreamingState>,
+    pub auto_scroll: bool,
+}
+
+pub struct StreamingState {
+    pub pid: Option<u32>,
+    pub is_running: bool,
+    pub command: String,
+    pub spell_name: Option<String>,
+    pub working_dir: Option<String>,
 }
 ```
 
-**Controls**:
-- ↑ ↓: Scroll output
-- Ctrl+b: Promote to background (if TUI run)
-- Esc: Close modal
+**Streaming Architecture**:
+- Process spawned with piped stdout/stderr
+- Background thread reads output lines
+- mpsc channel sends lines to event loop
+- UI polls channel every 100ms and updates display
+- 10,000 line cap with automatic eviction (FIFO)
 
-**Display**:
-- Shows command output with syntax highlighting
-- Auto-scrolls to bottom when streaming
-- Shows exit code when complete
-- Shows "Output truncated" warning if > 10,000 lines
+**Controls**:
+- `↑/↓`: Manual scroll (disables auto-scroll)
+- `s`: Toggle auto-scroll on/off
+- `Ctrl+C`: Kill running process (sends SIGKILL)
+- `Ctrl+B`: Promote to background (kills process, restarts via JobManager)
+- `Esc`: Close modal (only when process finished)
+
+**Display Features**:
+- **Status indicator in title**:
+  - `⟳` - Process running
+  - `✓` - Completed successfully (exit code 0)
+  - `✗` - Failed (non-zero exit code)
+- **Color coding**:
+  - Stderr lines: Red
+  - System messages ([stderr], [Process killed]): Muted
+  - Normal output: Default foreground
+- **Auto-scroll**: Keeps view at bottom of output (toggle with `s`)
+- **Truncation warning**: Shows `[!]` in footer when 10,000 line limit reached
+- **Footer hints**: Context-aware (shows Ctrl+C/B while running, Esc when done)
+
+**Promote to Background**:
+When `Ctrl+B` is pressed on a running process:
+1. Kill the current process
+2. Start a new background job via JobManager
+3. Job appears in jobs sidebar
+4. Modal closes automatically
 
 ---
 

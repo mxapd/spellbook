@@ -1,151 +1,147 @@
 [[spells]]
-id = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+id = "550e8400-e29b-41d4-a716-446655440001"
 name = "List Files"
 incantation = "ls -la"
-lore = "List all files in current directory with details"
+lore = "List all files with details"
 school = "Filesystem"
 glyphs = ["file", "list"]
 confirm = false
-run_mode = "Simple"
+run_mode = "simple"
 working_dir = ""
 favorite = true
 
 [[spells]]
-id = "b2c3d4e5-f6a7-8901-bcde-f12345678901"
+id = "550e8400-e29b-41d4-a716-446655440002"
 name = "Find Large Files"
-incantation = "find . -type f -size +100M -exec ls -lh {} \\; | awk '{print $5, $9}' | sort -hr"
-lore = "Find files larger than 100MB in current directory tree"
+incantation = "find . -type f -size +100M -exec ls -lh {} \\;"
+lore = "Find files larger than 100MB"
 school = "Filesystem"
-glyphs = ["file", "search", "size"]
+glyphs = ["find", "size"]
 confirm = false
-run_mode = "Simple"
+run_mode = "simple"
 working_dir = ""
 favorite = false
 
 [[spells]]
-id = "c3d4e5f6-a7b8-9012-cdef-123456789012"
+id = "550e8400-e29b-41d4-a716-446655440003"
 name = "Git Status"
-incantation = "git status -sb"
-lore = "Show git repository status in short format"
+incantation = "git status"
+lore = "Show working tree status"
 school = "Git"
 glyphs = ["git", "status"]
 confirm = false
-run_mode = "Simple"
+run_mode = "simple"
 working_dir = ""
 favorite = true
 
 [[spells]]
-id = "d4e5f6a7-b8c9-0123-def1-234567890123"
+id = "550e8400-e29b-41d4-a716-446655440004"
 name = "Git Log Graph"
-incantation = "git log --graph --oneline --all --decorate -20"
-lore = "Show git history as a graph with last 20 commits"
+incantation = "git log --oneline --graph --all -20"
+lore = "Show commit history as graph"
 school = "Git"
-glyphs = ["git", "log", "graph"]
+glyphs = ["git", "log"]
 confirm = false
-run_mode = "Simple"
+run_mode = "simple"
 working_dir = ""
 favorite = false
 
 [[spells]]
-id = "e5f6a7b8-c9d0-1234-ef12-345678901234"
-name = "Docker PS"
-incantation = "docker ps -a --format 'table {{.Names}}\\t{{.Status}}\\t{{.Image}}'"
-lore = "List all Docker containers with their status"
-school = "Docker"
-glyphs = ["docker", "container"]
-confirm = false
-run_mode = "Simple"
-working_dir = ""
-favorite = false
-
-[[spells]]
-id = "f6a7b8c9-d0e1-2345-f123-456789012345"
-name = "Kill Port Process"
-incantation = "lsof -ti:3000 | xargs kill -9"
-lore = "Kill process running on port 3000"
-school = "System"
-glyphs = ["port", "process", "kill"]
+id = "550e8400-e29b-41d4-a716-446655440005"
+name = "Port Scanner"
+incantation = "nmap -sV localhost"
+lore = "Scan local ports for services"
+school = "Network"
+glyphs = ["network", "scan"]
 confirm = true
-run_mode = "Simple"
+run_mode = "tui"
 working_dir = ""
 favorite = false
 
 [[spells]]
-id = "a7b8c9d0-e1f2-3456-a123-567890123456"
-name = "Serve Directory"
-incantation = "python3 -m http.server 8080"
-lore = "Start a simple HTTP server on port 8080"
-school = "Web"
-glyphs = ["http", "server", "python"]
-confirm = false
-run_mode = "Background"
-working_dir = ""
-favorite = false
-
-[[spells]]
-id = "b8c9d0e1-f2a3-4567-b234-678901234567"
-name = "Clear Node Modules"
-incantation = "rm -rf node_modules && npm install"
-lore = "Remove node_modules and reinstall packages"
-school = "Node"
-glyphs = ["node", "npm", "clean"]
-confirm = true
-run_mode = "Simple"
-working_dir = ""
-favorite = false
-
-[[spells]]
-id = "c9d0e1f2-a3b4-5678-c345-789012345678"
-name = "Watch Logs"
+id = "550e8400-e29b-41d4-a716-446655440006"
+name = "Tail Logs"
 incantation = "tail -f /var/log/syslog"
 lore = "Follow system logs in real-time"
 school = "System"
-glyphs = ["log", "tail", "watch"]
+glyphs = ["log", "monitor"]
 confirm = false
-run_mode = "Tui"
+run_mode = "tui"
 working_dir = ""
 favorite = false
 
 [[spells]]
-id = "d0e1f2a3-b4c5-6789-d456-890123456789"
-name = "Network Connections"
-incantation = "ss -tulpn"
-lore = "Show all listening TCP and UDP ports"
-school = "Network"
-glyphs = ["network", "port", "listener"]
+id = "550e8400-e29b-41d4-a716-446655440007"
+name = "Build Project"
+incantation = "cargo build --release"
+lore = "Build project in release mode"
+school = "Build"
+glyphs = ["build", "rust"]
 confirm = false
-run_mode = "Simple"
+run_mode = "tui"
+working_dir = ""
+favorite = true
+
+[[spells]]
+id = "550e8400-e29b-41d4-a716-446655440008"
+name = "Run Tests"
+incantation = "cargo test"
+lore = "Run all project tests"
+school = "Build"
+glyphs = ["test", "rust"]
+confirm = false
+run_mode = "tui"
+working_dir = ""
+favorite = false
+
+[[spells]]
+id = "550e8400-e29b-41d4-a716-446655440009"
+name = "Disk Usage"
+incantation = "du -sh * | sort -h"
+lore = "Show disk usage sorted by size"
+school = "Filesystem"
+glyphs = ["disk", "size"]
+confirm = false
+run_mode = "simple"
+working_dir = ""
+favorite = false
+
+[[spells]]
+id = "550e8400-e29b-41d4-a716-446655440010"
+name = "HTTP Server"
+incantation = "python3 -m http.server 8000"
+lore = "Start a simple HTTP server"
+school = "Network"
+glyphs = ["http", "server"]
+confirm = true
+run_mode = "background"
 working_dir = ""
 favorite = false
 
 [[spellbooks]]
-name = "File Operations"
+name = "Filesystem"
 cover = ""
-sigil = "*"
-spell_ids = ["a1b2c3d4-e5f6-7890-abcd-ef1234567890", "b2c3d4e5-f6a7-8901-bcde-f12345678901"]
+sigil = "#"
+spell_ids = ["550e8400-e29b-41d4-a716-446655440001", "550e8400-e29b-41d4-a716-446655440002", "550e8400-e29b-41d4-a716-446655440009"]
 spells = []
-style = null
 
 [[spellbooks]]
-name = "Git Quick Actions"
+name = "Git"
 cover = ""
-sigil = "*"
-spell_ids = ["c3d4e5f6-a7b8-9012-cdef-123456789012", "d4e5f6a7-b8c9-0123-def1-234567890123"]
+sigil = ">"
+spell_ids = ["550e8400-e29b-41d4-a716-446655440003", "550e8400-e29b-41d4-a716-446655440004"]
 spells = []
-style = null
 
 [[spellbooks]]
-name = "DevOps"
+name = "Build Tools"
 cover = ""
 sigil = "*"
-spell_ids = ["e5f6a7b8-c9d0-1234-ef12-345678901234", "f6a7b8c9-d0e1-2345-f123-456789012345", "c9d0e1f2-a3b4-5678-c345-789012345678"]
+spell_ids = ["550e8400-e29b-41d4-a716-446655440007", "550e8400-e29b-41d4-a716-446655440008"]
 spells = []
-style = null
 
 [[spellbooks]]
-name = "Utilities"
+name = "Network"
 cover = ""
-sigil = "*"
-spell_ids = ["a7b8c9d0-e1f2-3456-a123-567890123456", "b8c9d0e1-f2a3-4567-b234-678901234567", "d0e1f2a3-b4c5-6789-d456-890123456789"]
+sigil = "@"
+spell_ids = ["550e8400-e29b-41d4-a716-446655440005", "550e8400-e29b-41d4-a716-446655440010"]
 spells = []
-style = null
