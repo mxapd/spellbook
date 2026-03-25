@@ -704,7 +704,8 @@ fn render_spellbook_cards(
             let name = item.name();
             let cover = item.cover();
 
-            let card_text = Text::from(vec![
+            // Build card lines with different spacing for virtual vs real spellbooks
+            let mut card_lines = vec![
                 Line::from(vec![Span::styled(
                     icon,
                     Style::new().fg(theme.accent).add_modifier(Modifier::BOLD),
@@ -713,13 +714,20 @@ fn render_spellbook_cards(
                 Line::from(vec![Span::styled(name, card_style)]),
                 Line::from(""),
                 Line::from(vec![Span::styled(cover, Style::new().fg(theme.muted))]),
-                Line::from(""),
-                Line::from(""),
-                Line::from(vec![Span::styled(
-                    &spell_count_str,
-                    Style::new().fg(theme.muted),
-                )]),
-            ]);
+            ];
+            
+            // Real spellbooks get extra spacing before count
+            if !is_virtual {
+                card_lines.push(Line::from(""));
+            }
+            
+            card_lines.push(Line::from(""));
+            card_lines.push(Line::from(vec![Span::styled(
+                &spell_count_str,
+                Style::new().fg(theme.muted),
+            )]));
+            
+            let card_text = Text::from(card_lines);
 
             let card_block = if is_selected && !ui.is_searching() {
                 Block::default()
@@ -1201,6 +1209,16 @@ fn render_spell_details<'a>(state: &'a State, ui: &mut UiState) -> Vec<Line<'a>>
     }
 }
 
+/// Find the name of the spellbook that contains a given spell
+fn find_spellbook_name_for_spell(state: &State, spell_id: &str) -> Option<String> {
+    state
+        .codex
+        .spellbooks
+        .iter()
+        .find(|sb| sb.spell_ids.contains(&spell_id.to_string()))
+        .map(|sb| sb.name.clone())
+}
+
 /// Render spells for the selected spellbook (BrowseSpells mode)
 fn render_spellbook_spells(
     frame: &mut Frame,
@@ -1218,9 +1236,10 @@ fn render_spellbook_spells(
     let has_favorites = favorites_count > 0;
     let has_recent = !state.recents.is_empty();
 
-    let (spells, title) = if has_favorites && spellbook_index == 0 {
+    let (spells, title, is_virtual) = if has_favorites && spellbook_index == 0 {
         let fav_spells: Vec<_> = state.codex.spells.iter().filter(|s| s.favorite).collect();
-        (fav_spells, "* Favorites".to_string())
+        let count = fav_spells.len();
+        (fav_spells, format!("* Favorites ({})", count), true)
     } else if has_recent {
         let recent_idx = if has_favorites { 1 } else { 0 };
         if spellbook_index == recent_idx {
@@ -1229,23 +1248,17 @@ fn render_spellbook_spells(
                 .iter()
                 .filter_map(|r| state.codex.spells.iter().find(|s| s.id == r.spell_id))
                 .collect();
-            (recent_spells, "~ Recent".to_string())
+            let count = recent_spells.len();
+            (recent_spells, format!("~ Recent ({})", count), true)
         } else {
-            let real_idx = if has_favorites && spellbook_index > 1 {
-                spellbook_index - 2
-            } else if has_recent && !has_favorites && spellbook_index > 0 {
-                spellbook_index - 1
-            } else {
-                spellbook_index
-            };
             let real_idx = spellbook_index.saturating_sub(if has_favorites { 2 } else { 1 });
             if let Some(spellbook) = state.codex.spellbooks.get(real_idx) {
-            let spells: Vec<&crate::models::Spell> = spellbook
+                let spells: Vec<&crate::models::Spell> = spellbook
                     .spell_ids
                     .iter()
                     .filter_map(|spell_id| state.codex.spells.iter().find(|s| s.id == *spell_id))
                     .collect();
-                (spells, spellbook.name.clone())
+                (spells, spellbook.name.clone(), false)
             } else {
                 return;
             }
@@ -1258,7 +1271,7 @@ fn render_spellbook_spells(
                     .iter()
                     .filter_map(|spell_id| state.codex.spells.iter().find(|s| s.id == *spell_id))
                     .collect();
-            (spells, spellbook.name.clone())
+            (spells, spellbook.name.clone(), false)
         } else {
             return;
         }
@@ -1266,7 +1279,19 @@ fn render_spellbook_spells(
 
     let items: Vec<ListItem> = spells
         .iter()
-        .map(|spell| ListItem::new(spell.name.clone()).style(Style::new().fg(theme.fg)))
+        .map(|spell| {
+            let display_text = if is_virtual {
+                // For virtual spellbooks, show spellbook name alongside spell name
+                if let Some(spellbook_name) = find_spellbook_name_for_spell(state, &spell.id) {
+                    format!("{}  [{}]", spell.name, spellbook_name)
+                } else {
+                    spell.name.clone()
+                }
+            } else {
+                spell.name.clone()
+            };
+            ListItem::new(display_text).style(Style::new().fg(theme.fg))
+        })
         .collect();
 
     let list_block = Block::bordered()
