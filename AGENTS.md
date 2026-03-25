@@ -284,6 +284,18 @@ When testing v2:
     - [ ] Spinner appears during import/export
     - [ ] "Loading..." message shows operation
 
+12. **Vim Keybindings**
+    - [ ] hjkl navigation in spellbook browser
+    - [ ] j/k navigation in spell lists
+    - [ ] h/l for back/forward navigation
+
+13. **Edge Cases**
+    - [ ] Empty state displays (no spellbooks, no spells)
+    - [ ] Long output handling (>10k lines truncates)
+    - [ ] Long running processes (>1 minute)
+    - [ ] File permission errors handled gracefully
+    - [ ] Corrupt codex.toml recovery
+
 ## Known Issues & Pending Fixes
 
 The following issues require manual testing and potential fixes:
