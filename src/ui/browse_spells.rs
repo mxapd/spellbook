@@ -37,8 +37,8 @@ pub fn handle_browse_spells(
         return false;
     }
 
-    // Handle Left arrow - go back to BrowseSpellbooks
-    if key == KeyCode::Left {
+    // Handle Left arrow or 'h' - go back to BrowseSpellbooks
+    if key == KeyCode::Left || key == KeyCode::Char('h') {
         ui.enter_browse_spellbooks();
         return false;
     }
@@ -49,27 +49,37 @@ pub fn handle_browse_spells(
         return false;
     }
 
+    // ':' key - open command palette directly
+    if key == KeyCode::Char(':') {
+        ui.open_search();
+        if let Some(query) = ui.search_query_mut() {
+            query.push(':');
+        }
+        crate::ui::events::update_command_filter(ui);
+        return false;
+    }
+
     // Handle spell list navigation
     if spell_count > 0 {
         match key {
-            // Navigate down
-            KeyCode::Down => {
+            // Navigate down (arrow or vim j)
+            KeyCode::Down | KeyCode::Char('j') => {
                 let current = ui.spell_list_state.selected().unwrap_or(0);
                 let next = if current >= spell_count - 1 { 0 } else { current + 1 };
                 ui.spell_list_state.select(Some(next));
                 return false;
             }
 
-            // Navigate up
-            KeyCode::Up => {
+            // Navigate up (arrow or vim k)
+            KeyCode::Up | KeyCode::Char('k') => {
                 let current = ui.spell_list_state.selected().unwrap_or(0);
                 let prev = if current == 0 { spell_count - 1 } else { current - 1 };
                 ui.spell_list_state.select(Some(prev));
                 return false;
             }
 
-            // Page down
-            KeyCode::Right => {
+            // Page down (arrow or vim l)
+            KeyCode::Right | KeyCode::Char('l') => {
                 let page_size = 10;
                 let current = ui.spell_list_state.selected().unwrap_or(0);
                 let next = if current + page_size >= spell_count {
@@ -450,7 +460,7 @@ fn start_spell_execution(state: &mut State, ui: &mut UiState, spell: &Spell) {
 
 
 /// Filters all spells by the current search query.
-fn update_search_filter(state: &State, ui: &mut UiState) {
+pub fn update_search_filter(state: &State, ui: &mut UiState) {
     let query = ui.search_query().to_lowercase();
 
     if query.is_empty() {

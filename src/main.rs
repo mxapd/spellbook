@@ -120,9 +120,10 @@ fn run(terminal: &mut DefaultTerminal) -> io::Result<()> {
                 }
             }
             Ok(false) => {
-                // Timeout elapsed - poll for streaming output, update spinner, and redraw
+                // Timeout elapsed - poll for streaming output, update spinner and cursor, and redraw
                 ui::streaming_modal::poll_stream_output(&mut ui_state);
                 ui_state.tick_spinner();
+                ui_state.tick_search_cursor();
                 if ui_state.is_loading() {
                     terminal.draw(|frame| {
                         ui::render(frame, &state, &mut ui_state);

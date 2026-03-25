@@ -442,8 +442,8 @@ pub fn handle_streaming_modal_key(
             false
         }
 
-        // Scroll up
-        KeyCode::Up => {
+        // Scroll up (arrow or vim k)
+        KeyCode::Up | KeyCode::Char('k') => {
             if state.output.scroll_offset > 0 {
                 state.output.scroll_offset -= 1;
                 state.auto_scroll = false;
@@ -451,8 +451,8 @@ pub fn handle_streaming_modal_key(
             false
         }
 
-        // Scroll down
-        KeyCode::Down => {
+        // Scroll down (arrow or vim j)
+        KeyCode::Down | KeyCode::Char('j') => {
             let output_height = 20; // Approximate
             if state.output.scroll_offset + output_height < state.output.content.len() {
                 state.output.scroll_offset += 1;

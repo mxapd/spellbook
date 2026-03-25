@@ -51,7 +51,7 @@ pub fn handle_add_spell(
             false
         }
 
-        KeyCode::Up => {
+        KeyCode::Up | KeyCode::Char('k') => {
             if ui.add_spell.field == AddSpellField::Spellbook {
                 if ui.add_spell.dropdown_open {
                     if ui.add_spell.dropdown_index == 0 {
@@ -71,7 +71,7 @@ pub fn handle_add_spell(
             false
         }
 
-        KeyCode::Down => {
+        KeyCode::Down | KeyCode::Char('j') => {
             if ui.add_spell.field == AddSpellField::Spellbook {
                 if ui.add_spell.dropdown_open {
                     let options_count = state.codex.spellbooks.len() + 1;
@@ -88,7 +88,7 @@ pub fn handle_add_spell(
             false
         }
 
-        KeyCode::Left => {
+        KeyCode::Left | KeyCode::Char('h') => {
             if ui.add_spell.field == AddSpellField::RunMode {
                 ui.add_spell.run_mode = cycle_run_mode_left(ui.add_spell.run_mode);
             } else if ui.add_spell.field == AddSpellField::Confirm {
@@ -97,7 +97,7 @@ pub fn handle_add_spell(
             false
         }
 
-        KeyCode::Right => {
+        KeyCode::Right | KeyCode::Char('l') => {
             if ui.add_spell.field == AddSpellField::RunMode {
                 ui.add_spell.run_mode = cycle_run_mode_right(ui.add_spell.run_mode);
             } else if ui.add_spell.field == AddSpellField::Confirm {
@@ -228,12 +228,12 @@ pub fn handle_add_spellbook(
             false
         }
 
-        KeyCode::Up => {
+        KeyCode::Up | KeyCode::Char('k') => {
             ui.add_spellbook.prev_field();
             false
         }
 
-        KeyCode::Down | KeyCode::Enter => {
+        KeyCode::Down | KeyCode::Char('j') | KeyCode::Enter => {
             if key == KeyCode::Enter && ui.add_spellbook.field == AddSpellbookField::Sigil {
                 save_spellbook(state, ui);
             } else {

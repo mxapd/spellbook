@@ -3,6 +3,7 @@
 //! This module handles key events when browsing the list of spellbooks.
 
 use crate::state::State;
+use crate::ui::browse_spells::update_search_filter;
 use crate::ui::search_overlay::{find_nearest_card, total_spellbook_count, CardDirection};
 use crate::ui::{Mode, Overlay, UiState};
 use crate::log_info;
@@ -62,9 +63,9 @@ pub fn handle_browse_spellbooks(
         let available_width = 80;
         let grid_offset = ((available_width as i32 - total_grid_width as i32) / 2).max(0) as u16;
 
-        // Navigate with nearest-neighbor in cards view
+        // Navigate with nearest-neighbor in cards view (arrows or vim hjkl)
         match key {
-            KeyCode::Right => {
+            KeyCode::Right | KeyCode::Char('l') => {
                 if spellbook_count > 0 {
                     let current = ui.search_spellbook_index().unwrap_or(0);
                     let next = find_nearest_card(
@@ -86,7 +87,7 @@ pub fn handle_browse_spellbooks(
                 return false;
             }
 
-            KeyCode::Left => {
+            KeyCode::Left | KeyCode::Char('h') => {
                 if spellbook_count > 0 {
                     let current = ui.search_spellbook_index().unwrap_or(0);
                     let prev = find_nearest_card(
@@ -108,7 +109,7 @@ pub fn handle_browse_spellbooks(
                 return false;
             }
 
-            KeyCode::Down => {
+            KeyCode::Down | KeyCode::Char('j') => {
                 if spellbook_count > 0 {
                     let current = ui.search_spellbook_index().unwrap_or(0);
                     let next = find_nearest_card(
@@ -132,7 +133,7 @@ pub fn handle_browse_spellbooks(
                 return false;
             }
 
-            KeyCode::Up => {
+            KeyCode::Up | KeyCode::Char('k') => {
                 if spellbook_count > 0 {
                     let current = ui.search_spellbook_index().unwrap_or(0);
                     let prev = find_nearest_card(
@@ -185,16 +186,29 @@ pub fn handle_browse_spellbooks(
             return false;
         }
 
-        // Any character input - start filtering
-        if let KeyCode::Char(c) = key {
+        // ':' key - open command palette directly
+        if key == KeyCode::Char(':') {
             ui.open_search();
             if let Some(query) = ui.search_query_mut() {
-                query.push(c);
+                query.push(':');
             }
-            if ui.search_in_command_mode() {
-                crate::ui::events::update_command_filter(ui);
-            } else {
-                update_spellbook_filter(state, ui);
+            crate::ui::events::update_command_filter(ui);
+            return false;
+        }
+
+        // Any character input - start filtering (respect implicit_search setting)
+        if let KeyCode::Char(c) = key {
+            let can_type = state.user_settings.implicit_search || ui.is_searching();
+            if can_type {
+                ui.open_search();
+                if let Some(query) = ui.search_query_mut() {
+                    query.push(c);
+                }
+                if ui.search_in_command_mode() {
+                    crate::ui::events::update_command_filter(ui);
+                } else {
+                    update_search_filter(state, ui);
+                }
             }
             return false;
         }
@@ -211,26 +225,33 @@ fn handle_search_navigation(
 ) -> bool {
     let is_command_mode = ui.search_query().starts_with(':');
 
-    // Enter - execute command if in command mode, otherwise open spellbook
+    // Enter - execute command if in command mode, otherwise copy selected spell
     if key == KeyCode::Enter {
         if is_command_mode {
             execute_command(state, ui);
         } else {
-            // Open selected spellbook or search result
+            // Copy selected spell to clipboard
             let selected = ui.search_results_state().selected().unwrap_or(0);
-            let indices = ui.filtered_spellbook_indices();
+            let indices = ui.filtered_indices();
             
             if selected < indices.len() {
-                let spellbook_idx = indices[selected];
-                ui.enter_browse_spells(spellbook_idx);
+                let spell_idx = indices[selected];
+                if let Some(spell) = state.codex.spells.get(spell_idx) {
+                    if crate::clipboard::copy_to_clipboard(&spell.incantation) {
+                        ui.copy_feedback = Some(format!("Copied: {}", spell.name));
+                        state.add_recent(spell.id.clone(), spell.name.clone(), crate::models::RecentAction::Copy);
+                    } else {
+                        ui.copy_feedback = Some("Failed to copy to clipboard".to_string());
+                    }
+                }
             }
         }
         return false;
     }
 
-    // Navigate results
+    // Navigate results (arrows or vim j/k)
     match key {
-        KeyCode::Down => {
+        KeyCode::Down | KeyCode::Char('j') => {
             if is_command_mode {
                 navigate_command_results(ui, 1);
             } else {
@@ -239,7 +260,7 @@ fn handle_search_navigation(
             return false;
         }
 
-        KeyCode::Up => {
+        KeyCode::Up | KeyCode::Char('k') => {
             if is_command_mode {
                 navigate_command_results(ui, -1);
             } else {
@@ -259,8 +280,8 @@ fn handle_search_navigation(
         
         if ui.search_in_command_mode() {
             crate::ui::events::update_command_filter(ui);
-        } else if ui.showing_spellbooks() {
-            update_spellbook_filter(state, ui);
+        } else {
+            update_search_filter(state, ui);
         }
         return false;
     }
@@ -277,8 +298,8 @@ fn handle_search_navigation(
             ui.set_search_spellbook_index(Some(0));
         } else if ui.search_in_command_mode() {
             crate::ui::events::update_command_filter(ui);
-        } else if ui.showing_spellbooks() {
-            update_spellbook_filter(state, ui);
+        } else {
+            update_search_filter(state, ui);
         }
         return false;
     }
@@ -338,38 +359,5 @@ fn navigate_search_results(ui: &mut UiState, direction: i32) {
             if current == 0 { count - 1 } else { current - 1 }
         };
         ui.search_results_state().select(Some(next));
-    }
-}
-
-/// Filter spellbooks based on search query
-fn update_spellbook_filter(state: &State, ui: &mut UiState) {
-    use crate::ui::search_overlay::get_spellbook_item;
-
-    let query = ui.search_query().to_lowercase();
-
-    if query.is_empty() {
-        ui.filtered_spellbook_indices_mut().clear();
-        ui.search_results_state().select(None);
-        return;
-    }
-
-    // Filter spellbooks that match the query in name
-    let indices: Vec<usize> = (0..total_spellbook_count(state))
-        .filter(|&idx| {
-            if let Some(item) = get_spellbook_item(state, idx) {
-                item.name().to_lowercase().contains(&query)
-            } else {
-                false
-            }
-        })
-        .collect();
-
-    *ui.filtered_spellbook_indices_mut() = indices;
-
-    // Select first result
-    if !ui.filtered_spellbook_indices().is_empty() {
-        ui.search_results_state().select(Some(0));
-    } else {
-        ui.search_results_state().select(None);
     }
 }

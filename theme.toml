@@ -3,4 +3,4 @@ selected_theme = "GruvboxDark"
 [settings]
 view_mode = "Cards"
 experimental_mode = false
-implicit_search = true
+implicit_search = false

@@ -130,6 +130,10 @@ pub struct UiState {
 
     // Streaming output modal state
     pub streaming_modal: StreamingModalState,
+
+    // Search cursor state for blinking effect
+    pub search_cursor_visible: bool,
+    pub search_cursor_tick: u64,
 }
 
 impl UiState {
@@ -160,6 +164,9 @@ impl UiState {
 
             loading_message: None,
             loading_spinner: 0,
+
+            search_cursor_visible: true,
+            search_cursor_tick: 0,
         }
     }
 
@@ -192,6 +199,16 @@ impl UiState {
             2 => '-',
             3 => '\\',
             _ => '|',
+        }
+    }
+
+    /// Tick the search cursor (call periodically, e.g., every 50ms)
+    pub fn tick_search_cursor(&mut self) {
+        self.search_cursor_tick += 1;
+        // Medium blink: toggle every 5 ticks (~250ms at 50ms tick rate)
+        if self.search_cursor_tick % 5 == 0 {
+            self.search_cursor_visible = !self.search_cursor_visible;
+            self.request_redraw();
         }
     }
 

@@ -232,13 +232,35 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
         ])
         .split(area);
 
-    let input_text = format!("/{}", ui.search_query());
+    let query = ui.search_query();
+    let is_searching = ui.is_searching();
+    let has_query = !query.is_empty();
+
+    // Only show "/" when searching or has query
+    let input_text = if is_searching || has_query {
+        let cursor = if is_searching {
+            if ui.search_cursor_visible {
+                "_"
+            } else {
+                ""
+            }
+        } else {
+            ""
+        };
+        format!("/{}{}", query, cursor)
+    } else {
+        String::new()
+    };
+
+    // Gray border when inactive, accent (yellow/orange) when active
+    let border_color = if is_searching { theme.accent } else { theme.border };
+
     let input_block = Paragraph::new(input_text)
         .block(
             Block::default()
                 .borders(Borders::ALL)
                 .title(" Search ")
-                .border_style(Style::new().fg(theme.accent))
+                .border_style(Style::new().fg(border_color))
                 .title_style(Style::new().fg(theme.accent)),
         )
         .style(Style::new().bg(theme.bg).fg(theme.fg));
@@ -258,7 +280,7 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
                 render_command_list(frame, state, ui, chunks[1]);
             } else if ui.filtered_indices().is_empty() {
                 let message = if ui.search_query().is_empty() {
-                    "Type to search all spells..."
+                    "Type to search spells..."
                 } else {
                     "No spells found"
                 };
@@ -313,18 +335,18 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
             Mode::BrowseSpellbooks(_)
                 if ui.search_query().is_empty() && ui.showing_spellbooks() =>
             {
-                "←→↑↓ navigate  enter open  : cmd".to_string()
+                "arrows/hjkl navigate  enter open  / search  : cmd".to_string()
             }
             Mode::BrowseSpells(_) => {
-                "↑↓ navigate  enter copy  s simple  Ctrl+r tui  Ctrl+b bg  ← back".to_string()
+                "arrows/hjkl navigate  enter copy  s simple  Ctrl+r tui  Ctrl+b bg  h back".to_string()
             }
             _ => {
                 if ui.search_query().starts_with(':') {
-                    "↑↓ navigate  enter run  esc cancel".to_string()
+                    "arrows/jk navigate  enter run  esc cancel".to_string()
                 } else if ui.filtered_indices().is_empty() && ui.search_query().is_empty() {
                     "type to search".to_string()
                 } else {
-                    "↑↓ navigate  enter copy  esc clear".to_string()
+                    "arrows/jk navigate  enter copy  esc clear".to_string()
                 }
             }
         };
@@ -356,13 +378,35 @@ pub fn render_in_area(
         ])
         .split(area);
 
-    let input_text = format!("/{}", ui.search_query());
+    let query = ui.search_query();
+    let is_searching = ui.is_searching();
+    let has_query = !query.is_empty();
+
+    // Only show "/" when searching or has query
+    let input_text = if is_searching || has_query {
+        let cursor = if is_searching {
+            if ui.search_cursor_visible {
+                "_"
+            } else {
+                ""
+            }
+        } else {
+            ""
+        };
+        format!("/{}{}", query, cursor)
+    } else {
+        String::new()
+    };
+
+    // Gray border when inactive, accent (yellow/orange) when active
+    let border_color = if is_searching { theme.accent } else { theme.border };
+
     let input_block = Paragraph::new(input_text)
         .block(
             Block::default()
                 .borders(Borders::ALL)
                 .title(" Search ")
-                .border_style(Style::new().fg(theme.accent))
+                .border_style(Style::new().fg(border_color))
                 .title_style(Style::new().fg(theme.accent)),
         )
         .style(Style::new().bg(theme.bg).fg(theme.fg));
@@ -382,7 +426,7 @@ pub fn render_in_area(
                 let message = if ui.search_query().is_empty() {
                     "No spells".to_string()
                 } else {
-                    format!("No matches for '{}'", ui.search_query())
+                    format!("No spells found for '{}'", ui.search_query())
                 };
                 let para = Paragraph::new(message).style(Style::new().fg(theme.muted));
                 frame.render_widget(para, chunks[1]);
@@ -407,16 +451,16 @@ pub fn render_in_area(
             Mode::BrowseSpellbooks(_)
                 if ui.search_query().is_empty() && ui.showing_spellbooks() =>
             {
-                "navigate  enter open  : cmd".to_string()
+                "arrows/hjkl navigate  enter open  / search  : cmd".to_string()
             }
-            Mode::BrowseSpells(_) => "navigate  enter copy  back".to_string(),
+            Mode::BrowseSpells(_) => "arrows/hjkl navigate  enter copy  h back".to_string(),
             _ => {
                 if ui.search_query().starts_with(':') {
-                    "navigate  enter run  esc cancel".to_string()
+                    "arrows/jk navigate  enter run  esc cancel".to_string()
                 } else if ui.filtered_indices().is_empty() && ui.search_query().is_empty() {
                     "type to search".to_string()
                 } else {
-                    "navigate  enter copy  esc clear".to_string()
+                    "arrows/jk navigate  enter copy  esc clear".to_string()
                 }
             }
         };
@@ -637,7 +681,7 @@ fn render_spellbook_cards(
 
             let is_selected = i == selected;
             let is_virtual = item.is_virtual();
-            let card_style = if is_selected {
+            let card_style = if is_selected && !ui.is_searching() {
                 if is_virtual {
                     Style::new().fg(theme.accent).add_modifier(Modifier::BOLD)
                 } else {
@@ -677,7 +721,7 @@ fn render_spellbook_cards(
                 )]),
             ]);
 
-            let card_block = if is_selected {
+            let card_block = if is_selected && !ui.is_searching() {
                 Block::default()
                     .borders(Borders::ALL)
                     .border_style(Style::new().fg(theme.accent))
@@ -815,7 +859,7 @@ fn render_spellbook_spines(
                 spine_height as usize,
             );
 
-            let spine_block = if is_selected {
+            let spine_block = if is_selected && !ui.is_searching() {
                 Block::default()
                     .borders(Borders::ALL)
                     .border_style(Style::new().fg(theme.accent))
@@ -1059,6 +1103,7 @@ fn render_search_results(
     frame.render_stateful_widget(list, area, ui.search_results_state());
 }
 
+/// Render filtered spellbook search results
 fn render_spellbook_details<'a>(state: &'a State, ui: &mut UiState) -> Vec<Line<'a>> {
     let theme = &state.theme;
 
@@ -1286,7 +1331,7 @@ fn render_add_spell_form(
         ]),
         Line::from(""),
         Line::from(vec![Span::styled(
-            "↑↓ fields  enter save  esc cancel",
+            "arrows/jk fields  enter save  esc cancel",
             Style::new().fg(theme.muted),
         )]),
     ];
@@ -1332,7 +1377,7 @@ fn render_add_spellbook_form(
         ]),
         Line::from(""),
         Line::from(vec![Span::styled(
-            "↑↓ fields  enter save  esc cancel",
+            "arrows/jk fields  enter save  esc cancel",
             Style::new().fg(theme.muted),
         )]),
     ];

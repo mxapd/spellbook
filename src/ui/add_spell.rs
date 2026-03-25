@@ -257,16 +257,11 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
 
     let footer_text = if ui.is_typing() {
         format!(
-            "tab/{} navigate  Enter next  Ctrl+S save  Esc cancel",
-            if ui.add_spell.dropdown_open {
-                ""
-            } else {
-                "↑↓"
-            }
+            "tab/arrows navigate  Enter next  Ctrl+S save  Esc cancel",
         )
     } else {
         format!(
-            "tab/↑↓ navigate  Enter next  Ctrl+S save  Esc cancel  t {}",
+            "tab/arrows/jk navigate  Enter next  Ctrl+S save  Esc cancel  t {}",
             state.current_theme.name()
         )
     };

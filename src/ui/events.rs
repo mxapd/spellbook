@@ -417,14 +417,14 @@ fn handle_input_popup(key: KeyCode, _state: &mut State, ui: &mut UiState) -> boo
             }
             false
         }
-        KeyCode::Tab | KeyCode::Down => {
+        KeyCode::Tab | KeyCode::Down | KeyCode::Char('j') => {
             // Move to next placeholder
             if popup.placeholder_index < popup.placeholders.len() - 1 {
                 popup.placeholder_index += 1;
             }
             false
         }
-        KeyCode::Up => {
+        KeyCode::Up | KeyCode::Char('k') => {
             // Move to previous placeholder
             if popup.placeholder_index > 0 {
                 popup.placeholder_index -= 1;

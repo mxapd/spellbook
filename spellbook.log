@@ -29919,3 +29919,1554 @@
 [1774411074.851432414] [DEBUG] Mode: BrowseSpellbooks
 [1774411075.188320340] [DEBUG] KeyEvent: code=Char('a'), modifiers=KeyModifiers(0x0)
 [1774411075.188403520] [DEBUG] Mode: BrowseSpells
+[1774411361.699466232] [INFO] Spellbook started (mode: Browse)
+[1774411361.699834590] [INFO] Job manager initialized
+[1774411362.224094636] [DEBUG] KeyEvent: code=Char('s'), modifiers=KeyModifiers(0x0)
+[1774411362.224147896] [DEBUG] Mode: BrowseSpellbooks
+[1774411362.294057657] [DEBUG] KeyEvent: code=Char('d'), modifiers=KeyModifiers(0x0)
+[1774411362.294103577] [DEBUG] Mode: BrowseSpellbooks
+[1774411362.320012116] [DEBUG] KeyEvent: code=Char('a'), modifiers=KeyModifiers(0x0)
+[1774411362.320056236] [DEBUG] Mode: BrowseSpellbooks
+[1774411362.445066030] [DEBUG] KeyEvent: code=Char('d'), modifiers=KeyModifiers(0x0)
+[1774411362.445118740] [DEBUG] Mode: BrowseSpellbooks
+[1774411362.566253982] [DEBUG] KeyEvent: code=Char('s'), modifiers=KeyModifiers(0x0)
+[1774411362.566300482] [DEBUG] Mode: BrowseSpellbooks
+[1774411362.683236991] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411362.683291181] [DEBUG] Mode: BrowseSpellbooks
+[1774411362.839082834] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411362.839135774] [DEBUG] Mode: BrowseSpellbooks
+[1774411362.989084032] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411362.989136972] [DEBUG] Mode: BrowseSpellbooks
+[1774411363.145075894] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411363.145126534] [DEBUG] Mode: BrowseSpellbooks
+[1774411363.276079984] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411363.276134724] [DEBUG] Mode: BrowseSpellbooks
+[1774411363.591123505] [DEBUG] KeyEvent: code=Char(':'), modifiers=KeyModifiers(0x0)
+[1774411363.591182755] [DEBUG] Mode: BrowseSpellbooks
+[1774411364.637106518] [DEBUG] KeyEvent: code=Char('s'), modifiers=KeyModifiers(0x0)
+[1774411364.637162648] [DEBUG] Mode: BrowseSpellbooks
+[1774411364.863076431] [DEBUG] KeyEvent: code=Char('e'), modifiers=KeyModifiers(0x0)
+[1774411364.863130561] [DEBUG] Mode: BrowseSpellbooks
+[1774411364.907050993] [DEBUG] KeyEvent: code=Char('a'), modifiers=KeyModifiers(0x0)
+[1774411364.907101203] [DEBUG] Mode: BrowseSpellbooks
+[1774411365.065052337] [DEBUG] KeyEvent: code=Char('r'), modifiers=KeyModifiers(0x0)
+[1774411365.065105686] [DEBUG] Mode: BrowseSpellbooks
+[1774411367.354064090] [DEBUG] KeyEvent: code=Enter, modifiers=KeyModifiers(0x0)
+[1774411367.354120220] [DEBUG] Mode: BrowseSpellbooks
+[1774411367.354530408] [INFO] Command: toggle implicit search (now disabled)
+[1774411369.146083662] [DEBUG] KeyEvent: code=Char('s'), modifiers=KeyModifiers(0x0)
+[1774411369.146136902] [DEBUG] Mode: BrowseSpellbooks
+[1774411369.369081468] [DEBUG] KeyEvent: code=Char('a'), modifiers=KeyModifiers(0x0)
+[1774411369.369139728] [DEBUG] Mode: BrowseSpellbooks
+[1774411369.455068571] [DEBUG] KeyEvent: code=Char('d'), modifiers=KeyModifiers(0x0)
+[1774411369.455135650] [DEBUG] Mode: BrowseSpellbooks
+[1774411369.663340228] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411369.663393408] [DEBUG] Mode: BrowseSpellbooks
+[1774411369.848049439] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411369.848114909] [DEBUG] Mode: BrowseSpellbooks
+[1774411370.008050804] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411370.008110834] [DEBUG] Mode: BrowseSpellbooks
+[1774411371.040137418] [DEBUG] KeyEvent: code=Char('s'), modifiers=KeyModifiers(0x0)
+[1774411371.040185668] [DEBUG] Mode: BrowseSpellbooks
+[1774411371.050944081] [DEBUG] KeyEvent: code=Char('a'), modifiers=KeyModifiers(0x0)
+[1774411371.050987991] [DEBUG] Mode: BrowseSpellbooks
+[1774411371.062939050] [DEBUG] KeyEvent: code=Char('.'), modifiers=KeyModifiers(0x0)
+[1774411371.062978970] [DEBUG] Mode: BrowseSpellbooks
+[1774411371.121191851] [DEBUG] KeyEvent: code=Char(';'), modifiers=KeyModifiers(0x0)
+[1774411371.121234571] [DEBUG] Mode: BrowseSpellbooks
+[1774411371.147001320] [DEBUG] KeyEvent: code=Char('d'), modifiers=KeyModifiers(0x0)
+[1774411371.147049040] [DEBUG] Mode: BrowseSpellbooks
+[1774411371.252798168] [DEBUG] KeyEvent: code=Char('\''), modifiers=KeyModifiers(0x0)
+[1774411371.252850327] [DEBUG] Mode: BrowseSpellbooks
+[1774411371.295970243] [DEBUG] KeyEvent: code=Char('a'), modifiers=KeyModifiers(0x0)
+[1774411371.296035113] [DEBUG] Mode: BrowseSpellbooks
+[1774411371.356033096] [DEBUG] KeyEvent: code=Char('s'), modifiers=KeyModifiers(0x0)
+[1774411371.356109296] [DEBUG] Mode: BrowseSpellbooks
+[1774411371.592061646] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411371.592126206] [DEBUG] Mode: BrowseSpellbooks
+[1774411371.754078553] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411371.754136212] [DEBUG] Mode: BrowseSpellbooks
+[1774411371.909054530] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411371.909109970] [DEBUG] Mode: BrowseSpellbooks
+[1774411372.038026728] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411372.038078918] [DEBUG] Mode: BrowseSpellbooks
+[1774411372.246534656] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411372.246585686] [DEBUG] Mode: BrowseSpellbooks
+[1774411372.385055553] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411372.385111963] [DEBUG] Mode: BrowseSpellbooks
+[1774411372.481013093] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411372.481073762] [DEBUG] Mode: BrowseSpellbooks
+[1774411372.597037156] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411372.597091726] [DEBUG] Mode: BrowseSpellbooks
+[1774411372.716089767] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411372.716144946] [DEBUG] Mode: BrowseSpellbooks
+[1774411372.849058078] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411372.849111598] [DEBUG] Mode: BrowseSpellbooks
+[1774411917.658801329] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774411917.658903659] [DEBUG] Mode: BrowseSpellbooks
+[1774411921.035732909] [DEBUG] KeyEvent: code=Char(':'), modifiers=KeyModifiers(0x0)
+[1774411921.035807338] [DEBUG] Mode: BrowseSpellbooks
+[1774411921.627728358] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411921.627811378] [DEBUG] Mode: BrowseSpellbooks
+[1774411921.993721782] [DEBUG] KeyEvent: code=Char('s'), modifiers=KeyModifiers(0x0)
+[1774411921.993794042] [DEBUG] Mode: BrowseSpellbooks
+[1774411922.453768689] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411922.453842948] [DEBUG] Mode: BrowseSpellbooks
+[1774411927.032681139] [DEBUG] KeyEvent: code=Char('a'), modifiers=KeyModifiers(0x0)
+[1774411927.032763449] [DEBUG] Mode: BrowseSpellbooks
+[1774411927.123702395] [DEBUG] KeyEvent: code=Char('s'), modifiers=KeyModifiers(0x0)
+[1774411927.123785504] [DEBUG] Mode: BrowseSpellbooks
+[1774411927.254669751] [DEBUG] KeyEvent: code=Char('d'), modifiers=KeyModifiers(0x0)
+[1774411927.254732471] [DEBUG] Mode: BrowseSpellbooks
+[1774411927.605696359] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411927.605762028] [DEBUG] Mode: BrowseSpellbooks
+[1774411927.813663400] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411927.813721880] [DEBUG] Mode: BrowseSpellbooks
+[1774411927.997766083] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411927.997833643] [DEBUG] Mode: BrowseSpellbooks
+[1774411928.086654178] [DEBUG] KeyEvent: code=Char('a'), modifiers=KeyModifiers(0x0)
+[1774411928.086725067] [DEBUG] Mode: BrowseSpellbooks
+[1774411928.153695014] [DEBUG] KeyEvent: code=Char('s'), modifiers=KeyModifiers(0x0)
+[1774411928.153776064] [DEBUG] Mode: BrowseSpellbooks
+[1774411928.266661477] [DEBUG] KeyEvent: code=Char('d'), modifiers=KeyModifiers(0x0)
+[1774411928.266728317] [DEBUG] Mode: BrowseSpellbooks
+[1774411928.625702421] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411928.625784781] [DEBUG] Mode: BrowseSpellbooks
+[1774411928.840848283] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411928.841298711] [DEBUG] Mode: BrowseSpellbooks
+[1774411929.153695081] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411929.153759121] [DEBUG] Mode: BrowseSpellbooks
+[1774411929.335918562] [DEBUG] KeyEvent: code=Char('q'), modifiers=KeyModifiers(0x0)
+[1774411929.335988012] [DEBUG] Mode: BrowseSpellbooks
+[1774411929.409695680] [DEBUG] KeyEvent: code=Char('w'), modifiers=KeyModifiers(0x0)
+[1774411929.409755630] [DEBUG] Mode: BrowseSpellbooks
+[1774411929.506693371] [DEBUG] KeyEvent: code=Char('e'), modifiers=KeyModifiers(0x0)
+[1774411929.506746941] [DEBUG] Mode: BrowseSpellbooks
+[1774411929.763112218] [DEBUG] KeyEvent: code=Char('r'), modifiers=KeyModifiers(0x0)
+[1774411929.763171108] [DEBUG] Mode: BrowseSpellbooks
+[1774411929.904757230] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411929.904845390] [DEBUG] Mode: BrowseSpellbooks
+[1774411930.114720783] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411930.114780333] [DEBUG] Mode: BrowseSpellbooks
+[1774411930.284708645] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411930.284771415] [DEBUG] Mode: BrowseSpellbooks
+[1774411930.439709861] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411930.439774630] [DEBUG] Mode: BrowseSpellbooks
+[1774411931.107676950] [DEBUG] KeyEvent: code=Char('s'), modifiers=KeyModifiers(0x0)
+[1774411931.107753300] [DEBUG] Mode: BrowseSpellbooks
+[1774411931.539698095] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411931.539756935] [DEBUG] Mode: BrowseSpellbooks
+[1774411931.790710355] [DEBUG] KeyEvent: code=Char('g'), modifiers=KeyModifiers(0x0)
+[1774411931.790786925] [DEBUG] Mode: BrowseSpellbooks
+[1774411931.928641703] [DEBUG] KeyEvent: code=Char('i'), modifiers=KeyModifiers(0x0)
+[1774411931.928701942] [DEBUG] Mode: BrowseSpellbooks
+[1774411932.085904089] [DEBUG] KeyEvent: code=Char('t'), modifiers=KeyModifiers(0x0)
+[1774411932.085996308] [DEBUG] Mode: BrowseSpellbooks
+[1774411932.435961140] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411932.436024460] [DEBUG] Mode: BrowseSpellbooks
+[1774411932.608669281] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411932.608728431] [DEBUG] Mode: BrowseSpellbooks
+[1774411932.764668373] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411932.764726002] [DEBUG] Mode: BrowseSpellbooks
+[1774411933.181670421] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774411933.181726671] [DEBUG] Mode: BrowseSpellbooks
+[1774411933.327674435] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774411933.327733974] [DEBUG] Mode: BrowseSpellbooks
+[1774411933.531728253] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774411933.531779932] [DEBUG] Mode: BrowseSpellbooks
+[1774411933.745658039] [DEBUG] KeyEvent: code=Enter, modifiers=KeyModifiers(0x0)
+[1774411933.745717269] [DEBUG] Mode: BrowseSpellbooks
+[1774411934.406686577] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774411934.406752497] [DEBUG] Mode: BrowseSpells
+[1774411934.641662365] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1774411934.641717365] [DEBUG] Mode: BrowseSpells
+[1774411935.545754417] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411935.545817237] [DEBUG] Mode: BrowseSpells
+[1774411936.723656853] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774411936.723726943] [DEBUG] Mode: BrowseSpellbooks
+[1774411937.020661069] [DEBUG] KeyEvent: code=Char('g'), modifiers=KeyModifiers(0x0)
+[1774411937.020717828] [DEBUG] Mode: BrowseSpellbooks
+[1774411937.107658691] [DEBUG] KeyEvent: code=Char('i'), modifiers=KeyModifiers(0x0)
+[1774411937.107720771] [DEBUG] Mode: BrowseSpellbooks
+[1774411937.235768221] [DEBUG] KeyEvent: code=Char('t'), modifiers=KeyModifiers(0x0)
+[1774411937.235820690] [DEBUG] Mode: BrowseSpellbooks
+[1774411937.482645178] [DEBUG] KeyEvent: code=Char(' '), modifiers=KeyModifiers(0x0)
+[1774411937.482715318] [DEBUG] Mode: BrowseSpellbooks
+[1774411937.649640563] [DEBUG] KeyEvent: code=Char('s'), modifiers=KeyModifiers(0x0)
+[1774411937.649700963] [DEBUG] Mode: BrowseSpellbooks
+[1774411937.748620415] [DEBUG] KeyEvent: code=Char('t'), modifiers=KeyModifiers(0x0)
+[1774411937.748676965] [DEBUG] Mode: BrowseSpellbooks
+[1774411937.850663644] [DEBUG] KeyEvent: code=Char('a'), modifiers=KeyModifiers(0x0)
+[1774411937.850719414] [DEBUG] Mode: BrowseSpellbooks
+[1774411937.961634675] [DEBUG] KeyEvent: code=Char('t'), modifiers=KeyModifiers(0x0)
+[1774411937.961687895] [DEBUG] Mode: BrowseSpellbooks
+[1774411938.125627173] [DEBUG] KeyEvent: code=Char('u'), modifiers=KeyModifiers(0x0)
+[1774411938.125684492] [DEBUG] Mode: BrowseSpellbooks
+[1774411938.225668870] [DEBUG] KeyEvent: code=Char('s'), modifiers=KeyModifiers(0x0)
+[1774411938.225729260] [DEBUG] Mode: BrowseSpellbooks
+[1774411938.787681337] [DEBUG] KeyEvent: code=Enter, modifiers=KeyModifiers(0x0)
+[1774411938.787737196] [DEBUG] Mode: BrowseSpellbooks
+[1774411939.723831194] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411939.723885623] [DEBUG] Mode: BrowseSpellbooks
+[1774411939.883682669] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411939.883748978] [DEBUG] Mode: BrowseSpellbooks
+[1774411940.035749436] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411940.035836086] [DEBUG] Mode: BrowseSpellbooks
+[1774411940.181639951] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411940.181692770] [DEBUG] Mode: BrowseSpellbooks
+[1774411941.958563157] [DEBUG] KeyEvent: code=Esc, modifiers=KeyModifiers(0x0)
+[1774411941.958624817] [DEBUG] Mode: BrowseSpellbooks
+[1774411942.748648561] [DEBUG] KeyEvent: code=Enter, modifiers=KeyModifiers(0x0)
+[1774411942.748712191] [DEBUG] Mode: BrowseSpellbooks
+[1774411943.219636202] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774411943.219701172] [DEBUG] Mode: BrowseSpells
+[1774411943.371670560] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774411943.371737350] [DEBUG] Mode: BrowseSpells
+[1774411944.093812131] [DEBUG] KeyEvent: code=Esc, modifiers=KeyModifiers(0x0)
+[1774411944.093880440] [DEBUG] Mode: BrowseSpells
+[1774411944.184659077] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774411944.184729247] [DEBUG] Mode: BrowseSpellbooks
+[1774411944.450665034] [DEBUG] KeyEvent: code=Enter, modifiers=KeyModifiers(0x0)
+[1774411944.450724753] [DEBUG] Mode: BrowseSpellbooks
+[1774411944.689627415] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774411944.689683664] [DEBUG] Mode: BrowseSpells
+[1774411944.830627379] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774411944.830677959] [DEBUG] Mode: BrowseSpells
+[1774411944.975628377] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774411944.975679807] [DEBUG] Mode: BrowseSpells
+[1774411945.232626142] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774411945.232684782] [DEBUG] Mode: BrowseSpells
+[1774411945.360608821] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774411945.360662231] [DEBUG] Mode: BrowseSpells
+[1774411946.013851503] [DEBUG] KeyEvent: code=Esc, modifiers=KeyModifiers(0x0)
+[1774411946.013923803] [DEBUG] Mode: BrowseSpells
+[1774411948.439604200] [DEBUG] KeyEvent: code=Char('q'), modifiers=KeyModifiers(0x0)
+[1774411948.439698940] [DEBUG] Mode: BrowseSpellbooks
+[1774411949.242608340] [DEBUG] KeyEvent: code=Char('c'), modifiers=KeyModifiers(CONTROL)
+[1774411949.242676490] [INFO] Quit via Ctrl+C
+[1774411949.242718899] [INFO] Spellbook exiting
+[1774411966.102061453] [INFO] Spellbook started (mode: Browse)
+[1774411966.102362931] [INFO] Job manager initialized
+[1774411967.791547261] [DEBUG] KeyEvent: code=Char('s'), modifiers=KeyModifiers(0x0)
+[1774411967.791619631] [DEBUG] Mode: BrowseSpellbooks
+[1774411968.241571643] [DEBUG] KeyEvent: code=Char('s'), modifiers=KeyModifiers(0x0)
+[1774411968.241680762] [DEBUG] Mode: BrowseSpellbooks
+[1774411968.440530183] [DEBUG] KeyEvent: code=Char(','), modifiers=KeyModifiers(0x0)
+[1774411968.440595633] [DEBUG] Mode: BrowseSpellbooks
+[1774411968.575530714] [DEBUG] KeyEvent: code=Char('r'), modifiers=KeyModifiers(0x0)
+[1774411968.575602413] [DEBUG] Mode: BrowseSpellbooks
+[1774411968.639474473] [DEBUG] KeyEvent: code=Char('e'), modifiers=KeyModifiers(0x0)
+[1774411968.639533063] [DEBUG] Mode: BrowseSpellbooks
+[1774411968.774548603] [DEBUG] KeyEvent: code=Char('a'), modifiers=KeyModifiers(0x0)
+[1774411968.774620123] [DEBUG] Mode: BrowseSpellbooks
+[1774411968.810483092] [DEBUG] KeyEvent: code=Char(','), modifiers=KeyModifiers(0x0)
+[1774411968.810523492] [DEBUG] Mode: BrowseSpellbooks
+[1774411968.912513661] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774411968.912561411] [DEBUG] Mode: BrowseSpellbooks
+[1774411968.976459592] [DEBUG] KeyEvent: code=Char(';'), modifiers=KeyModifiers(0x0)
+[1774411968.976515741] [DEBUG] Mode: BrowseSpellbooks
+[1774411969.090491380] [DEBUG] KeyEvent: code=Char(','), modifiers=KeyModifiers(0x0)
+[1774411969.090541390] [DEBUG] Mode: BrowseSpellbooks
+[1774411969.103424706] [DEBUG] KeyEvent: code=Char('s'), modifiers=KeyModifiers(0x0)
+[1774411969.103476436] [DEBUG] Mode: BrowseSpellbooks
+[1774411969.106430713] [DEBUG] KeyEvent: code=Char('f'), modifiers=KeyModifiers(0x0)
+[1774411969.106491613] [DEBUG] Mode: BrowseSpellbooks
+[1774411969.110410176] [DEBUG] KeyEvent: code=Char('d'), modifiers=KeyModifiers(0x0)
+[1774411969.110450076] [DEBUG] Mode: BrowseSpellbooks
+[1774411969.174453436] [DEBUG] KeyEvent: code=Char('a'), modifiers=KeyModifiers(0x0)
+[1774411969.174498346] [DEBUG] Mode: BrowseSpellbooks
+[1774411969.206446021] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774411969.206494401] [DEBUG] Mode: BrowseSpellbooks
+[1774411969.271518326] [DEBUG] KeyEvent: code=Char('f'), modifiers=KeyModifiers(0x0)
+[1774411969.271575116] [DEBUG] Mode: BrowseSpellbooks
+[1774411969.324473813] [DEBUG] KeyEvent: code=Char('m'), modifiers=KeyModifiers(0x0)
+[1774411969.324528023] [DEBUG] Mode: BrowseSpellbooks
+[1774411969.389469719] [DEBUG] KeyEvent: code=Char('a'), modifiers=KeyModifiers(0x0)
+[1774411969.389515069] [DEBUG] Mode: BrowseSpellbooks
+[1774411969.421472084] [DEBUG] KeyEvent: code=Char('s'), modifiers=KeyModifiers(0x0)
+[1774411969.421522793] [DEBUG] Mode: BrowseSpellbooks
+[1774411969.443450101] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774411969.443502911] [DEBUG] Mode: BrowseSpellbooks
+[1774411969.446342899] [DEBUG] KeyEvent: code=Char(';'), modifiers=KeyModifiers(0x0)
+[1774411969.446396399] [DEBUG] Mode: BrowseSpellbooks
+[1774411969.577464765] [DEBUG] KeyEvent: code=Char('f'), modifiers=KeyModifiers(0x0)
+[1774411969.577528265] [DEBUG] Mode: BrowseSpellbooks
+[1774411969.795513395] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774411969.795577095] [DEBUG] Mode: BrowseSpellbooks
+[1774411969.957526541] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774411969.957580461] [DEBUG] Mode: BrowseSpellbooks
+[1774411970.394512366] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1774411970.394569546] [DEBUG] Mode: BrowseSpellbooks
+[1774411971.350522743] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774411971.350596352] [DEBUG] Mode: BrowseSpellbooks
+[1774411971.671503767] [DEBUG] KeyEvent: code=Char('s'), modifiers=KeyModifiers(0x0)
+[1774411971.671559906] [DEBUG] Mode: BrowseSpellbooks
+[1774411971.962523308] [DEBUG] KeyEvent: code=Char('e'), modifiers=KeyModifiers(0x0)
+[1774411971.962591198] [DEBUG] Mode: BrowseSpellbooks
+[1774411972.051642662] [DEBUG] KeyEvent: code=Char('a'), modifiers=KeyModifiers(0x0)
+[1774411972.051711532] [DEBUG] Mode: BrowseSpellbooks
+[1774411972.176498095] [DEBUG] KeyEvent: code=Char('r'), modifiers=KeyModifiers(0x0)
+[1774411972.176559885] [DEBUG] Mode: BrowseSpellbooks
+[1774411972.472523895] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411972.472586485] [DEBUG] Mode: BrowseSpellbooks
+[1774411972.633492096] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411972.633556356] [DEBUG] Mode: BrowseSpellbooks
+[1774411972.797506084] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411972.797572403] [DEBUG] Mode: BrowseSpellbooks
+[1774411973.214513504] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411973.214559914] [DEBUG] Mode: BrowseSpellbooks
+[1774411973.684511971] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774411973.684566521] [DEBUG] Mode: BrowseSpellbooks
+[1774411988.766444830] [DEBUG] KeyEvent: code=Tab, modifiers=KeyModifiers(0x0)
+[1774411988.766536300] [DEBUG] Mode: BrowseSpellbooks
+[1774411999.646392963] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774411999.646463873] [DEBUG] Mode: BrowseSpellbooks
+[1774412000.008385956] [DEBUG] KeyEvent: code=Char('s'), modifiers=KeyModifiers(0x0)
+[1774412000.008448366] [DEBUG] Mode: BrowseSpellbooks
+[1774412000.156367822] [DEBUG] KeyEvent: code=Char('e'), modifiers=KeyModifiers(0x0)
+[1774412000.156430591] [DEBUG] Mode: BrowseSpellbooks
+[1774412000.273385598] [DEBUG] KeyEvent: code=Char('a'), modifiers=KeyModifiers(0x0)
+[1774412000.273447568] [DEBUG] Mode: BrowseSpellbooks
+[1774412000.665408034] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774412000.665465444] [DEBUG] Mode: BrowseSpellbooks
+[1774412000.830427058] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774412000.830500288] [DEBUG] Mode: BrowseSpellbooks
+[1774412001.585370353] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774412001.585417693] [DEBUG] Mode: BrowseSpellbooks
+[1774412002.021374604] [DEBUG] KeyEvent: code=Char('g'), modifiers=KeyModifiers(0x0)
+[1774412002.021444554] [DEBUG] Mode: BrowseSpellbooks
+[1774412002.113383787] [DEBUG] KeyEvent: code=Char('i'), modifiers=KeyModifiers(0x0)
+[1774412002.113438276] [DEBUG] Mode: BrowseSpellbooks
+[1774412002.245302550] [DEBUG] KeyEvent: code=Char('t'), modifiers=KeyModifiers(0x0)
+[1774412002.245352760] [DEBUG] Mode: BrowseSpellbooks
+[1774412195.425513063] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412195.425590482] [DEBUG] Mode: BrowseSpellbooks
+[1774412195.428515190] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412195.428568960] [DEBUG] Mode: BrowseSpellbooks
+[1774412195.431482448] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412195.431518008] [DEBUG] Mode: BrowseSpellbooks
+[1774412195.433857518] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412195.433899087] [DEBUG] Mode: BrowseSpellbooks
+[1774412195.436376107] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412195.436414307] [DEBUG] Mode: BrowseSpellbooks
+[1774412195.474484656] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412195.474544376] [DEBUG] Mode: BrowseSpellbooks
+[1774412195.477469254] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412195.477535394] [DEBUG] Mode: BrowseSpellbooks
+[1774412195.480807900] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412195.480857190] [DEBUG] Mode: BrowseSpellbooks
+[1774412195.483362609] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412195.483397179] [DEBUG] Mode: BrowseSpellbooks
+[1774412195.485701869] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412195.485748119] [DEBUG] Mode: BrowseSpellbooks
+[1774412195.538488057] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412195.538547137] [DEBUG] Mode: BrowseSpellbooks
+[1774412195.541403184] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412195.541453404] [DEBUG] Mode: BrowseSpellbooks
+[1774412195.544171203] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412195.544209993] [DEBUG] Mode: BrowseSpellbooks
+[1774412195.546931681] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412195.546998661] [DEBUG] Mode: BrowseSpellbooks
+[1774412195.549867189] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412195.549934329] [DEBUG] Mode: BrowseSpellbooks
+[1774412197.458555040] [DEBUG] KeyEvent: code=Char('f'), modifiers=KeyModifiers(0x0)
+[1774412197.458624479] [DEBUG] Mode: BrowseSpellbooks
+[1774412198.037588111] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774412198.037661881] [DEBUG] Mode: BrowseSpellbooks
+[1774412198.266554557] [DEBUG] KeyEvent: code=Char('f'), modifiers=KeyModifiers(0x0)
+[1774412198.266626736] [DEBUG] Mode: BrowseSpellbooks
+[1774412198.383552794] [DEBUG] KeyEvent: code=Char('a'), modifiers=KeyModifiers(0x0)
+[1774412198.383634783] [DEBUG] Mode: BrowseSpellbooks
+[1774412198.949557050] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774412198.949650479] [DEBUG] Mode: BrowseSpellbooks
+[1774412200.581552676] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774412200.581620976] [DEBUG] Mode: BrowseSpellbooks
+[1774412201.968549866] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774412201.968608335] [DEBUG] Mode: BrowseSpellbooks
+[1774412202.333546818] [DEBUG] KeyEvent: code=Enter, modifiers=KeyModifiers(0x0)
+[1774412202.333605408] [DEBUG] Mode: BrowseSpellbooks
+[1774412202.907527531] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412202.907581351] [DEBUG] Mode: BrowseSpells
+[1774412203.233559957] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1774412203.233618226] [DEBUG] Mode: BrowseSpells
+[1774412203.512680451] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412203.512741211] [DEBUG] Mode: BrowseSpells
+[1774412204.115554833] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412204.115614312] [DEBUG] Mode: BrowseSpells
+[1774412204.776926647] [DEBUG] KeyEvent: code=Esc, modifiers=KeyModifiers(0x0)
+[1774412204.776980757] [DEBUG] Mode: BrowseSpells
+[1774412205.036550523] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1774412205.036606903] [DEBUG] Mode: BrowseSpellbooks
+[1774412205.257511452] [DEBUG] KeyEvent: code=Enter, modifiers=KeyModifiers(0x0)
+[1774412205.257561112] [DEBUG] Mode: BrowseSpellbooks
+[1774412205.489566855] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412205.489620175] [DEBUG] Mode: BrowseSpells
+[1774412205.653514415] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412205.653617324] [DEBUG] Mode: BrowseSpells
+[1774412206.016545816] [DEBUG] KeyEvent: code=Esc, modifiers=KeyModifiers(0x0)
+[1774412206.016601696] [DEBUG] Mode: BrowseSpells
+[1774412206.020436000] [DEBUG] KeyEvent: code=Char('['), modifiers=KeyModifiers(0x0)
+[1774412206.020469840] [DEBUG] Mode: BrowseSpellbooks
+[1774412206.022779140] [DEBUG] KeyEvent: code=Char('C'), modifiers=KeyModifiers(SHIFT)
+[1774412206.022815679] [DEBUG] Mode: BrowseSpellbooks
+[1774412206.207519112] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774412206.207575142] [DEBUG] Mode: BrowseSpellbooks
+[1774412206.366545382] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774412206.366606712] [DEBUG] Mode: BrowseSpellbooks
+[1774412206.546631134] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774412206.546693534] [DEBUG] Mode: BrowseSpellbooks
+[1774412206.914592324] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1774412206.914653964] [DEBUG] Mode: BrowseSpellbooks
+[1774412207.103527598] [DEBUG] KeyEvent: code=Enter, modifiers=KeyModifiers(0x0)
+[1774412207.103587308] [DEBUG] Mode: BrowseSpellbooks
+[1774412207.350506498] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412207.350561488] [DEBUG] Mode: BrowseSpells
+[1774412207.573528209] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412207.573585859] [DEBUG] Mode: BrowseSpells
+[1774412208.257222150] [DEBUG] KeyEvent: code=Esc, modifiers=KeyModifiers(0x0)
+[1774412208.257274119] [DEBUG] Mode: BrowseSpells
+[1774412208.554536847] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774412208.554593157] [DEBUG] Mode: BrowseSpellbooks
+[1774412209.082494494] [DEBUG] KeyEvent: code=Enter, modifiers=KeyModifiers(0x0)
+[1774412209.082543644] [DEBUG] Mode: BrowseSpellbooks
+[1774412209.344553450] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412209.344615000] [DEBUG] Mode: BrowseSpells
+[1774412209.521510475] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412209.521573004] [DEBUG] Mode: BrowseSpells
+[1774412210.232532180] [DEBUG] KeyEvent: code=Esc, modifiers=KeyModifiers(0x0)
+[1774412210.232584050] [DEBUG] Mode: BrowseSpells
+[1774412321.377950113] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412321.378018013] [DEBUG] Mode: BrowseSpellbooks
+[1774412321.380628602] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412321.380685102] [DEBUG] Mode: BrowseSpellbooks
+[1774412321.383138722] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412321.383171081] [DEBUG] Mode: BrowseSpellbooks
+[1774412321.385430852] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412321.385461282] [DEBUG] Mode: BrowseSpellbooks
+[1774412321.387659563] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412321.387697403] [DEBUG] Mode: BrowseSpellbooks
+[1774412321.402915719] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412321.402961718] [DEBUG] Mode: BrowseSpellbooks
+[1774412321.405540577] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412321.405575087] [DEBUG] Mode: BrowseSpellbooks
+[1774412321.408011757] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412321.408048967] [DEBUG] Mode: BrowseSpellbooks
+[1774412321.410324047] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412321.410353797] [DEBUG] Mode: BrowseSpellbooks
+[1774412321.413187945] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412321.413233265] [DEBUG] Mode: BrowseSpellbooks
+[1774412321.420903743] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412321.420944913] [DEBUG] Mode: BrowseSpellbooks
+[1774412321.423490382] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412321.423523622] [DEBUG] Mode: BrowseSpellbooks
+[1774412321.425949112] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412321.425977842] [DEBUG] Mode: BrowseSpellbooks
+[1774412321.428378521] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412321.428409731] [DEBUG] Mode: BrowseSpellbooks
+[1774412321.430601932] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412321.430632212] [DEBUG] Mode: BrowseSpellbooks
+[1774412321.436895205] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412321.436931665] [DEBUG] Mode: BrowseSpellbooks
+[1774412321.439138546] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412321.439167636] [DEBUG] Mode: BrowseSpellbooks
+[1774412321.441362897] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412321.441396187] [DEBUG] Mode: BrowseSpellbooks
+[1774412321.443634767] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412321.443662427] [DEBUG] Mode: BrowseSpellbooks
+[1774412321.445937567] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412321.445964887] [DEBUG] Mode: BrowseSpellbooks
+[1774412321.450905957] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412321.450948246] [DEBUG] Mode: BrowseSpellbooks
+[1774412321.453345166] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412321.453379436] [DEBUG] Mode: BrowseSpellbooks
+[1774412321.455703997] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412321.455747186] [DEBUG] Mode: BrowseSpellbooks
+[1774412321.457995417] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412321.458027167] [DEBUG] Mode: BrowseSpellbooks
+[1774412321.460288687] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412321.460323617] [DEBUG] Mode: BrowseSpellbooks
+[1774412321.462718447] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412321.462747057] [DEBUG] Mode: BrowseSpellbooks
+[1774412321.465214046] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412321.465259136] [DEBUG] Mode: BrowseSpellbooks
+[1774412321.468019404] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412321.468049414] [DEBUG] Mode: BrowseSpellbooks
+[1774412321.470433124] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412321.470471994] [DEBUG] Mode: BrowseSpellbooks
+[1774412321.472726705] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412321.472755005] [DEBUG] Mode: BrowseSpellbooks
+[1774412321.475156544] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412321.475184674] [DEBUG] Mode: BrowseSpellbooks
+[1774412321.477608834] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412321.477644294] [DEBUG] Mode: BrowseSpellbooks
+[1774412321.480066374] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412321.480114934] [DEBUG] Mode: BrowseSpellbooks
+[1774412321.482386414] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412321.482428454] [DEBUG] Mode: BrowseSpellbooks
+[1774412321.484677034] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412321.484719334] [DEBUG] Mode: BrowseSpellbooks
+[1774412321.490884468] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412321.490947758] [DEBUG] Mode: BrowseSpellbooks
+[1774412321.493683897] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412321.493727786] [DEBUG] Mode: BrowseSpellbooks
+[1774412321.495986767] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412321.496024867] [DEBUG] Mode: BrowseSpellbooks
+[1774412321.498302107] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412321.498335167] [DEBUG] Mode: BrowseSpellbooks
+[1774412321.500656957] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412321.500692157] [DEBUG] Mode: BrowseSpellbooks
+[1774412327.727008416] [DEBUG] KeyEvent: code=Char('c'), modifiers=KeyModifiers(CONTROL)
+[1774412327.727059606] [INFO] Quit via Ctrl+C
+[1774412327.727087066] [INFO] Spellbook exiting
+[1774412331.745221057] [INFO] Spellbook started (mode: Browse)
+[1774412331.745533126] [INFO] Job manager initialized
+[1774412333.536979329] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774412333.537043939] [DEBUG] Mode: BrowseSpellbooks
+[1774412333.695935350] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774412333.695982950] [DEBUG] Mode: BrowseSpellbooks
+[1774412334.624951163] [DEBUG] KeyEvent: code=Char('s'), modifiers=KeyModifiers(0x0)
+[1774412334.625000113] [DEBUG] Mode: BrowseSpellbooks
+[1774412334.693940632] [DEBUG] KeyEvent: code=Char('a'), modifiers=KeyModifiers(0x0)
+[1774412334.693990442] [DEBUG] Mode: BrowseSpellbooks
+[1774412336.057960961] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774412336.058022031] [DEBUG] Mode: BrowseSpellbooks
+[1774412337.058969098] [DEBUG] KeyEvent: code=Char('g'), modifiers=KeyModifiers(0x0)
+[1774412337.059033438] [DEBUG] Mode: BrowseSpellbooks
+[1774412337.150925782] [DEBUG] KeyEvent: code=Char('i'), modifiers=KeyModifiers(0x0)
+[1774412337.150977192] [DEBUG] Mode: BrowseSpellbooks
+[1774412337.211943335] [DEBUG] KeyEvent: code=Char('t'), modifiers=KeyModifiers(0x0)
+[1774412337.212000095] [DEBUG] Mode: BrowseSpellbooks
+[1774412338.863954235] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774412338.864020895] [DEBUG] Mode: BrowseSpellbooks
+[1774412339.024968667] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774412339.025038986] [DEBUG] Mode: BrowseSpellbooks
+[1774412339.161925770] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774412339.161980310] [DEBUG] Mode: BrowseSpellbooks
+[1774412339.302959418] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774412339.303015857] [DEBUG] Mode: BrowseSpellbooks
+[1774412340.904967427] [DEBUG] KeyEvent: code=Char('k'), modifiers=KeyModifiers(0x0)
+[1774412340.905031197] [DEBUG] Mode: BrowseSpellbooks
+[1774412341.020956169] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412341.021012039] [DEBUG] Mode: BrowseSpellbooks
+[1774412341.156942257] [DEBUG] KeyEvent: code=Char('k'), modifiers=KeyModifiers(0x0)
+[1774412341.156997027] [DEBUG] Mode: BrowseSpellbooks
+[1774412341.204926465] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412341.204978375] [DEBUG] Mode: BrowseSpellbooks
+[1774412341.458987596] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412341.459047576] [DEBUG] Mode: BrowseSpellbooks
+[1774412341.554960562] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412341.555018362] [DEBUG] Mode: BrowseSpellbooks
+[1774412343.574987972] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412343.575063702] [DEBUG] Mode: BrowseSpellbooks
+[1774412343.661998866] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412343.662070736] [DEBUG] Mode: BrowseSpellbooks
+[1774412344.131991198] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412344.132079538] [DEBUG] Mode: BrowseSpellbooks
+[1774412344.479931884] [DEBUG] KeyEvent: code=Char('k'), modifiers=KeyModifiers(0x0)
+[1774412344.479988844] [DEBUG] Mode: BrowseSpellbooks
+[1774412344.519901906] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412344.519947296] [DEBUG] Mode: BrowseSpellbooks
+[1774412344.670931540] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412344.670984220] [DEBUG] Mode: BrowseSpellbooks
+[1774412344.906921448] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412344.906979018] [DEBUG] Mode: BrowseSpellbooks
+[1774412345.253925618] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412345.253981117] [DEBUG] Mode: BrowseSpellbooks
+[1774412345.522958825] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412345.523012455] [DEBUG] Mode: BrowseSpellbooks
+[1774412345.717957505] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412345.718021045] [DEBUG] Mode: BrowseSpellbooks
+[1774412345.800965936] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412345.801027446] [DEBUG] Mode: BrowseSpellbooks
+[1774412673.215572952] [DEBUG] KeyEvent: code=Char('c'), modifiers=KeyModifiers(CONTROL)
+[1774412673.215640912] [INFO] Quit via Ctrl+C
+[1774412673.215689752] [INFO] Spellbook exiting
+[1774412677.018142904] [INFO] Spellbook started (mode: Browse)
+[1774412677.018433483] [INFO] Job manager initialized
+[1774412677.448553395] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412677.448624095] [DEBUG] Mode: BrowseSpellbooks
+[1774412677.708577463] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412677.708642983] [DEBUG] Mode: BrowseSpellbooks
+[1774412677.897554849] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412677.897621939] [DEBUG] Mode: BrowseSpellbooks
+[1774412678.106100753] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412678.106151563] [DEBUG] Mode: BrowseSpellbooks
+[1774412678.509544727] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412678.509611587] [DEBUG] Mode: BrowseSpellbooks
+[1774412678.923581778] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412678.923637598] [DEBUG] Mode: BrowseSpellbooks
+[1774412679.094528359] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412679.094590789] [DEBUG] Mode: BrowseSpellbooks
+[1774412679.250518324] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412679.250573754] [DEBUG] Mode: BrowseSpellbooks
+[1774412679.507518424] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412679.507584514] [DEBUG] Mode: BrowseSpellbooks
+[1774412679.776529754] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412679.776606934] [DEBUG] Mode: BrowseSpellbooks
+[1774412679.951528008] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412679.951596978] [DEBUG] Mode: BrowseSpellbooks
+[1774412680.144558427] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412680.144626457] [DEBUG] Mode: BrowseSpellbooks
+[1774412680.308555358] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412680.308627898] [DEBUG] Mode: BrowseSpellbooks
+[1774412680.432482337] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412680.432556207] [DEBUG] Mode: BrowseSpellbooks
+[1774412680.653535129] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412680.653605348] [DEBUG] Mode: BrowseSpellbooks
+[1774412680.817815028] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412680.817884148] [DEBUG] Mode: BrowseSpellbooks
+[1774412680.998533989] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412680.998593549] [DEBUG] Mode: BrowseSpellbooks
+[1774412681.237554135] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412681.237616924] [DEBUG] Mode: BrowseSpellbooks
+[1774412681.405527389] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412681.405596899] [DEBUG] Mode: BrowseSpellbooks
+[1774412681.569527110] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412681.569588680] [DEBUG] Mode: BrowseSpellbooks
+[1774412681.699481434] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412681.699534574] [DEBUG] Mode: BrowseSpellbooks
+[1774412681.799491734] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412681.799541553] [DEBUG] Mode: BrowseSpellbooks
+[1774412681.922473207] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412681.922524147] [DEBUG] Mode: BrowseSpellbooks
+[1774412681.954457223] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412681.954501602] [DEBUG] Mode: BrowseSpellbooks
+[1774412682.124515598] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412682.124568918] [DEBUG] Mode: BrowseSpellbooks
+[1774412682.239458495] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412682.239512665] [DEBUG] Mode: BrowseSpellbooks
+[1774412682.374504878] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412682.374558397] [DEBUG] Mode: BrowseSpellbooks
+[1774412682.399445683] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412682.399483862] [DEBUG] Mode: BrowseSpellbooks
+[1774412683.379527795] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412683.379582265] [DEBUG] Mode: BrowseSpellbooks
+[1774412683.502451938] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412683.502506758] [DEBUG] Mode: BrowseSpellbooks
+[1774412683.775516201] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412683.775570251] [DEBUG] Mode: BrowseSpellbooks
+[1774412683.805452525] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412683.805495685] [DEBUG] Mode: BrowseSpellbooks
+[1774412683.972496183] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412683.972550983] [DEBUG] Mode: BrowseSpellbooks
+[1774412684.070477702] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412684.070532842] [DEBUG] Mode: BrowseSpellbooks
+[1774412684.208500432] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412684.208550602] [DEBUG] Mode: BrowseSpellbooks
+[1774412688.348531003] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412688.348605933] [DEBUG] Mode: BrowseSpellbooks
+[1774412688.724515148] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412688.724582708] [DEBUG] Mode: BrowseSpellbooks
+[1774412689.159494863] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412689.159555923] [DEBUG] Mode: BrowseSpellbooks
+[1774412689.660518462] [DEBUG] KeyEvent: code=Char('k'), modifiers=KeyModifiers(0x0)
+[1774412689.660592021] [DEBUG] Mode: BrowseSpellbooks
+[1774412689.902492780] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412689.902557500] [DEBUG] Mode: BrowseSpellbooks
+[1774412690.027498063] [DEBUG] KeyEvent: code=Char('k'), modifiers=KeyModifiers(0x0)
+[1774412690.027561903] [DEBUG] Mode: BrowseSpellbooks
+[1774412690.239467593] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412690.239532913] [DEBUG] Mode: BrowseSpellbooks
+[1774412690.310465886] [DEBUG] KeyEvent: code=Char('k'), modifiers=KeyModifiers(0x0)
+[1774412690.310525205] [DEBUG] Mode: BrowseSpellbooks
+[1774412690.671502242] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412690.671564251] [DEBUG] Mode: BrowseSpellbooks
+[1774412691.443489610] [DEBUG] KeyEvent: code=Char('k'), modifiers=KeyModifiers(0x0)
+[1774412691.443563829] [DEBUG] Mode: BrowseSpellbooks
+[1774412691.734519290] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412691.734587160] [DEBUG] Mode: BrowseSpellbooks
+[1774412692.067587818] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412692.067653758] [DEBUG] Mode: BrowseSpellbooks
+[1774412692.300500633] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412692.300566643] [DEBUG] Mode: BrowseSpellbooks
+[1774412692.751481861] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412692.751543701] [DEBUG] Mode: BrowseSpellbooks
+[1774412693.187480403] [DEBUG] KeyEvent: code=Char('k'), modifiers=KeyModifiers(0x0)
+[1774412693.187544863] [DEBUG] Mode: BrowseSpellbooks
+[1774412693.379481064] [DEBUG] KeyEvent: code=Char('k'), modifiers=KeyModifiers(0x0)
+[1774412693.379548014] [DEBUG] Mode: BrowseSpellbooks
+[1774412693.780460338] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412693.780528937] [DEBUG] Mode: BrowseSpellbooks
+[1774412694.013478421] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412694.013547001] [DEBUG] Mode: BrowseSpellbooks
+[1774412694.253478739] [DEBUG] KeyEvent: code=Char('k'), modifiers=KeyModifiers(0x0)
+[1774412694.253559238] [DEBUG] Mode: BrowseSpellbooks
+[1774412694.631488295] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412694.631557304] [DEBUG] Mode: BrowseSpellbooks
+[1774412694.906477091] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412694.906557920] [DEBUG] Mode: BrowseSpellbooks
+[1774412695.450474592] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412695.450532702] [DEBUG] Mode: BrowseSpellbooks
+[1774412695.710473837] [DEBUG] KeyEvent: code=Char('k'), modifiers=KeyModifiers(0x0)
+[1774412695.710533477] [DEBUG] Mode: BrowseSpellbooks
+[1774412695.825423901] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412695.825477320] [DEBUG] Mode: BrowseSpellbooks
+[1774412696.287475077] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412696.287549596] [DEBUG] Mode: BrowseSpellbooks
+[1774412696.760475293] [DEBUG] KeyEvent: code=Char('k'), modifiers=KeyModifiers(0x0)
+[1774412696.760532943] [DEBUG] Mode: BrowseSpellbooks
+[1774412697.277443846] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412697.277497296] [DEBUG] Mode: BrowseSpellbooks
+[1774412697.471460069] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412697.471526858] [DEBUG] Mode: BrowseSpellbooks
+[1774412698.051469934] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412698.051528934] [DEBUG] Mode: BrowseSpellbooks
+[1774412698.450708152] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412698.450767522] [DEBUG] Mode: BrowseSpellbooks
+[1774412698.953462732] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412698.953517852] [DEBUG] Mode: BrowseSpellbooks
+[1774412699.133495203] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412699.133561642] [DEBUG] Mode: BrowseSpellbooks
+[1774412699.388456088] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412699.388511778] [DEBUG] Mode: BrowseSpellbooks
+[1774412700.169436599] [DEBUG] KeyEvent: code=Char('k'), modifiers=KeyModifiers(0x0)
+[1774412700.169503228] [DEBUG] Mode: BrowseSpellbooks
+[1774412700.514422177] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412700.514475067] [DEBUG] Mode: BrowseSpellbooks
+[1774412700.706448308] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412700.706507397] [DEBUG] Mode: BrowseSpellbooks
+[1774412700.910456619] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412700.910505998] [DEBUG] Mode: BrowseSpellbooks
+[1774412701.273459746] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412701.273513796] [DEBUG] Mode: BrowseSpellbooks
+[1774412701.928451747] [DEBUG] KeyEvent: code=Char('k'), modifiers=KeyModifiers(0x0)
+[1774412701.928499437] [DEBUG] Mode: BrowseSpellbooks
+[1774412702.312461850] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412702.312517580] [DEBUG] Mode: BrowseSpellbooks
+[1774412702.564445367] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412702.564502847] [DEBUG] Mode: BrowseSpellbooks
+[1774412702.906455339] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412702.906518029] [DEBUG] Mode: BrowseSpellbooks
+[1774412703.092445224] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412703.092528784] [DEBUG] Mode: BrowseSpellbooks
+[1774412703.284384885] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412703.284441615] [DEBUG] Mode: BrowseSpellbooks
+[1774412703.797425052] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412703.797474332] [DEBUG] Mode: BrowseSpellbooks
+[1774412704.238419323] [DEBUG] KeyEvent: code=Char('k'), modifiers=KeyModifiers(0x0)
+[1774412704.238481823] [DEBUG] Mode: BrowseSpellbooks
+[1774412704.655431641] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412704.655488340] [DEBUG] Mode: BrowseSpellbooks
+[1774412705.278433831] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412705.278492571] [DEBUG] Mode: BrowseSpellbooks
+[1774412705.935410415] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412705.935474035] [DEBUG] Mode: BrowseSpellbooks
+[1774412706.256412650] [DEBUG] KeyEvent: code=Char('k'), modifiers=KeyModifiers(0x0)
+[1774412706.256466980] [DEBUG] Mode: BrowseSpellbooks
+[1774412706.713465005] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412706.713536195] [DEBUG] Mode: BrowseSpellbooks
+[1774412706.972448177] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412706.972510356] [DEBUG] Mode: BrowseSpellbooks
+[1774412707.188401370] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412707.188453470] [DEBUG] Mode: BrowseSpellbooks
+[1774412707.611486653] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412707.611573853] [DEBUG] Mode: BrowseSpellbooks
+[1774412707.798522174] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412707.798601514] [DEBUG] Mode: BrowseSpellbooks
+[1774412707.981455931] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412707.981521671] [DEBUG] Mode: BrowseSpellbooks
+[1774412708.288410785] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412708.288474954] [DEBUG] Mode: BrowseSpellbooks
+[1774412708.499416388] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412708.499494997] [DEBUG] Mode: BrowseSpellbooks
+[1774412708.713399959] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412708.713464538] [DEBUG] Mode: BrowseSpellbooks
+[1774412708.888432498] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412708.888497988] [DEBUG] Mode: BrowseSpellbooks
+[1774412709.065425609] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412709.065487939] [DEBUG] Mode: BrowseSpellbooks
+[1774412709.319420388] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412709.319489308] [DEBUG] Mode: BrowseSpellbooks
+[1774412709.682455594] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412709.682512483] [DEBUG] Mode: BrowseSpellbooks
+[1774412710.062422631] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412710.062493851] [DEBUG] Mode: BrowseSpellbooks
+[1774412710.255429217] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412710.255502007] [DEBUG] Mode: BrowseSpellbooks
+[1774412710.507401804] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412710.507469814] [DEBUG] Mode: BrowseSpellbooks
+[1774412711.016384977] [DEBUG] KeyEvent: code=Char('k'), modifiers=KeyModifiers(0x0)
+[1774412711.016452986] [DEBUG] Mode: BrowseSpellbooks
+[1774412711.391380313] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412711.391441213] [DEBUG] Mode: BrowseSpellbooks
+[1774412711.599380168] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412711.599442217] [DEBUG] Mode: BrowseSpellbooks
+[1774412711.869394382] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412711.869465142] [DEBUG] Mode: BrowseSpellbooks
+[1774412712.337394361] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412712.337456911] [DEBUG] Mode: BrowseSpellbooks
+[1774412712.761381830] [DEBUG] KeyEvent: code=Char('k'), modifiers=KeyModifiers(0x0)
+[1774412712.761441939] [DEBUG] Mode: BrowseSpellbooks
+[1774412712.970345583] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412712.970402313] [DEBUG] Mode: BrowseSpellbooks
+[1774412713.124388249] [DEBUG] KeyEvent: code=Char('k'), modifiers=KeyModifiers(0x0)
+[1774412713.124449369] [DEBUG] Mode: BrowseSpellbooks
+[1774412713.323364441] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412713.323425021] [DEBUG] Mode: BrowseSpellbooks
+[1774412713.602324717] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412713.602389317] [DEBUG] Mode: BrowseSpellbooks
+[1774412713.802391044] [DEBUG] KeyEvent: code=Char('k'), modifiers=KeyModifiers(0x0)
+[1774412713.802447874] [DEBUG] Mode: BrowseSpellbooks
+[1774412714.021372397] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412714.021440357] [DEBUG] Mode: BrowseSpellbooks
+[1774412714.162390525] [DEBUG] KeyEvent: code=Char('k'), modifiers=KeyModifiers(0x0)
+[1774412714.162446395] [DEBUG] Mode: BrowseSpellbooks
+[1774412714.378337266] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412714.378391676] [DEBUG] Mode: BrowseSpellbooks
+[1774412714.521301095] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412714.521353384] [DEBUG] Mode: BrowseSpellbooks
+[1774412714.679386291] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412714.679452401] [DEBUG] Mode: BrowseSpellbooks
+[1774412715.065376535] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412715.065436055] [DEBUG] Mode: BrowseSpellbooks
+[1774412715.221458620] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412715.221508390] [DEBUG] Mode: BrowseSpellbooks
+[1774412715.336350613] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412715.336418563] [DEBUG] Mode: BrowseSpellbooks
+[1774412715.697386905] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412715.697440495] [DEBUG] Mode: BrowseSpellbooks
+[1774412715.702297765] [DEBUG] KeyEvent: code=Char('k'), modifiers=KeyModifiers(0x0)
+[1774412715.702352475] [DEBUG] Mode: BrowseSpellbooks
+[1774412715.847374835] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412715.847432635] [DEBUG] Mode: BrowseSpellbooks
+[1774412716.025370640] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412716.025512939] [DEBUG] Mode: BrowseSpellbooks
+[1774412716.026686325] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412716.026720495] [DEBUG] Mode: BrowseSpellbooks
+[1774412716.234330371] [DEBUG] KeyEvent: code=Char('k'), modifiers=KeyModifiers(0x0)
+[1774412716.234389621] [DEBUG] Mode: BrowseSpellbooks
+[1774412716.307334214] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412716.307404963] [DEBUG] Mode: BrowseSpellbooks
+[1774412716.478355448] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412716.478423928] [DEBUG] Mode: BrowseSpellbooks
+[1774412716.544367770] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412716.544415560] [DEBUG] Mode: BrowseSpellbooks
+[1774412716.834371282] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412716.834427512] [DEBUG] Mode: BrowseSpellbooks
+[1774412716.914368187] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412716.914430007] [DEBUG] Mode: BrowseSpellbooks
+[1774412717.054322798] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412717.054375247] [DEBUG] Mode: BrowseSpellbooks
+[1774412717.232392064] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412717.232447663] [DEBUG] Mode: BrowseSpellbooks
+[1774412717.326302083] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412717.326349853] [DEBUG] Mode: BrowseSpellbooks
+[1774412717.486347413] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412717.486408802] [DEBUG] Mode: BrowseSpellbooks
+[1774412717.540326994] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412717.540385894] [DEBUG] Mode: BrowseSpellbooks
+[1774412717.665406365] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412717.665469615] [DEBUG] Mode: BrowseSpellbooks
+[1774412717.826355603] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412717.826426733] [DEBUG] Mode: BrowseSpellbooks
+[1774412717.849305459] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412717.849368809] [DEBUG] Mode: BrowseSpellbooks
+[1774412717.921336537] [DEBUG] KeyEvent: code=Char('k'), modifiers=KeyModifiers(0x0)
+[1774412717.921401067] [DEBUG] Mode: BrowseSpellbooks
+[1774412718.038317962] [DEBUG] KeyEvent: code=Char('h'), modifiers=KeyModifiers(0x0)
+[1774412718.038371752] [DEBUG] Mode: BrowseSpellbooks
+[1774412718.145372487] [DEBUG] KeyEvent: code=Char('j'), modifiers=KeyModifiers(0x0)
+[1774412718.145424707] [DEBUG] Mode: BrowseSpellbooks
+[1774412718.198370302] [DEBUG] KeyEvent: code=Char('k'), modifiers=KeyModifiers(0x0)
+[1774412718.198425392] [DEBUG] Mode: BrowseSpellbooks
+[1774412718.224316616] [DEBUG] KeyEvent: code=Char('l'), modifiers=KeyModifiers(0x0)
+[1774412718.224373186] [DEBUG] Mode: BrowseSpellbooks
+[1774412719.346354960] [DEBUG] KeyEvent: code=Char('c'), modifiers=KeyModifiers(CONTROL)
+[1774412719.346415610] [INFO] Quit via Ctrl+C
+[1774412719.346455829] [INFO] Spellbook exiting
+[1774412765.208555245] [INFO] Spellbook started (mode: Browse)
+[1774412765.208893924] [INFO] Job manager initialized
+[1774412765.909208431] [DEBUG] KeyEvent: code=Char('?'), modifiers=KeyModifiers(0x0)
+[1774412765.909290500] [INFO] Help overlay opened
+[1774412786.260103510] [DEBUG] KeyEvent: code=Char('s'), modifiers=KeyModifiers(0x0)
+[1774412787.343372213] [DEBUG] KeyEvent: code=Esc, modifiers=KeyModifiers(0x0)
+[1774412788.338083707] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774412788.338149107] [DEBUG] Mode: BrowseSpellbooks
+[1774412789.115199478] [DEBUG] KeyEvent: code=Enter, modifiers=KeyModifiers(0x0)
+[1774412789.115271468] [DEBUG] Mode: BrowseSpellbooks
+[1774412789.634869430] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412789.634923230] [DEBUG] Mode: BrowseSpells
+[1774412789.876058266] [DEBUG] KeyEvent: code=Char('s'), modifiers=KeyModifiers(0x0)
+[1774412789.876118346] [DEBUG] Mode: BrowseSpells
+[1774412789.877247782] [INFO] Recents persisted before simple mode exec
+[1774412789.877300081] [INFO] Executing spell 'Build Project' in simple mode: cargo build --release
+[1774412801.908289904] [INFO] Spellbook started (mode: Browse)
+[1774412801.908612073] [INFO] Job manager initialized
+[1774412802.912070848] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774412802.912144388] [DEBUG] Mode: BrowseSpellbooks
+[1774412803.044039360] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774412803.044107240] [DEBUG] Mode: BrowseSpellbooks
+[1774412803.157994225] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774412803.158065555] [DEBUG] Mode: BrowseSpellbooks
+[1774412803.275002017] [DEBUG] KeyEvent: code=Enter, modifiers=KeyModifiers(0x0)
+[1774412803.275077607] [DEBUG] Mode: BrowseSpellbooks
+[1774412810.495982756] [DEBUG] KeyEvent: code=Char('b'), modifiers=KeyModifiers(CONTROL)
+[1774412810.496047196] [DEBUG] Mode: BrowseSpells
+[1774412810.496091625] [INFO] Ctrl+b: Starting spell 'Git Status' in background
+[1774412810.911969558] [DEBUG] KeyEvent: code=Char('b'), modifiers=KeyModifiers(0x0)
+[1774412810.912025078] [DEBUG] Mode: BrowseSpells
+[1774412814.561938645] [DEBUG] KeyEvent: code=Char(':'), modifiers=KeyModifiers(0x0)
+[1774412814.562009695] [DEBUG] Mode: BrowseSpells
+[1774412816.502027494] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774412816.502102863] [DEBUG] Mode: BrowseSpells
+[1774412816.779970548] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1774412816.780039178] [DEBUG] Mode: BrowseSpells
+[1774412822.705953799] [DEBUG] KeyEvent: code=Char(':'), modifiers=KeyModifiers(0x0)
+[1774412822.706026768] [DEBUG] Mode: BrowseSpells
+[1774412823.226932681] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774412823.226994861] [DEBUG] Mode: BrowseSpells
+[1774412824.668928542] [DEBUG] KeyEvent: code=Char('c'), modifiers=KeyModifiers(CONTROL)
+[1774412824.668996372] [INFO] Quit via Ctrl+C
+[1774412824.669031081] [INFO] Spellbook exiting
+[1774412825.617054100] [INFO] Spellbook started (mode: Browse)
+[1774412825.617340189] [INFO] Job manager initialized
+[1774412826.100939903] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774412826.101015812] [DEBUG] Mode: BrowseSpellbooks
+[1774412827.163924781] [DEBUG] KeyEvent: code=Char('s'), modifiers=KeyModifiers(0x0)
+[1774412827.163979701] [DEBUG] Mode: BrowseSpellbooks
+[1774412827.280968024] [DEBUG] KeyEvent: code=Char('a'), modifiers=KeyModifiers(0x0)
+[1774412827.281020263] [DEBUG] Mode: BrowseSpellbooks
+[1774412827.609920999] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774412827.610379317] [DEBUG] Mode: BrowseSpellbooks
+[1774412827.758906601] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774412827.758960191] [DEBUG] Mode: BrowseSpellbooks
+[1774412828.039926773] [DEBUG] KeyEvent: code=Char(':'), modifiers=KeyModifiers(0x0)
+[1774412828.039984403] [DEBUG] Mode: BrowseSpellbooks
+[1774412829.206890037] [DEBUG] KeyEvent: code=Char(':'), modifiers=KeyModifiers(0x0)
+[1774412829.206943797] [DEBUG] Mode: BrowseSpellbooks
+[1774412829.671904728] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774412829.671962128] [DEBUG] Mode: BrowseSpellbooks
+[1774412830.058934767] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774412830.058990896] [DEBUG] Mode: BrowseSpellbooks
+[1774412830.691889930] [DEBUG] KeyEvent: code=Char(':'), modifiers=KeyModifiers(0x0)
+[1774412830.691943700] [DEBUG] Mode: BrowseSpellbooks
+[1774412831.194913714] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774412831.194961244] [DEBUG] Mode: BrowseSpellbooks
+[1774412831.327865360] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774412831.327915570] [DEBUG] Mode: BrowseSpellbooks
+[1774412831.618870161] [DEBUG] KeyEvent: code=Char(':'), modifiers=KeyModifiers(0x0)
+[1774412831.618924770] [DEBUG] Mode: BrowseSpellbooks
+[1774412832.026912863] [DEBUG] KeyEvent: code=Char('s'), modifiers=KeyModifiers(0x0)
+[1774412832.026977733] [DEBUG] Mode: BrowseSpellbooks
+[1774412832.101910807] [DEBUG] KeyEvent: code=Char('a'), modifiers=KeyModifiers(0x0)
+[1774412832.101976577] [DEBUG] Mode: BrowseSpellbooks
+[1774412832.198888221] [DEBUG] KeyEvent: code=Char('d'), modifiers=KeyModifiers(0x0)
+[1774412832.198938821] [DEBUG] Mode: BrowseSpellbooks
+[1774412832.336920227] [DEBUG] KeyEvent: code=Char('a'), modifiers=KeyModifiers(0x0)
+[1774412832.336974826] [DEBUG] Mode: BrowseSpellbooks
+[1774412832.369834202] [DEBUG] KeyEvent: code=Char('s'), modifiers=KeyModifiers(0x0)
+[1774412832.369883862] [DEBUG] Mode: BrowseSpellbooks
+[1774412832.502838909] [DEBUG] KeyEvent: code=Char('d'), modifiers=KeyModifiers(0x0)
+[1774412832.502893658] [DEBUG] Mode: BrowseSpellbooks
+[1774412832.538834582] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774412832.538883781] [DEBUG] Mode: BrowseSpellbooks
+[1774412832.732923579] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774412832.732993198] [DEBUG] Mode: BrowseSpellbooks
+[1774412833.110915574] [DEBUG] KeyEvent: code=Char('?'), modifiers=KeyModifiers(0x0)
+[1774412833.110994334] [INFO] Help overlay opened
+[1774412833.897888648] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774412834.774916776] [DEBUG] KeyEvent: code=Char('q'), modifiers=KeyModifiers(0x0)
+[1774412835.652287541] [DEBUG] KeyEvent: code=Esc, modifiers=KeyModifiers(0x0)
+[1774412836.255918144] [DEBUG] KeyEvent: code=Char(':'), modifiers=KeyModifiers(0x0)
+[1774412836.255990474] [DEBUG] Mode: BrowseSpellbooks
+[1774412837.872905805] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774412837.873021384] [DEBUG] Mode: BrowseSpellbooks
+[1774412838.085850795] [DEBUG] KeyEvent: code=Char('s'), modifiers=KeyModifiers(0x0)
+[1774412838.085911245] [DEBUG] Mode: BrowseSpellbooks
+[1774412838.151874725] [DEBUG] KeyEvent: code=Char('a'), modifiers=KeyModifiers(0x0)
+[1774412838.151943645] [DEBUG] Mode: BrowseSpellbooks
+[1774412838.209823849] [DEBUG] KeyEvent: code=Char('d'), modifiers=KeyModifiers(0x0)
+[1774412838.209874349] [DEBUG] Mode: BrowseSpellbooks
+[1774412838.621888854] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774412838.621954454] [DEBUG] Mode: BrowseSpellbooks
+[1774412838.774863879] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774412838.774916549] [DEBUG] Mode: BrowseSpellbooks
+[1774412839.148883660] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774412839.148938920] [DEBUG] Mode: BrowseSpellbooks
+[1774412839.681847870] [DEBUG] KeyEvent: code=Char(':'), modifiers=KeyModifiers(0x0)
+[1774412839.681904020] [DEBUG] Mode: BrowseSpellbooks
+[1774412839.962866791] [DEBUG] KeyEvent: code=Char('s'), modifiers=KeyModifiers(0x0)
+[1774412839.962926251] [DEBUG] Mode: BrowseSpellbooks
+[1774412839.981768004] [DEBUG] KeyEvent: code=Char('a'), modifiers=KeyModifiers(0x0)
+[1774412839.981800614] [DEBUG] Mode: BrowseSpellbooks
+[1774412840.042804895] [DEBUG] KeyEvent: code=Char('d'), modifiers=KeyModifiers(0x0)
+[1774412840.042856625] [DEBUG] Mode: BrowseSpellbooks
+[1774412840.178829908] [DEBUG] KeyEvent: code=Char('a'), modifiers=KeyModifiers(0x0)
+[1774412840.178894268] [DEBUG] Mode: BrowseSpellbooks
+[1774412840.197788711] [DEBUG] KeyEvent: code=Char('s'), modifiers=KeyModifiers(0x0)
+[1774412840.197848800] [DEBUG] Mode: BrowseSpellbooks
+[1774412840.307812251] [DEBUG] KeyEvent: code=Char('d'), modifiers=KeyModifiers(0x0)
+[1774412840.307871571] [DEBUG] Mode: BrowseSpellbooks
+[1774412840.591858571] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774412840.591916281] [DEBUG] Mode: BrowseSpellbooks
+[1774412840.979859905] [DEBUG] KeyEvent: code=Char('s'), modifiers=KeyModifiers(0x0)
+[1774412840.979919235] [DEBUG] Mode: BrowseSpellbooks
+[1774412840.987769373] [DEBUG] KeyEvent: code=Char('a'), modifiers=KeyModifiers(0x0)
+[1774412840.987816082] [DEBUG] Mode: BrowseSpellbooks
+[1774412841.055819625] [DEBUG] KeyEvent: code=Char('d'), modifiers=KeyModifiers(0x0)
+[1774412841.055870254] [DEBUG] Mode: BrowseSpellbooks
+[1774412841.206869828] [DEBUG] KeyEvent: code=Char('a'), modifiers=KeyModifiers(0x0)
+[1774412841.206930857] [DEBUG] Mode: BrowseSpellbooks
+[1774412841.238790917] [DEBUG] KeyEvent: code=Char('s'), modifiers=KeyModifiers(0x0)
+[1774412841.238835077] [DEBUG] Mode: BrowseSpellbooks
+[1774412960.168389368] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774412960.168456818] [DEBUG] Mode: BrowseSpellbooks
+[1774412960.352436952] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774412960.352507642] [DEBUG] Mode: BrowseSpellbooks
+[1774412960.504488558] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774412960.504561827] [DEBUG] Mode: BrowseSpellbooks
+[1774412960.648466986] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774412960.648545046] [DEBUG] Mode: BrowseSpellbooks
+[1774412960.955398176] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774412960.955467226] [DEBUG] Mode: BrowseSpellbooks
+[1774412961.527654505] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774412961.527715915] [DEBUG] Mode: BrowseSpellbooks
+[1774412962.850372593] [DEBUG] KeyEvent: code=Char(':'), modifiers=KeyModifiers(0x0)
+[1774412962.850440312] [DEBUG] Mode: BrowseSpellbooks
+[1774412963.713377347] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774412963.713443787] [DEBUG] Mode: BrowseSpellbooks
+[1774412963.902365111] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774412963.902431021] [DEBUG] Mode: BrowseSpellbooks
+[1774412964.171349576] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774412964.171424505] [DEBUG] Mode: BrowseSpellbooks
+[1774412964.491372472] [DEBUG] KeyEvent: code=Char('s'), modifiers=KeyModifiers(0x0)
+[1774412964.491432052] [DEBUG] Mode: BrowseSpellbooks
+[1774412964.577624718] [DEBUG] KeyEvent: code=Char('a'), modifiers=KeyModifiers(0x0)
+[1774412964.577693107] [DEBUG] Mode: BrowseSpellbooks
+[1774412964.931365624] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774412964.931449424] [DEBUG] Mode: BrowseSpellbooks
+[1774412965.089376885] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774412965.089454864] [DEBUG] Mode: BrowseSpellbooks
+[1774412965.261352428] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774412965.261421597] [DEBUG] Mode: BrowseSpellbooks
+[1774412965.928348647] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774412965.928416726] [DEBUG] Mode: BrowseSpellbooks
+[1774413801.134862805] [DEBUG] KeyEvent: code=Char('c'), modifiers=KeyModifiers(CONTROL)
+[1774413801.134932645] [INFO] Quit via Ctrl+C
+[1774413801.134995985] [INFO] Spellbook exiting
+[1774413805.082475471] [INFO] Spellbook started (mode: Browse)
+[1774413805.082793649] [INFO] Job manager initialized
+[1774413805.953910351] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774413805.953975631] [DEBUG] Mode: BrowseSpellbooks
+[1774413813.047839649] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774413813.047908708] [DEBUG] Mode: BrowseSpellbooks
+[1774413814.228886818] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774413814.228975318] [DEBUG] Mode: BrowseSpellbooks
+[1774413814.782841330] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774413814.782908700] [DEBUG] Mode: BrowseSpellbooks
+[1774413815.272845689] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774413815.272927879] [DEBUG] Mode: BrowseSpellbooks
+[1774413816.010827415] [DEBUG] KeyEvent: code=Char('a'), modifiers=KeyModifiers(0x0)
+[1774413816.010899794] [DEBUG] Mode: BrowseSpellbooks
+[1774413816.107845210] [DEBUG] KeyEvent: code=Char('s'), modifiers=KeyModifiers(0x0)
+[1774413816.107913290] [DEBUG] Mode: BrowseSpellbooks
+[1774413816.269834336] [DEBUG] KeyEvent: code=Char('d'), modifiers=KeyModifiers(0x0)
+[1774413816.269904335] [DEBUG] Mode: BrowseSpellbooks
+[1774413816.485847865] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774413816.485925155] [DEBUG] Mode: BrowseSpellbooks
+[1774413816.660855706] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774413816.660936596] [DEBUG] Mode: BrowseSpellbooks
+[1774413816.819886524] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774413816.819970093] [DEBUG] Mode: BrowseSpellbooks
+[1774413817.402826195] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774413817.402894035] [DEBUG] Mode: BrowseSpellbooks
+[1774413817.884852397] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774413817.884938817] [DEBUG] Mode: BrowseSpellbooks
+[1774413822.734780183] [DEBUG] KeyEvent: code=Char('.'), modifiers=KeyModifiers(0x0)
+[1774413822.734841863] [DEBUG] Mode: BrowseSpellbooks
+[1774413823.087817932] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774413823.087880902] [DEBUG] Mode: BrowseSpellbooks
+[1774413823.535847845] [DEBUG] KeyEvent: code=Char('s'), modifiers=KeyModifiers(0x0)
+[1774413823.535909595] [DEBUG] Mode: BrowseSpellbooks
+[1774413823.585787858] [DEBUG] KeyEvent: code=Char('a'), modifiers=KeyModifiers(0x0)
+[1774413823.585852567] [DEBUG] Mode: BrowseSpellbooks
+[1774413824.933901532] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774413824.933967012] [DEBUG] Mode: BrowseSpellbooks
+[1774413825.092766850] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774413825.092830140] [DEBUG] Mode: BrowseSpellbooks
+[1774413825.686823565] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774413825.686904555] [DEBUG] Mode: BrowseSpellbooks
+[1774413861.003639609] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774413861.003709209] [DEBUG] Mode: BrowseSpellbooks
+[1774413862.391647006] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774413862.391721465] [DEBUG] Mode: BrowseSpellbooks
+[1774413862.890657687] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774413862.890746696] [DEBUG] Mode: BrowseSpellbooks
+[1774413863.292642362] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774413863.292733282] [DEBUG] Mode: BrowseSpellbooks
+[1774413863.773627758] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774413863.773687798] [DEBUG] Mode: BrowseSpellbooks
+[1774413864.304617266] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774413864.304680606] [DEBUG] Mode: BrowseSpellbooks
+[1774413864.855882359] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774413864.855951548] [DEBUG] Mode: BrowseSpellbooks
+[1774413865.348628514] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774413865.348703664] [DEBUG] Mode: BrowseSpellbooks
+[1774413866.004610001] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774413866.004675571] [DEBUG] Mode: BrowseSpellbooks
+[1774413866.424634800] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774413866.424694440] [DEBUG] Mode: BrowseSpellbooks
+[1774413866.919646437] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1774413866.919712916] [DEBUG] Mode: BrowseSpellbooks
+[1774413867.505846423] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774413867.505933403] [DEBUG] Mode: BrowseSpellbooks
+[1774413868.505862975] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774413868.505923485] [DEBUG] Mode: BrowseSpellbooks
+[1774413871.007582883] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774413871.007640722] [DEBUG] Mode: BrowseSpellbooks
+[1774413871.876588572] [DEBUG] KeyEvent: code=Char('s'), modifiers=KeyModifiers(0x0)
+[1774413871.876657402] [DEBUG] Mode: BrowseSpellbooks
+[1774413871.915572460] [DEBUG] KeyEvent: code=Char('a'), modifiers=KeyModifiers(0x0)
+[1774413871.915623299] [DEBUG] Mode: BrowseSpellbooks
+[1774413872.702609940] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774413872.702672520] [DEBUG] Mode: BrowseSpellbooks
+[1774413872.884588752] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774413872.884643102] [DEBUG] Mode: BrowseSpellbooks
+[1774413873.810599863] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774413873.810661963] [DEBUG] Mode: BrowseSpellbooks
+[1774413875.228612645] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774413875.228675865] [DEBUG] Mode: BrowseSpellbooks
+[1774413876.050586788] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774413876.050651838] [DEBUG] Mode: BrowseSpellbooks
+[1774413876.691583427] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774413876.691635206] [DEBUG] Mode: BrowseSpellbooks
+[1774413877.334576958] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774413877.334641688] [DEBUG] Mode: BrowseSpellbooks
+[1774413878.452577578] [DEBUG] KeyEvent: code=Char('s'), modifiers=KeyModifiers(0x0)
+[1774413878.452642677] [DEBUG] Mode: BrowseSpellbooks
+[1774413878.633601362] [DEBUG] KeyEvent: code=Char('a'), modifiers=KeyModifiers(0x0)
+[1774413878.633670592] [DEBUG] Mode: BrowseSpellbooks
+[1774413881.043576713] [DEBUG] KeyEvent: code=Char('w'), modifiers=KeyModifiers(0x0)
+[1774413881.043641883] [DEBUG] Mode: BrowseSpellbooks
+[1774413881.380550538] [DEBUG] KeyEvent: code=Char('e'), modifiers=KeyModifiers(0x0)
+[1774413881.380607348] [DEBUG] Mode: BrowseSpellbooks
+[1774413881.629554511] [DEBUG] KeyEvent: code=Char('r'), modifiers=KeyModifiers(0x0)
+[1774413881.629625991] [DEBUG] Mode: BrowseSpellbooks
+[1774413882.319569458] [DEBUG] KeyEvent: code=Char('e'), modifiers=KeyModifiers(0x0)
+[1774413882.319629718] [DEBUG] Mode: BrowseSpellbooks
+[1774413884.516726437] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774413884.516786287] [DEBUG] Mode: BrowseSpellbooks
+[1774413884.698617488] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774413884.698692758] [DEBUG] Mode: BrowseSpellbooks
+[1774413884.881551955] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774413884.881617445] [DEBUG] Mode: BrowseSpellbooks
+[1774413885.042531525] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774413885.042587104] [DEBUG] Mode: BrowseSpellbooks
+[1774413885.211536950] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774413885.211612590] [DEBUG] Mode: BrowseSpellbooks
+[1774413885.464546105] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774413885.464610974] [DEBUG] Mode: BrowseSpellbooks
+[1774413894.273512333] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774413894.273573753] [DEBUG] Mode: BrowseSpellbooks
+[1774413895.779528195] [DEBUG] KeyEvent: code=Char('s'), modifiers=KeyModifiers(0x0)
+[1774413895.779600835] [DEBUG] Mode: BrowseSpellbooks
+[1774413900.291489828] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774413900.291558448] [DEBUG] Mode: BrowseSpellbooks
+[1774413982.109139724] [DEBUG] KeyEvent: code=Char('.'), modifiers=KeyModifiers(0x0)
+[1774413982.109211874] [DEBUG] Mode: BrowseSpellbooks
+[1774413983.009139001] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774413983.009210731] [DEBUG] Mode: BrowseSpellbooks
+[1774413983.445128264] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774413983.445211623] [DEBUG] Mode: BrowseSpellbooks
+[1774413984.005105099] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774413984.005165709] [DEBUG] Mode: BrowseSpellbooks
+[1774413984.599115194] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774413984.599175893] [DEBUG] Mode: BrowseSpellbooks
+[1774413985.025105278] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774413985.025166718] [DEBUG] Mode: BrowseSpellbooks
+[1774413985.497162629] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774413985.497230989] [DEBUG] Mode: BrowseSpellbooks
+[1774413985.502625356] [DEBUG] KeyEvent: code=Char('.'), modifiers=KeyModifiers(0x0)
+[1774413985.502674236] [DEBUG] Mode: BrowseSpellbooks
+[1774413985.950132450] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774413985.950195890] [DEBUG] Mode: BrowseSpellbooks
+[1774413986.143113125] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774413986.143180015] [DEBUG] Mode: BrowseSpellbooks
+[1774413986.900110788] [DEBUG] KeyEvent: code=Char('.'), modifiers=KeyModifiers(0x0)
+[1774413986.900169098] [DEBUG] Mode: BrowseSpellbooks
+[1774413987.632131835] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774413987.632196915] [DEBUG] Mode: BrowseSpellbooks
+[1774413988.188121596] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774413988.188195696] [DEBUG] Mode: BrowseSpellbooks
+[1774413988.703277178] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1774413988.703349547] [DEBUG] Mode: BrowseSpellbooks
+[1774413989.077118949] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1774413989.077183299] [DEBUG] Mode: BrowseSpellbooks
+[1774413989.323108944] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774413989.323174203] [DEBUG] Mode: BrowseSpellbooks
+[1774413989.822115233] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774413989.822188242] [DEBUG] Mode: BrowseSpellbooks
+[1774413996.185081841] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774413996.185159000] [DEBUG] Mode: BrowseSpellbooks
+[1774413996.330095506] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774413996.330178346] [DEBUG] Mode: BrowseSpellbooks
+[1774413996.474092556] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774413996.474158046] [DEBUG] Mode: BrowseSpellbooks
+[1774413998.443055386] [DEBUG] KeyEvent: code=Char(':'), modifiers=KeyModifiers(0x0)
+[1774413998.443124285] [DEBUG] Mode: BrowseSpellbooks
+[1774413999.327063119] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774413999.327154919] [DEBUG] Mode: BrowseSpellbooks
+[1774413999.802074658] [DEBUG] KeyEvent: code=Char(':'), modifiers=KeyModifiers(0x0)
+[1774413999.802132348] [DEBUG] Mode: BrowseSpellbooks
+[1774414000.699072427] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774414000.699157587] [DEBUG] Mode: BrowseSpellbooks
+[1774414001.385063467] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774414001.385127157] [DEBUG] Mode: BrowseSpellbooks
+[1774414001.992053666] [DEBUG] KeyEvent: code=Char(':'), modifiers=KeyModifiers(0x0)
+[1774414001.992117266] [DEBUG] Mode: BrowseSpellbooks
+[1774414003.012156661] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774414003.012243611] [DEBUG] Mode: BrowseSpellbooks
+[1774414003.551008273] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774414003.551056983] [DEBUG] Mode: BrowseSpellbooks
+[1774414003.671010393] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774414003.671069503] [DEBUG] Mode: BrowseSpellbooks
+[1774414003.802045797] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774414003.802109276] [DEBUG] Mode: BrowseSpellbooks
+[1774414003.928037941] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774414003.928092961] [DEBUG] Mode: BrowseSpellbooks
+[1774414004.041037730] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774414004.041097450] [DEBUG] Mode: BrowseSpellbooks
+[1774414004.161104190] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774414004.161153519] [DEBUG] Mode: BrowseSpellbooks
+[1774414004.308046027] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774414004.308103986] [DEBUG] Mode: BrowseSpellbooks
+[1774414004.451071860] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774414004.451130710] [DEBUG] Mode: BrowseSpellbooks
+[1774414004.648060968] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774414004.648134968] [DEBUG] Mode: BrowseSpellbooks
+[1774414004.778041016] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774414004.778095096] [DEBUG] Mode: BrowseSpellbooks
+[1774414005.040058943] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774414005.040113533] [DEBUG] Mode: BrowseSpellbooks
+[1774414005.210069814] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774414005.210130404] [DEBUG] Mode: BrowseSpellbooks
+[1774414010.569114505] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774414010.569188505] [DEBUG] Mode: BrowseSpellbooks
+[1774414225.442122393] [DEBUG] KeyEvent: code=Char('c'), modifiers=KeyModifiers(CONTROL)
+[1774414225.442189752] [INFO] Quit via Ctrl+C
+[1774414225.442228112] [INFO] Spellbook exiting
+[1774414229.101886869] [INFO] Spellbook started (mode: Browse)
+[1774414229.102186227] [INFO] Job manager initialized
+[1774414229.551161734] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774414229.551224313] [DEBUG] Mode: BrowseSpellbooks
+[1774414230.618113400] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774414230.618172940] [DEBUG] Mode: BrowseSpellbooks
+[1774414235.080396843] [DEBUG] KeyEvent: code=Esc, modifiers=KeyModifiers(0x0)
+[1774414235.080463563] [DEBUG] Mode: BrowseSpellbooks
+[1774414236.039209642] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774414236.039270781] [DEBUG] Mode: BrowseSpellbooks
+[1774414236.685076976] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1774414236.685133285] [DEBUG] Mode: BrowseSpellbooks
+[1774414240.389079513] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774414240.389150573] [DEBUG] Mode: BrowseSpellbooks
+[1774414241.623053514] [DEBUG] KeyEvent: code=Char('c'), modifiers=KeyModifiers(CONTROL)
+[1774414241.623116184] [INFO] Quit via Ctrl+C
+[1774414241.623177393] [INFO] Spellbook exiting
+[1774414242.795875178] [INFO] Spellbook started (mode: Browse)
+[1774414242.796175087] [INFO] Job manager initialized
+[1774414432.164277031] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774414432.164355051] [DEBUG] Mode: BrowseSpellbooks
+[1774414494.950990201] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774414494.951062101] [DEBUG] Mode: BrowseSpellbooks
+[1774414495.660048571] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774414495.660120100] [DEBUG] Mode: BrowseSpellbooks
+[1774414495.793056605] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774414495.793140095] [DEBUG] Mode: BrowseSpellbooks
+[1774414496.198010234] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774414496.198088243] [DEBUG] Mode: BrowseSpellbooks
+[1774414496.807001711] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774414496.807064130] [DEBUG] Mode: BrowseSpellbooks
+[1774414497.193001330] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774414497.193065479] [DEBUG] Mode: BrowseSpellbooks
+[1774414497.893993144] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774414497.894047724] [DEBUG] Mode: BrowseSpellbooks
+[1774414498.517061213] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774414498.517110933] [DEBUG] Mode: BrowseSpellbooks
+[1774414499.090995376] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774414499.091058716] [DEBUG] Mode: BrowseSpellbooks
+[1774414499.600995549] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774414499.601051379] [DEBUG] Mode: BrowseSpellbooks
+[1774414500.179974502] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774414500.180034712] [DEBUG] Mode: BrowseSpellbooks
+[1774414500.711980671] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774414500.712042311] [DEBUG] Mode: BrowseSpellbooks
+[1774414501.227961345] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774414501.228016295] [DEBUG] Mode: BrowseSpellbooks
+[1774414501.738004796] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774414501.738062026] [DEBUG] Mode: BrowseSpellbooks
+[1774414502.381962075] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774414502.382019595] [DEBUG] Mode: BrowseSpellbooks
+[1774414502.809947329] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774414502.810000729] [DEBUG] Mode: BrowseSpellbooks
+[1774414503.474965715] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774414503.475030485] [DEBUG] Mode: BrowseSpellbooks
+[1774414503.792954227] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774414503.793007747] [DEBUG] Mode: BrowseSpellbooks
+[1774414504.353973635] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774414504.354035055] [DEBUG] Mode: BrowseSpellbooks
+[1774414505.149978912] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774414505.150040502] [DEBUG] Mode: BrowseSpellbooks
+[1774414506.113958428] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774414506.114401097] [DEBUG] Mode: BrowseSpellbooks
+[1774414506.647019212] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774414506.647085422] [DEBUG] Mode: BrowseSpellbooks
+[1774414578.454642896] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774414578.454712395] [DEBUG] Mode: BrowseSpellbooks
+[1774414579.377648780] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774414579.377710880] [DEBUG] Mode: BrowseSpellbooks
+[1774414579.742639205] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774414579.742703225] [DEBUG] Mode: BrowseSpellbooks
+[1774414580.667660224] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1774414580.667724774] [DEBUG] Mode: BrowseSpellbooks
+[1774414581.946626983] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774414581.946701373] [DEBUG] Mode: BrowseSpellbooks
+[1774414584.204615666] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1774414584.204677326] [DEBUG] Mode: BrowseSpellbooks
+[1774414588.565640838] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774414588.565706478] [DEBUG] Mode: BrowseSpellbooks
+[1774414589.424612170] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774414589.424669889] [DEBUG] Mode: BrowseSpellbooks
+[1774414589.907604743] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774414589.907662672] [DEBUG] Mode: BrowseSpellbooks
+[1774414590.588736937] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1774414590.588803717] [DEBUG] Mode: BrowseSpellbooks
+[1774414590.846594970] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1774414590.846649150] [DEBUG] Mode: BrowseSpellbooks
+[1774414591.452621918] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774414591.452699037] [DEBUG] Mode: BrowseSpellbooks
+[1774414591.998612087] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774414591.998668446] [DEBUG] Mode: BrowseSpellbooks
+[1774414592.313575352] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774414592.313631731] [DEBUG] Mode: BrowseSpellbooks
+[1774414592.671757655] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774414592.671812675] [DEBUG] Mode: BrowseSpellbooks
+[1774414592.878579302] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1774414592.878635782] [DEBUG] Mode: BrowseSpellbooks
+[1774414593.027571459] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1774414593.027624039] [DEBUG] Mode: BrowseSpellbooks
+[1774414593.181563766] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1774414593.181618345] [DEBUG] Mode: BrowseSpellbooks
+[1774414593.343581419] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1774414593.343649789] [DEBUG] Mode: BrowseSpellbooks
+[1774414593.920592411] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774414593.920653080] [DEBUG] Mode: BrowseSpellbooks
+[1774414594.358580652] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1774414594.358643891] [DEBUG] Mode: BrowseSpellbooks
+[1774414594.594594996] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1774414594.594657866] [DEBUG] Mode: BrowseSpellbooks
+[1774414594.921651450] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774414594.921719660] [DEBUG] Mode: BrowseSpellbooks
+[1774414595.099596927] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774414595.099654027] [DEBUG] Mode: BrowseSpellbooks
+[1774414595.503609091] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774414595.503666720] [DEBUG] Mode: BrowseSpellbooks
+[1774414595.951605889] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774414595.951671859] [DEBUG] Mode: BrowseSpellbooks
+[1774414596.304672364] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774414596.304724934] [DEBUG] Mode: BrowseSpellbooks
+[1774414597.349569451] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1774414597.349616301] [DEBUG] Mode: BrowseSpellbooks
+[1774414597.589571070] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1774414597.589643249] [DEBUG] Mode: BrowseSpellbooks
+[1774414597.757554158] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1774414597.757605268] [DEBUG] Mode: BrowseSpellbooks
+[1774414597.909560483] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1774414597.909616173] [DEBUG] Mode: BrowseSpellbooks
+[1774414598.191581807] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1774414598.191638227] [DEBUG] Mode: BrowseSpellbooks
+[1774414598.623577482] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1774414598.623625342] [DEBUG] Mode: BrowseSpellbooks
+[1774414599.514597678] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774414599.514653098] [DEBUG] Mode: BrowseSpellbooks
+[1774414599.800576733] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1774414599.800638463] [DEBUG] Mode: BrowseSpellbooks
+[1774414599.852488177] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774414599.852535717] [DEBUG] Mode: BrowseSpellbooks
+[1774414600.098561349] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774414600.098612399] [DEBUG] Mode: BrowseSpellbooks
+[1774414600.442569572] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1774414600.442623182] [DEBUG] Mode: BrowseSpellbooks
+[1774414600.860572736] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1774414600.860633756] [DEBUG] Mode: BrowseSpellbooks
+[1774414602.179566958] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774414602.179628478] [DEBUG] Mode: BrowseSpellbooks
+[1774414602.825570918] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774414602.825625588] [DEBUG] Mode: BrowseSpellbooks
+[1774414603.195548692] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774414603.195595462] [DEBUG] Mode: BrowseSpellbooks
+[1774414603.654792394] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774414603.654845704] [DEBUG] Mode: BrowseSpellbooks
+[1774414687.006221202] [DEBUG] KeyEvent: code=Char('c'), modifiers=KeyModifiers(CONTROL)
+[1774414687.006291642] [INFO] Quit via Ctrl+C
+[1774414687.006353482] [INFO] Spellbook exiting
+[1774414690.073836149] [INFO] Spellbook started (mode: Browse)
+[1774414690.074134497] [INFO] Job manager initialized
+[1774414690.717177743] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774414690.717243193] [DEBUG] Mode: BrowseSpellbooks
+[1774414691.416207245] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774414691.416273735] [DEBUG] Mode: BrowseSpellbooks
+[1774414691.742179064] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774414691.742240094] [DEBUG] Mode: BrowseSpellbooks
+[1774414692.697171086] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774414692.697262185] [DEBUG] Mode: BrowseSpellbooks
+[1774414693.251195683] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774414693.251253873] [DEBUG] Mode: BrowseSpellbooks
+[1774414693.938157105] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774414693.938211435] [DEBUG] Mode: BrowseSpellbooks
+[1774414694.235166874] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774414694.235232583] [DEBUG] Mode: BrowseSpellbooks
+[1774414694.812164482] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774414694.812228232] [DEBUG] Mode: BrowseSpellbooks
+[1774414695.025133283] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774414695.025190003] [DEBUG] Mode: BrowseSpellbooks
+[1774414695.247152567] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774414695.247211736] [DEBUG] Mode: BrowseSpellbooks
+[1774414695.420173873] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774414695.420231753] [DEBUG] Mode: BrowseSpellbooks
+[1774414695.541116398] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774414695.541176947] [DEBUG] Mode: BrowseSpellbooks
+[1774414695.696118600] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774414695.696176930] [DEBUG] Mode: BrowseSpellbooks
+[1774414695.871285618] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774414695.871352358] [DEBUG] Mode: BrowseSpellbooks
+[1774414695.987130524] [DEBUG] KeyEvent: code=Char('/'), modifiers=KeyModifiers(0x0)
+[1774414695.987215214] [DEBUG] Mode: BrowseSpellbooks
+[1774414696.139139109] [DEBUG] KeyEvent: code=Backspace, modifiers=KeyModifiers(0x0)
+[1774414696.139201009] [DEBUG] Mode: BrowseSpellbooks
+[1774414702.686189574] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774414702.686259513] [DEBUG] Mode: BrowseSpellbooks
+[1774414702.841083697] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1774414702.841146687] [DEBUG] Mode: BrowseSpellbooks
+[1774414703.085137348] [DEBUG] KeyEvent: code=Enter, modifiers=KeyModifiers(0x0)
+[1774414703.085202868] [DEBUG] Mode: BrowseSpellbooks
+[1774414704.113149764] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774414704.113213993] [DEBUG] Mode: BrowseSpells
+[1774414704.428401047] [DEBUG] KeyEvent: code=Enter, modifiers=KeyModifiers(0x0)
+[1774414704.428469017] [DEBUG] Mode: BrowseSpells
+[1774414705.299137590] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1774414705.299206210] [DEBUG] Mode: BrowseSpells
+[1774414705.431123099] [DEBUG] KeyEvent: code=Enter, modifiers=KeyModifiers(0x0)
+[1774414705.431189328] [DEBUG] Mode: BrowseSpells
+[1774414705.729130385] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774414705.729197604] [DEBUG] Mode: BrowseSpells
+[1774414705.974124033] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774414705.974191032] [DEBUG] Mode: BrowseSpells
+[1774414706.268148294] [DEBUG] KeyEvent: code=Enter, modifiers=KeyModifiers(0x0)
+[1774414706.268216764] [DEBUG] Mode: BrowseSpells
+[1774414707.107126159] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1774414707.107192799] [DEBUG] Mode: BrowseSpells
+[1774414707.298127472] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1774414707.298187601] [DEBUG] Mode: BrowseSpells
+[1774414708.007127390] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774414708.007186450] [DEBUG] Mode: BrowseSpells
+[1774414708.162118953] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774414708.162179492] [DEBUG] Mode: BrowseSpells
+[1774414708.337133701] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774414708.337191501] [DEBUG] Mode: BrowseSpells
+[1774414720.376972250] [DEBUG] KeyEvent: code=Esc, modifiers=KeyModifiers(0x0)
+[1774414720.377042600] [DEBUG] Mode: BrowseSpells
+[1774414720.647068532] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774414720.647131642] [DEBUG] Mode: BrowseSpellbooks
+[1774414721.272086342] [DEBUG] KeyEvent: code=Enter, modifiers=KeyModifiers(0x0)
+[1774414721.272170822] [DEBUG] Mode: BrowseSpellbooks
+[1774414722.105570320] [DEBUG] KeyEvent: code=Esc, modifiers=KeyModifiers(0x0)
+[1774414722.105634700] [DEBUG] Mode: BrowseSpells
+[1774414722.322036686] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774414722.322101105] [DEBUG] Mode: BrowseSpellbooks
+[1774414722.469069891] [DEBUG] KeyEvent: code=Enter, modifiers=KeyModifiers(0x0)
+[1774414722.469140351] [DEBUG] Mode: BrowseSpellbooks
+[1774414723.581063066] [DEBUG] KeyEvent: code=Esc, modifiers=KeyModifiers(0x0)
+[1774414723.581152025] [DEBUG] Mode: BrowseSpells
+[1774414723.815045339] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1774414723.815103519] [DEBUG] Mode: BrowseSpellbooks
+[1774414723.965015313] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1774414723.965073763] [DEBUG] Mode: BrowseSpellbooks
+[1774414724.764055225] [DEBUG] KeyEvent: code=Enter, modifiers=KeyModifiers(0x0)
+[1774414724.764117115] [DEBUG] Mode: BrowseSpellbooks
+[1774414725.493029851] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774414725.493083921] [DEBUG] Mode: BrowseSpells
+[1774414725.990036395] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1774414725.990099824] [DEBUG] Mode: BrowseSpells
+[1774414726.622929919] [DEBUG] KeyEvent: code=Esc, modifiers=KeyModifiers(0x0)
+[1774414726.622987508] [DEBUG] Mode: BrowseSpells
+[1774414727.107055906] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774414727.107128816] [DEBUG] Mode: BrowseSpellbooks
+[1774414727.293002199] [DEBUG] KeyEvent: code=Enter, modifiers=KeyModifiers(0x0)
+[1774414727.293062239] [DEBUG] Mode: BrowseSpellbooks
+[1774414728.220634223] [DEBUG] KeyEvent: code=Esc, modifiers=KeyModifiers(0x0)
+[1774414728.220700513] [DEBUG] Mode: BrowseSpells
+[1774414832.567624627] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1774414832.567699617] [DEBUG] Mode: BrowseSpellbooks
+[1774414832.859644531] [DEBUG] KeyEvent: code=Enter, modifiers=KeyModifiers(0x0)
+[1774414832.859719710] [DEBUG] Mode: BrowseSpellbooks
+[1774414833.228603290] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774414833.228689499] [DEBUG] Mode: BrowseSpells
+[1774414833.738587784] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1774414833.738644263] [DEBUG] Mode: BrowseSpells
+[1774414834.180595527] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774414834.180653876] [DEBUG] Mode: BrowseSpells
+[1774414835.252594197] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1774414835.252654556] [DEBUG] Mode: BrowseSpells
+[1774414836.945607468] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774414836.945690957] [DEBUG] Mode: BrowseSpells
+[1774414838.834597120] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1774414838.834676130] [DEBUG] Mode: BrowseSpells
+[1774414839.186622598] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774414839.186695617] [DEBUG] Mode: BrowseSpells
+[1774414840.007477326] [DEBUG] KeyEvent: code=Esc, modifiers=KeyModifiers(0x0)
+[1774414840.007551516] [DEBUG] Mode: BrowseSpells
+[1774414840.275628185] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774414840.275699405] [DEBUG] Mode: BrowseSpellbooks
+[1774414840.512575281] [DEBUG] KeyEvent: code=Enter, modifiers=KeyModifiers(0x0)
+[1774414840.512648500] [DEBUG] Mode: BrowseSpellbooks
+[1774414840.873575772] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774414840.873636542] [DEBUG] Mode: BrowseSpells
+[1774414841.033556491] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774414841.033615161] [DEBUG] Mode: BrowseSpells
+[1774414841.188554070] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774414841.188608970] [DEBUG] Mode: BrowseSpells
+[1774414841.335859440] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774414841.335917010] [DEBUG] Mode: BrowseSpells
+[1774414841.987489700] [DEBUG] KeyEvent: code=Esc, modifiers=KeyModifiers(0x0)
+[1774414841.987557190] [DEBUG] Mode: BrowseSpells
+[1774414842.228567409] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774414842.228618309] [DEBUG] Mode: BrowseSpellbooks
+[1774414842.447552158] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774414842.447609537] [DEBUG] Mode: BrowseSpellbooks
+[1774414842.819572435] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1774414842.819626985] [DEBUG] Mode: BrowseSpellbooks
+[1774414843.032941756] [DEBUG] KeyEvent: code=Enter, modifiers=KeyModifiers(0x0)
+[1774414843.032998226] [DEBUG] Mode: BrowseSpellbooks
+[1774414843.259556914] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774414843.259617154] [DEBUG] Mode: BrowseSpells
+[1774414843.422577660] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774414843.422638200] [DEBUG] Mode: BrowseSpells
+[1774414844.113468708] [DEBUG] KeyEvent: code=Esc, modifiers=KeyModifiers(0x0)
+[1774414844.113532647] [DEBUG] Mode: BrowseSpells
+[1774414844.168562903] [DEBUG] KeyEvent: code=Right, modifiers=KeyModifiers(0x0)
+[1774414844.168623723] [DEBUG] Mode: BrowseSpellbooks
+[1774414844.440566276] [DEBUG] KeyEvent: code=Enter, modifiers=KeyModifiers(0x0)
+[1774414844.440631426] [DEBUG] Mode: BrowseSpellbooks
+[1774414844.773553691] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774414844.773603860] [DEBUG] Mode: BrowseSpells
+[1774414844.908564031] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774414844.908620801] [DEBUG] Mode: BrowseSpells
+[1774414845.491550797] [DEBUG] KeyEvent: code=Up, modifiers=KeyModifiers(0x0)
+[1774414845.491612157] [DEBUG] Mode: BrowseSpells
+[1774414846.785446000] [DEBUG] KeyEvent: code=Esc, modifiers=KeyModifiers(0x0)
+[1774414846.785519340] [DEBUG] Mode: BrowseSpells
+[1774414847.473576568] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1774414847.473653958] [DEBUG] Mode: BrowseSpellbooks
+[1774414847.619566003] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1774414847.619641143] [DEBUG] Mode: BrowseSpellbooks
+[1774414847.766551904] [DEBUG] KeyEvent: code=Left, modifiers=KeyModifiers(0x0)
+[1774414847.766612854] [DEBUG] Mode: BrowseSpellbooks
+[1774414848.087519547] [DEBUG] KeyEvent: code=Enter, modifiers=KeyModifiers(0x0)
+[1774414848.087571557] [DEBUG] Mode: BrowseSpellbooks
+[1774414848.458541297] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774414848.458598957] [DEBUG] Mode: BrowseSpells
+[1774414848.619543221] [DEBUG] KeyEvent: code=Down, modifiers=KeyModifiers(0x0)
+[1774414848.619608331] [DEBUG] Mode: BrowseSpells
+[1774415090.202909081] [DEBUG] KeyEvent: code=Char('c'), modifiers=KeyModifiers(CONTROL)
+[1774415090.202965721] [INFO] Quit via Ctrl+C
+[1774415090.203004321] [INFO] Spellbook exiting
