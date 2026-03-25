@@ -15,7 +15,6 @@ pub enum WarningSeverity {
 }
 
 pub fn validate_codex(codex: &Codex) -> Result<(), Box<dyn std::error::Error>> {
-    let spell_names: HashSet<&String> = codex.spells.iter().map(|s| &s.name).collect();
     let spell_ids: HashSet<&String> = codex.spells.iter().map(|s| &s.id).collect();
 
     let mut seen_spell_names: HashSet<&String> = HashSet::new();

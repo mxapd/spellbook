@@ -83,6 +83,10 @@ impl AddSpellForm {
         self.editing_spell_id.is_some()
     }
 
+    pub fn is_valid(&self) -> bool {
+        !self.name.trim().is_empty() && !self.command.trim().is_empty()
+    }
+
     pub fn start_edit(&mut self, spell: &crate::models::Spell, spellbook_index: Option<usize>) {
         self.clear();
         self.editing_spell_id = Some(spell.id.clone());
@@ -109,5 +113,130 @@ impl AddSpellForm {
                 | AddSpellField::Confirm
                 | AddSpellField::Spellbook
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::models::RunMode;
+
+    #[test]
+    fn test_add_spell_field_default() {
+        assert_eq!(AddSpellField::default(), AddSpellField::Name);
+    }
+
+    #[test]
+    fn test_add_spell_form_default() {
+        let form = AddSpellForm::default();
+        assert_eq!(form.field, AddSpellField::Name);
+        assert!(form.name.is_empty());
+        assert!(form.command.is_empty());
+        assert!(form.lore.is_empty());
+        assert!(form.school.is_empty());
+        assert!(form.tags.is_empty());
+        assert_eq!(form.run_mode, RunMode::Simple);
+        assert!(!form.confirm);
+        assert!(form.working_dir.is_empty());
+        assert!(form.spellbook_index.is_none());
+        assert!(!form.skip_spellbook);
+        assert!(!form.dropdown_open);
+        assert!(form.message.is_none());
+        assert!(!form.has_unsaved);
+        assert!(form.editing_spell_id.is_none());
+    }
+
+    #[test]
+    fn test_add_spell_form_clear() {
+        let mut form = AddSpellForm {
+            field: AddSpellField::RunMode,
+            name: "Test".to_string(),
+            command: "echo test".to_string(),
+            lore: "Lore".to_string(),
+            school: "School".to_string(),
+            tags: "tag1,tag2".to_string(),
+            run_mode: RunMode::Tui,
+            confirm: true,
+            working_dir: "/tmp".to_string(),
+            spellbook_index: Some(1),
+            skip_spellbook: true,
+            dropdown_index: 5,
+            dropdown_open: true,
+            message: Some(("Error".to_string(), true)),
+            has_unsaved: true,
+            editing_spell_id: Some("uuid".to_string()),
+        };
+
+        form.clear();
+
+        assert_eq!(form.field, AddSpellField::Name);
+        assert!(form.name.is_empty());
+        assert!(form.command.is_empty());
+        assert!(form.lore.is_empty());
+        assert!(form.school.is_empty());
+        assert!(form.tags.is_empty());
+        assert_eq!(form.run_mode, RunMode::Simple);
+        assert!(!form.confirm);
+        assert!(form.working_dir.is_empty());
+        assert!(form.spellbook_index.is_none());
+        assert!(!form.skip_spellbook);
+        assert!(!form.dropdown_open);
+        assert!(form.message.is_none());
+        assert!(!form.has_unsaved);
+        assert!(form.editing_spell_id.is_none());
+    }
+
+    #[test]
+    fn test_add_spell_form_is_valid_empty_name() {
+        let form = AddSpellForm::default();
+        assert!(!form.is_valid());
+    }
+
+    #[test]
+    fn test_add_spell_form_is_valid_with_name() {
+        let form = AddSpellForm {
+            name: "Test Spell".to_string(),
+            command: "echo test".to_string(),
+            ..Default::default()
+        };
+        assert!(form.is_valid());
+    }
+
+    #[test]
+    fn test_add_spell_form_is_valid_empty_command() {
+        let form = AddSpellForm {
+            name: "Test Spell".to_string(),
+            command: "   ".to_string(),
+            ..Default::default()
+        };
+        assert!(!form.is_valid());
+    }
+
+    #[test]
+    fn test_add_spell_form_is_valid_whitespace_name() {
+        let form = AddSpellForm {
+            name: "   ".to_string(),
+            command: "echo test".to_string(),
+            ..Default::default()
+        };
+        assert!(!form.is_valid());
+    }
+
+    #[test]
+    fn test_add_spell_form_is_typing_name_field() {
+        let form = AddSpellForm {
+            field: AddSpellField::Name,
+            ..Default::default()
+        };
+        assert!(form.is_typing());
+    }
+
+    #[test]
+    fn test_add_spell_form_is_typing_working_dir_field() {
+        let form = AddSpellForm {
+            field: AddSpellField::WorkingDir,
+            ..Default::default()
+        };
+        assert!(!form.is_typing());
     }
 }

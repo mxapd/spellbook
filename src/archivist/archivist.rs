@@ -382,10 +382,7 @@ impl Archivist {
         Ok(())
     }
 
-    pub fn export_codex(
-        codex: &Codex,
-        path: &str,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn export_codex(codex: &Codex, path: &str) -> Result<(), Box<dyn std::error::Error>> {
         log_info!("Exporting codex to: {}", path);
         let content = toml::to_string_pretty(codex)?;
         atomic_write(path, &content)?;
@@ -399,7 +396,7 @@ impl Archivist {
         path: &str,
     ) -> Result<(), Box<dyn std::error::Error>> {
         log_info!("Exporting spellbook '{}' to: {}", spellbook_name, path);
-        
+
         let spellbook = codex
             .spellbooks
             .iter()
@@ -453,39 +450,37 @@ impl Archivist {
         Ok(())
     }
 
-    pub fn import_codex(
-        path: &str,
-    ) -> Result<Codex, Box<dyn std::error::Error>> {
+    pub fn import_codex(path: &str) -> Result<Codex, Box<dyn std::error::Error>> {
         log_info!("Importing codex from: {}", path);
         let contents = fs::read_to_string(path)?;
         let mut codex: Codex = toml::from_str(&contents)?;
         validate_codex(&codex)?;
-        
+
         for spell in codex.spells.iter_mut() {
             if spell.id.is_empty() {
                 spell.id = uuid::Uuid::new_v4().to_string();
             }
         }
-        
-        log_info!("Imported {} spells and {} spellbooks", codex.spells.len(), codex.spellbooks.len());
+
+        log_info!(
+            "Imported {} spells and {} spellbooks",
+            codex.spells.len(),
+            codex.spellbooks.len()
+        );
         Ok(codex)
     }
 
-    pub fn merge_codex(
-        target: &mut Codex,
-        source: Codex,
-        strategy: MergeStrategy,
-    ) -> MergeResult {
+    pub fn merge_codex(target: &mut Codex, source: Codex, strategy: MergeStrategy) -> MergeResult {
         log_info!("Merging codex with {} spells", source.spells.len());
-        
+
         let mut added_spells = Vec::new();
         let mut added_spellbooks = Vec::new();
         let mut conflicts = Vec::new();
 
         for spell in source.spells {
             let existing = target.spells.iter().find(|s| s.id == spell.id);
-            
-            if let Some(existing) = existing {
+
+            if let Some(_existing) = existing {
                 match strategy {
                     MergeStrategy::Skip => {
                         conflicts.push(MergeConflict::Spell {
@@ -512,8 +507,11 @@ impl Archivist {
         }
 
         for spellbook in source.spellbooks {
-            let existing = target.spellbooks.iter().find(|sb| sb.name == spellbook.name);
-            
+            let existing = target
+                .spellbooks
+                .iter()
+                .find(|sb| sb.name == spellbook.name);
+
             if let Some(_existing) = existing {
                 match strategy {
                     MergeStrategy::Skip => {

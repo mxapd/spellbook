@@ -36,8 +36,9 @@
 //! When the limit is reached, oldest lines are removed (FIFO eviction).
 //! A truncation warning appears in the footer when this happens.
 
+use crate::invoker::StreamOutput;
 use crate::state::OutputModalState;
-use crate::ui::{Mode, Overlay, UiState};
+use crate::ui::UiState;
 use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
@@ -73,6 +74,7 @@ pub struct StreamingModalState {
     pub output: OutputModalState,
     pub streaming: Option<StreamingState>,
     pub auto_scroll: bool,
+    pub receiver: Option<std::sync::mpsc::Receiver<StreamOutput>>,
 }
 
 impl Default for StreamingModalState {
@@ -81,6 +83,7 @@ impl Default for StreamingModalState {
             output: OutputModalState::default(),
             streaming: None,
             auto_scroll: true,
+            receiver: None,
         }
     }
 }
@@ -92,20 +95,21 @@ impl StreamingModalState {
         spell_name: Option<String>,
         working_dir: Option<String>,
     ) -> std::io::Result<u32> {
-        use crate::invoker::stream_command;
-        
+        use crate::invoker::{stream_command, StreamOutput};
+
         self.output.is_streaming = true;
         self.output.exit_code = None;
         self.auto_scroll = true;
-        
-        let (pid, _handle) = stream_command(&command, working_dir.as_deref())?;
-        
+
+        let (pid, _handle, receiver) = stream_command(&command, working_dir.as_deref())?;
+        self.receiver = Some(receiver);
+
         self.streaming = Some(StreamingState::new(command, spell_name, working_dir));
         self.streaming.as_mut().unwrap().pid = Some(pid);
-        
+
         Ok(pid)
     }
-    
+
     pub fn stop_streaming(&mut self, exit_code: Option<i32>) {
         if let Some(ref mut stream) = self.streaming {
             stream.is_running = false;
@@ -113,7 +117,7 @@ impl StreamingModalState {
         self.output.is_streaming = false;
         self.output.exit_code = exit_code;
     }
-    
+
     pub fn kill(&mut self) -> Result<(), std::io::Error> {
         if let Some(pid) = self.streaming.as_ref().and_then(|s| s.pid) {
             crate::invoker::kill_process(pid)?;
@@ -122,7 +126,7 @@ impl StreamingModalState {
         }
         Ok(())
     }
-    
+
     pub fn promote_to_background(&mut self) -> Result<u64, crate::invoker::ExecutorError> {
         if let Some(ref stream) = self.streaming {
             if stream.is_running {
@@ -130,27 +134,34 @@ impl StreamingModalState {
                 if let Some(pid) = stream.pid {
                     let _ = crate::invoker::kill_process(pid);
                 }
-                
+
                 // Start as background job
                 let job_id = crate::invoker::start_spell(
-                    stream.spell_name.clone().unwrap_or_else(|| "Command".to_string()),
+                    stream
+                        .spell_name
+                        .clone()
+                        .unwrap_or_else(|| "Command".to_string()),
                     stream.command.clone(),
                     stream.working_dir.clone(),
                 )?;
-                
+
                 self.stop_streaming(None);
-                self.output.add_line(format!("[Moved to background job {}]", job_id));
-                
+                self.output
+                    .add_line(format!("[Moved to background job {}]", job_id));
+
                 return Ok(job_id);
             }
         }
         Err(crate::invoker::ExecutorError::JobNotFound(0))
     }
-    
+
     pub fn is_running(&self) -> bool {
-        self.streaming.as_ref().map(|s| s.is_running).unwrap_or(false)
+        self.streaming
+            .as_ref()
+            .map(|s| s.is_running)
+            .unwrap_or(false)
     }
-    
+
     pub fn get_pid(&self) -> Option<u32> {
         self.streaming.as_ref().and_then(|s| s.pid)
     }
@@ -164,34 +175,44 @@ pub fn start_tui_execution(
     working_dir: Option<String>,
 ) -> Result<u32, std::io::Error> {
     use crate::ui::Overlay;
-    
+
     // Reset the modal state
     ui.streaming_modal = StreamingModalState::default();
-    
+
     // Start streaming
-    let pid = ui.streaming_modal.start_streaming(command, spell_name, working_dir)?;
-    
+    let pid = ui
+        .streaming_modal
+        .start_streaming(command, spell_name, working_dir)?;
+
     // Push the output modal overlay
     ui.push_overlay(Overlay::OutputModal);
-    
+
     Ok(pid)
 }
 
 /// Poll the stream receiver and update the modal state
 pub fn poll_stream_output(ui: &mut UiState) {
-    use crate::invoker::{get_stream_receiver, StreamOutput};
-    
-    if let Some(receiver) = get_stream_receiver() {
-        // Drain all available messages
+    let receiver = ui.streaming_modal.receiver.take();
+    if let Some(mut receiver) = receiver {
+        let mut stop = false;
+        let mut lines = Vec::new();
+
         while let Ok(output) = receiver.try_recv() {
             if output.line.is_empty() {
-                // Empty line signals end of stream
-                ui.streaming_modal.stop_streaming(Some(0));
+                stop = true;
             } else {
                 let prefix = if output.is_stderr { "[stderr] " } else { "" };
-                let line = format!("{}{}", prefix, output.line);
-                ui.streaming_modal.output.add_line(line);
+                lines.push(format!("{}{}", prefix, output.line));
             }
+        }
+
+        ui.streaming_modal.receiver = Some(receiver);
+
+        if stop {
+            ui.streaming_modal.stop_streaming(Some(0));
+        }
+        for line in lines {
+            ui.streaming_modal.output.add_line(line);
         }
     }
 }
@@ -237,7 +258,7 @@ pub fn render_streaming_modal_in_area(
     let is_running = state.is_running();
     let is_truncated = state.output.is_truncated();
     let exit_code = state.output.exit_code;
-    
+
     // Status indicator for title
     let status_indicator = if is_running {
         " ⟳ ".to_string()
@@ -273,7 +294,14 @@ pub fn render_streaming_modal_in_area(
     let cmd_text = Line::from(vec![
         Span::raw("$ "),
         Span::styled(
-            truncate_string(&state.streaming.as_ref().map(|s| s.command.clone()).unwrap_or_default(), inner_width.saturating_sub(3)),
+            truncate_string(
+                &state
+                    .streaming
+                    .as_ref()
+                    .map(|s| s.command.clone())
+                    .unwrap_or_default(),
+                inner_width.saturating_sub(3),
+            ),
             Style::new().fg(theme.accent).add_modifier(Modifier::BOLD),
         ),
     ]);
@@ -283,7 +311,11 @@ pub fn render_streaming_modal_in_area(
     // Output area with scrolling
     let output_area_height = layout[1].height as usize;
     let scroll_offset = if state.auto_scroll && state.output.content.len() > output_area_height {
-        state.output.content.len().saturating_sub(output_area_height)
+        state
+            .output
+            .content
+            .len()
+            .saturating_sub(output_area_height)
     } else {
         state.output.scroll_offset
     };
@@ -302,7 +334,10 @@ pub fn render_streaming_modal_in_area(
             } else {
                 Style::new().fg(theme.fg)
             };
-            Line::from(vec![Span::styled(truncate_string(line, inner_width), style)])
+            Line::from(vec![Span::styled(
+                truncate_string(line, inner_width),
+                style,
+            )])
         })
         .collect();
 
@@ -314,14 +349,14 @@ pub fn render_streaming_modal_in_area(
 
     // Footer with hints
     let mut footer_parts = vec![];
-    
+
     if is_running {
         footer_parts.push(("Ctrl+C", "Kill"));
         footer_parts.push(("Ctrl+B", "Background"));
     }
-    
+
     footer_parts.push(("Esc", "Close"));
-    
+
     if is_truncated {
         footer_parts.push(("[!]", "Truncated"));
     }
@@ -358,9 +393,9 @@ pub fn handle_streaming_modal_key(
     ui: &mut UiState,
 ) -> bool {
     use crossterm::event::{KeyCode, KeyModifiers};
-    
+
     let state = &mut ui.streaming_modal;
-    
+
     match key {
         // Kill running process
         KeyCode::Char('c') if modifiers.contains(KeyModifiers::CONTROL) => {
@@ -371,23 +406,27 @@ pub fn handle_streaming_modal_key(
             }
             false
         }
-        
+
         // Promote to background
         KeyCode::Char('b') if modifiers.contains(KeyModifiers::CONTROL) => {
             if state.is_running() {
                 match state.promote_to_background() {
                     Ok(job_id) => {
-                        state.output.add_line(format!("[Moved to background job {}]", job_id));
+                        state
+                            .output
+                            .add_line(format!("[Moved to background job {}]", job_id));
                         return true; // Close modal
                     }
                     Err(e) => {
-                        state.output.add_line(format!("[Failed to move to background: {}]", e));
+                        state
+                            .output
+                            .add_line(format!("[Failed to move to background: {}]", e));
                     }
                 }
             }
             false
         }
-        
+
         // Close modal
         KeyCode::Esc => {
             if !state.is_running() {
@@ -396,13 +435,13 @@ pub fn handle_streaming_modal_key(
             }
             false
         }
-        
+
         // Toggle auto-scroll
         KeyCode::Char('s') => {
             state.auto_scroll = !state.auto_scroll;
             false
         }
-        
+
         // Scroll up
         KeyCode::Up => {
             if state.output.scroll_offset > 0 {
@@ -411,7 +450,7 @@ pub fn handle_streaming_modal_key(
             }
             false
         }
-        
+
         // Scroll down
         KeyCode::Down => {
             let output_height = 20; // Approximate
@@ -420,7 +459,7 @@ pub fn handle_streaming_modal_key(
             }
             false
         }
-        
+
         _ => false,
     }
 }
@@ -429,7 +468,10 @@ fn truncate_string(s: &str, max_width: usize) -> String {
     if s.chars().count() <= max_width {
         s.to_string()
     } else {
-        s.chars().take(max_width.saturating_sub(3)).collect::<String>() + "..."
+        s.chars()
+            .take(max_width.saturating_sub(3))
+            .collect::<String>()
+            + "..."
     }
 }
 
@@ -466,33 +508,29 @@ mod tests {
     #[test]
     fn test_stop_streaming() {
         let mut state = StreamingModalState::default();
-        state.streaming = Some(StreamingState::new(
-            "echo test".to_string(),
-            None,
-            None,
-        ));
+        state.streaming = Some(StreamingState::new("echo test".to_string(), None, None));
         state.output.is_streaming = true;
 
         state.stop_streaming(Some(0));
 
         assert!(!state.output.is_streaming);
         assert_eq!(state.output.exit_code, Some(0));
-        assert!(state.streaming.as_ref().map(|s| !s.is_running).unwrap_or(false));
+        assert!(state
+            .streaming
+            .as_ref()
+            .map(|s| !s.is_running)
+            .unwrap_or(false));
     }
 
     #[test]
     fn test_is_running() {
         let mut state = StreamingModalState::default();
-        
+
         // Not running when no streaming state
         assert!(!state.is_running());
 
         // Running when streaming is active
-        state.streaming = Some(StreamingState::new(
-            "sleep 10".to_string(),
-            None,
-            None,
-        ));
+        state.streaming = Some(StreamingState::new("sleep 10".to_string(), None, None));
         assert!(state.is_running());
 
         // Not running after stopped
@@ -503,7 +541,7 @@ mod tests {
     #[test]
     fn test_get_pid() {
         let mut state = StreamingModalState::default();
-        
+
         // No PID when not streaming
         assert!(state.get_pid().is_none());
 
@@ -524,7 +562,7 @@ mod tests {
         // Since we can't actually test process killing in unit tests,
         // we verify the state changes correctly
         state.stop_streaming(Some(-1));
-        
+
         assert!(!state.is_running());
         assert_eq!(state.output.exit_code, Some(-1));
     }
@@ -532,12 +570,12 @@ mod tests {
     #[test]
     fn test_auto_scroll_toggle() {
         let mut state = StreamingModalState::default();
-        
+
         assert!(state.auto_scroll);
-        
+
         state.auto_scroll = !state.auto_scroll;
         assert!(!state.auto_scroll);
-        
+
         state.auto_scroll = !state.auto_scroll;
         assert!(state.auto_scroll);
     }
@@ -551,7 +589,10 @@ mod tests {
     #[test]
     fn test_truncate_string_long() {
         assert_eq!(truncate_string("hello world", 8), "hello...");
-        assert_eq!(truncate_string("this is a very long string", 10), "this is...");
+        assert_eq!(
+            truncate_string("this is a very long string", 10),
+            "this is..."
+        );
     }
 
     #[test]
@@ -598,11 +639,7 @@ mod tests {
 
     #[test]
     fn test_streaming_with_none_spell_name() {
-        let state = StreamingState::new(
-            "echo anonymous".to_string(),
-            None,
-            None,
-        );
+        let state = StreamingState::new("echo anonymous".to_string(), None, None);
 
         assert!(state.spell_name.is_none());
         assert_eq!(state.command, "echo anonymous");

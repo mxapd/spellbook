@@ -1,5 +1,8 @@
 use crate::state::State;
-use crate::ui::{add_spell, add_spellbook_form, confirm, help, jobs, search_overlay, spell_list, streaming_modal, Mode, Overlay, UiState};
+use crate::ui::{
+    add_spell, add_spellbook_form, confirm, help, jobs, search_overlay, spell_list,
+    streaming_modal, Mode, Overlay, UiState,
+};
 use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout},
     style::{Modifier, Style},
@@ -12,11 +15,11 @@ use ratatui::{
 pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
     // Collect overlays first to avoid borrow issues
     let overlays: Vec<Overlay> = ui.overlays.clone();
-    
+
     if ui.jobs_sidebar_open {
         render_with_sidebar(frame, state, ui, &overlays);
     } else {
-        render_mode(ui.mode, frame, state, ui, frame.area());
+        render_mode(ui.mode.clone(), frame, state, ui, frame.area());
         // Render overlays on top (modal windows)
         for overlay in &overlays {
             render_overlay(*overlay, frame, state, ui);
@@ -35,57 +38,59 @@ fn render_loading_indicator(frame: &mut Frame, ui: &UiState, theme: &crate::mode
     use ratatui::style::{Modifier, Style};
     use ratatui::text::{Line, Span};
     use ratatui::widgets::{Block, Borders, Paragraph};
-    
+
     let area = frame.area();
-    
+
     // Create a small popup in the bottom-right corner
     let message = ui.loading_message.as_deref().unwrap_or("Loading...");
     let spinner = ui.spinner_char();
     let text = format!("{} {}", spinner, message);
-    
+
     let width = text.len() as u16 + 4; // padding
     let height = 3;
     let x = area.width.saturating_sub(width + 2);
     let y = area.height.saturating_sub(height + 1);
-    
+
     let popup_area = Rect::new(x, y, width, height);
-    
+
     // Semi-transparent background effect by rendering a block
     let block = Block::default()
         .borders(Borders::ALL)
         .border_style(Style::new().fg(theme.accent))
         .style(Style::new().bg(theme.bg));
-    
-    let line = Line::from(vec![
-        Span::styled(
-            format!(" {} ", text),
-            Style::new()
-                .fg(theme.fg)
-                .bg(theme.bg)
-                .add_modifier(Modifier::BOLD),
-        ),
-    ]);
-    
+
+    let line = Line::from(vec![Span::styled(
+        format!(" {} ", text),
+        Style::new()
+            .fg(theme.fg)
+            .bg(theme.bg)
+            .add_modifier(Modifier::BOLD),
+    )]);
+
     let paragraph = Paragraph::new(line)
         .alignment(Alignment::Center)
         .block(block);
-    
+
     frame.render_widget(paragraph, popup_area);
 }
 
 /// Render the current mode
-fn render_mode(mode: Mode, frame: &mut Frame, state: &State, ui: &mut UiState, area: ratatui::layout::Rect) {
+fn render_mode(
+    mode: Mode,
+    frame: &mut Frame,
+    state: &State,
+    ui: &mut UiState,
+    area: ratatui::layout::Rect,
+) {
     match mode {
-        Mode::BrowseSpellbooks => {
+        Mode::BrowseSpellbooks(_) | Mode::BrowseSpells(_) => {
+            // Both browse modes use the search overlay for consistent UI with search bar
             search_overlay::render_in_area(frame, state, ui, area);
         }
-        Mode::BrowseSpells => {
-            spell_list::render_in_area(frame, state, ui, area);
-        }
-        Mode::AddSpell | Mode::EditSpell => {
+        Mode::AddSpell(_) | Mode::EditSpell(_) => {
             add_spell::render_in_area(frame, state, ui, area);
         }
-        Mode::AddSpellbook => {
+        Mode::AddSpellbook(_) => {
             add_spellbook_form::render_in_area(frame, state, ui, area);
         }
     }
@@ -121,13 +126,6 @@ fn render_overlay(overlay: Overlay, frame: &mut Frame, state: &State, ui: &mut U
     }
 }
 
-/// Render input popup overlay if active
-fn render_input_popup_if_active(frame: &mut Frame, state: &State, ui: &mut UiState) {
-    if ui.input_popup.is_some() {
-        render_input_popup_overlay(frame, state, ui);
-    }
-}
-
 fn render_with_sidebar(frame: &mut Frame, state: &State, ui: &mut UiState, overlays: &[Overlay]) {
     let area = frame.area();
     let theme = &state.theme;
@@ -142,8 +140,8 @@ fn render_with_sidebar(frame: &mut Frame, state: &State, ui: &mut UiState, overl
         .split(area);
 
     // Render the current mode in the main area
-    render_mode(ui.mode, frame, state, ui, chunks[0]);
-    
+    render_mode(ui.mode.clone(), frame, state, ui, chunks[0]);
+
     // Render overlays on top
     for overlay in overlays {
         render_overlay(*overlay, frame, state, ui);
@@ -192,7 +190,12 @@ fn render_output_popup(frame: &mut Frame, state: &State, ui: &UiState) {
     render_output_popup_in_area(frame, state, ui, area);
 }
 
-fn render_output_popup_in_area(frame: &mut Frame, state: &State, ui: &UiState, area: ratatui::layout::Rect) {
+fn render_output_popup_in_area(
+    frame: &mut Frame,
+    state: &State,
+    ui: &UiState,
+    area: ratatui::layout::Rect,
+) {
     let theme = &state.theme;
 
     // Full-screen overlay to hide content behind popup
@@ -350,35 +353,6 @@ fn truncate_string(s: &str, max_width: usize) -> String {
 
 fn string_visual_width(s: &str) -> usize {
     s.chars().map(|c| if c == '\t' { 8 } else { 1 }).sum()
-}
-
-fn render_jobs_popup(frame: &mut Frame, state: &State, ui: &mut UiState) {
-    let theme = &state.theme;
-    let area = frame.area();
-
-    let overlay_rect = ratatui::layout::Rect {
-        x: 0,
-        y: 0,
-        width: area.width,
-        height: area.height,
-    };
-    let overlay = Paragraph::new("").style(Style::new().bg(ratatui::style::Color::Indexed(0)));
-    frame.render_widget(overlay, overlay_rect);
-
-    let popup_width = 60.min(area.width - 4);
-    let popup_height = (area.height * 3 / 5).max(8).min(area.height - 4);
-
-    let popup_x = (area.width - popup_width) / 2;
-    let popup_y = (area.height - popup_height) / 2;
-
-    let popup_area = ratatui::layout::Rect {
-        x: popup_x,
-        y: popup_y,
-        width: popup_width,
-        height: popup_height,
-    };
-
-    jobs::render_jobs_panel(frame, state, ui, popup_area);
 }
 
 fn render_confirm_popup(frame: &mut Frame, state: &State, ui: &UiState) {

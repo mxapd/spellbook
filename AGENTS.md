@@ -294,7 +294,7 @@ The following issues require manual testing and potential fixes:
 - **Job Promotion**: Verify Ctrl+B in streaming modal correctly moves job to background
 
 ### Medium Priority
-- **Input Popup**: Legacy input popup (for command arguments) needs Overlay migration
+- **Input Popup Integration**: InputPopup overlay is migrated but needs to be triggered when executing spells with placeholders (e.g., `<pid>`, `<port>`)
 - **Focus Edge Cases**: Test rapid Tab switching between main and sidebar
 - **Theme Persistence**: Verify theme changes survive app restart
 
@@ -322,6 +322,41 @@ Backup `codex.toml` before migration (automatic).
 - Check `~/.spellbook/spellbook.log` for errors
 - Job output in `~/.spellbook/job_<id>.out/err`
 - Use `RUST_BACKTRACE=1` for panics
+
+## Architecture Refactor (In Progress)
+
+**IMPORTANT: events.rs is frozen for refactor. Do not add new features to events.rs until refactor is complete.**
+
+### The Problem
+UiState has multiple overlapping state flags that don't know about each other:
+- `mode: Mode` vs `search_mode: SearchMode` (two parallel enums!)
+- `is_typing`, `search_active`, `showing_spellbooks` (all separate booleans)
+
+This causes unpredictable behavior and 2,482 line event handlers.
+
+### The Solution
+Nest state inside Mode variants:
+```rust
+enum Mode {
+    BrowseSpellbooks(BrowseState),
+    BrowseSpells(BrowseState),
+    AddSpell(FormState),
+    // ...
+}
+
+enum BrowseState {
+    Idle,
+    Searching(String),  // query lives here
+}
+```
+
+### Migration Steps
+1. Freeze events.rs (no new features)
+2. Add BrowseState to Mode, collapse search state
+3. Split events.rs into browse_spells.rs, browse_spellbooks.rs, form.rs
+4. Audit remaining UiState fields
+
+See `docs/architecture-refactor.md` for full details.
 
 ## References
 

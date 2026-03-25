@@ -18,7 +18,7 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
 
     let theme = &state.theme;
 
-    let spellbook_index = match ui.selected_spellbook {
+    let spellbook_index = match ui.selected_spellbook() {
         Some(index) => index,
         None => return,
     };
@@ -137,7 +137,7 @@ pub fn render_in_area(
 
     let theme = &state.theme;
 
-    let spellbook_index = match ui.selected_spellbook {
+    let spellbook_index = match ui.selected_spellbook() {
         Some(index) => index,
         None => return,
     };

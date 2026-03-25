@@ -65,7 +65,12 @@ pub fn render(frame: &mut Frame, state: &crate::state::State, ui: &mut crate::ui
     render_in_area(frame, state, ui, area);
 }
 
-pub fn render_in_area(frame: &mut Frame, state: &crate::state::State, ui: &mut crate::ui::UiState, area: Rect) {
+pub fn render_in_area(
+    frame: &mut Frame,
+    state: &crate::state::State,
+    ui: &mut crate::ui::UiState,
+    area: Rect,
+) {
     let theme = &state.theme;
     let form = &ui.add_spellbook;
 
@@ -172,4 +177,86 @@ fn render_field(
         .style(Style::new().fg(theme.fg).bg(theme.bg));
 
     frame.render_widget(text, area);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_add_spellbook_field_default() {
+        assert_eq!(AddSpellbookField::default(), AddSpellbookField::Name);
+    }
+
+    #[test]
+    fn test_add_spellbook_form_default() {
+        let form = AddSpellbookForm::default();
+        assert_eq!(form.field, AddSpellbookField::Name);
+        assert!(form.name.is_empty());
+        assert!(form.cover.is_empty());
+        assert!(form.sigil.is_empty());
+        assert!(form.message.is_none());
+        assert!(!form.has_unsaved);
+    }
+
+    #[test]
+    fn test_add_spellbook_form_clear() {
+        let mut form = AddSpellbookForm {
+            field: AddSpellbookField::Sigil,
+            name: "Test".to_string(),
+            cover: "Cover".to_string(),
+            sigil: "*".to_string(),
+            message: Some(("Error".to_string(), true)),
+            has_unsaved: true,
+        };
+
+        form.clear();
+
+        assert_eq!(form.field, AddSpellbookField::Name);
+        assert!(form.name.is_empty());
+        assert!(form.cover.is_empty());
+        assert!(form.sigil.is_empty());
+        assert!(form.message.is_none());
+        assert!(!form.has_unsaved);
+    }
+
+    #[test]
+    fn test_add_spellbook_form_is_valid() {
+        let mut form = AddSpellbookForm::default();
+        assert!(!form.is_valid());
+
+        form.name = "Test Spellbook".to_string();
+        assert!(form.is_valid());
+
+        form.name = "   ".to_string();
+        assert!(!form.is_valid());
+    }
+
+    #[test]
+    fn test_add_spellbook_form_next_field() {
+        let mut form = AddSpellbookForm::default();
+
+        form.next_field();
+        assert_eq!(form.field, AddSpellbookField::Cover);
+
+        form.next_field();
+        assert_eq!(form.field, AddSpellbookField::Sigil);
+
+        form.next_field();
+        assert_eq!(form.field, AddSpellbookField::Name);
+    }
+
+    #[test]
+    fn test_add_spellbook_form_prev_field() {
+        let mut form = AddSpellbookForm::default();
+
+        form.prev_field();
+        assert_eq!(form.field, AddSpellbookField::Sigil);
+
+        form.prev_field();
+        assert_eq!(form.field, AddSpellbookField::Cover);
+
+        form.prev_field();
+        assert_eq!(form.field, AddSpellbookField::Name);
+    }
 }

@@ -1,6 +1,6 @@
 mod archivist;
-mod clipboard;
 mod cli;
+mod clipboard;
 mod invoker;
 mod logging;
 mod models;
@@ -67,9 +67,9 @@ fn run(terminal: &mut DefaultTerminal) -> io::Result<()> {
     // Start on BrowseSpellbooks mode by default (unless --add is passed for AddSpell mode)
     if mode == AppMode::Browse {
         ui_state.open_search();
-        ui_state.set_mode(ui::Mode::BrowseSpellbooks);
+        ui_state.set_mode(ui::Mode::BrowseSpellbooks(ui::BrowseState::default()));
     } else {
-        ui_state.set_mode(ui::Mode::AddSpell);
+        ui_state.set_mode(ui::Mode::AddSpell(ui::FormState::default()));
     }
 
     logging::init_logging();
@@ -104,7 +104,8 @@ fn run(terminal: &mut DefaultTerminal) -> io::Result<()> {
                         key.code,
                         key.modifiers
                     );
-                    let should_quit = ui::handle_event(key.code, &mut state, &mut ui_state, key.modifiers);
+                    let should_quit =
+                        ui::handle_event(key.code, &mut state, &mut ui_state, key.modifiers);
                     if should_quit {
                         log_info!("Spellbook exiting");
                         return Ok(());

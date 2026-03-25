@@ -7,8 +7,7 @@ const MAX_DISPLAY_LINES: usize = 500;
 static CLIPBOARD: LazyLock<Mutex<Option<Clipboard>>> =
     LazyLock::new(|| Mutex::new(Clipboard::new().ok()));
 
-static CLIPBOARD_AVAILABLE: LazyLock<bool> =
-    LazyLock::new(|| Clipboard::new().is_ok());
+static CLIPBOARD_AVAILABLE: LazyLock<bool> = LazyLock::new(|| Clipboard::new().is_ok());
 
 pub fn is_clipboard_available() -> bool {
     *CLIPBOARD_AVAILABLE
@@ -28,9 +27,7 @@ pub fn copy_to_clipboard(text: &str) -> bool {
             match cb.set_text(text) {
                 Ok(_) => {
                     // Try to send notification, but don't fail if it's not available
-                    let _ = Command::new("notify-send")
-                        .args(["Copied!", text])
-                        .spawn();
+                    let _ = Command::new("notify-send").args(["Copied!", text]).spawn();
                     true
                 }
                 Err(e) => {

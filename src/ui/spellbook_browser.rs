@@ -1,5 +1,3 @@
-use crate::models::ViewMode;
-
 #[derive(Debug, Clone)]
 pub struct SpellbookBrowserState {
     pub index: Option<usize>,
@@ -8,7 +6,6 @@ pub struct SpellbookBrowserState {
     pub last_width: u16,
     pub last_height: u16,
     pub items_per_row: usize,
-    pub view_mode: ViewMode,
 }
 
 impl Default for SpellbookBrowserState {
@@ -20,7 +17,6 @@ impl Default for SpellbookBrowserState {
             last_width: 0,
             last_height: 0,
             items_per_row: 1,
-            view_mode: ViewMode::default(),
         }
     }
 }

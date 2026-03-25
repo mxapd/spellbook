@@ -109,14 +109,6 @@ pub fn render_help(frame: &mut Frame, area: Rect, theme: &RatatuiColors) {
         Span::styled("/", key_style),
         Span::raw("  "),
         Span::styled("search", desc_style),
-        Span::raw("    "),
-        Span::styled("t", key_style),
-        Span::raw("  "),
-        Span::styled("cycle theme", desc_style),
-        Span::raw("    "),
-        Span::styled("v", key_style),
-        Span::raw("  "),
-        Span::styled("cycle view", desc_style),
     ]);
     frame.render_widget(Paragraph::new(cmd_keys), chunks[7]);
 
@@ -142,9 +134,10 @@ pub fn render_help(frame: &mut Frame, area: Rect, theme: &RatatuiColors) {
     frame.render_widget(Paragraph::new(jobs_keys), chunks[8]);
 
     // Footer
-    let footer = Line::from(vec![
-        Span::styled("Press Esc to close", Style::new().fg(theme.muted)),
-    ]);
+    let footer = Line::from(vec![Span::styled(
+        "Press Esc to close",
+        Style::new().fg(theme.muted),
+    )]);
     let footer_area = Rect::new(inner.x, inner.y + inner.height - 1, inner.width, 1);
     frame.render_widget(Paragraph::new(footer), footer_area);
 }

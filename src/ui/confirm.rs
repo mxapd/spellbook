@@ -125,7 +125,10 @@ fn render_delete_spell(
 ) {
     let line1 = Line::from(vec![
         Span::styled("Delete spell '", Style::new().fg(theme.fg)),
-        Span::styled(&spell.name, Style::new().fg(theme.accent).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            &spell.name,
+            Style::new().fg(theme.accent).add_modifier(Modifier::BOLD),
+        ),
         Span::styled("'?", Style::new().fg(theme.fg)),
     ]);
     let para1 = Paragraph::new(line1);
@@ -133,13 +136,19 @@ fn render_delete_spell(
 
     let line2 = Line::from(vec![
         Span::styled("Command: ", Style::new().fg(theme.muted)),
-        Span::styled(truncate_string(&spell.incantation, inner_width.saturating_sub(12)), Style::new().fg(theme.fg)),
+        Span::styled(
+            truncate_string(&spell.incantation, inner_width.saturating_sub(12)),
+            Style::new().fg(theme.fg),
+        ),
     ]);
     let para2 = Paragraph::new(line2);
     f.render_widget(para2, chunks[1]);
 
     let instruction = "Type 'DELETE' to confirm, Esc to cancel";
-    let line3 = Line::from(vec![Span::styled(instruction, Style::new().fg(theme.muted))]);
+    let line3 = Line::from(vec![Span::styled(
+        instruction,
+        Style::new().fg(theme.muted),
+    )]);
     let para3 = Paragraph::new(line3);
     f.render_widget(para3, chunks[3]);
 }
@@ -152,20 +161,27 @@ fn render_delete_spellbook(
 ) {
     let line1 = Line::from(vec![
         Span::styled("Delete spellbook '", Style::new().fg(theme.fg)),
-        Span::styled(name, Style::new().fg(theme.accent).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            name,
+            Style::new().fg(theme.accent).add_modifier(Modifier::BOLD),
+        ),
         Span::styled("'?", Style::new().fg(theme.fg)),
     ]);
     let para1 = Paragraph::new(line1);
     f.render_widget(para1, chunks[0]);
 
-    let line2 = Line::from(vec![
-        Span::styled("This will also delete all spells in this spellbook.", Style::new().fg(theme.muted)),
-    ]);
+    let line2 = Line::from(vec![Span::styled(
+        "This will also delete all spells in this spellbook.",
+        Style::new().fg(theme.muted),
+    )]);
     let para2 = Paragraph::new(line2);
     f.render_widget(para2, chunks[1]);
 
     let instruction = "Type 'DELETE' to confirm, Esc to cancel";
-    let line3 = Line::from(vec![Span::styled(instruction, Style::new().fg(theme.muted))]);
+    let line3 = Line::from(vec![Span::styled(
+        instruction,
+        Style::new().fg(theme.muted),
+    )]);
     let para3 = Paragraph::new(line3);
     f.render_widget(para3, chunks[3]);
 }

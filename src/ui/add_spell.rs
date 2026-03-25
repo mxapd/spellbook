@@ -255,7 +255,7 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
         frame.render_widget(divider, form_chunks[8]);
     }
 
-    let footer_text = if ui.is_typing {
+    let footer_text = if ui.is_typing() {
         format!(
             "tab/{} navigate  Enter next  Ctrl+S save  Esc cancel",
             if ui.add_spell.dropdown_open {

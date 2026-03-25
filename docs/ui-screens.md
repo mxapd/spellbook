@@ -46,6 +46,7 @@ pub enum Overlay {
     ConfirmDialog,      // "Are you sure?" confirmation
     CommandPalette,     // : command input with filtered list
     Help,               // ? keybind reference
+    InputPopup,         // Parameter input for placeholders
 }
 ```
 
@@ -437,6 +438,74 @@ pub struct CommandPaletteState {
 - Mode-specific keybinds
 - Execution modes
 - Command palette
+
+---
+
+### InputPopup
+
+**Purpose**: Interactive parameter input for spells with placeholders.
+
+**Description**: The InputPopup overlay enables parameterized spell execution. When a spell's incantation contains placeholder patterns like `<pid>`, `<port>`, or `<file>`, this popup collects user input for each parameter before execution.
+
+**Placeholder Syntax**: Use `<name>` in spell incantations:
+- `<pid>` - Process ID
+- `<port>` - Port number
+- `<file>` - File path
+- `<directory>` or `<dir>` - Directory path
+- `<service>` or `<svc>` - Service name
+- `<message>` or `<msg>` - Message text
+- Any custom `<name>` - User-defined parameter
+
+**State** (`InputPopupState`):
+```rust
+pub struct InputPopupState {
+    pub spell_id: String,
+    pub spell_name: String,
+    pub base_command: String,
+    pub placeholders: Vec<Placeholder>,
+    pub current_index: usize,
+}
+
+pub struct Placeholder {
+    pub name: String,
+    pub display_name: String,
+    pub value: String,
+}
+```
+
+**Controls**:
+- Type: Enter value for current placeholder
+- Tab / ↓: Move to next placeholder
+- Shift+Tab / ↑: Move to previous placeholder
+- Enter: Execute spell with substituted values (when all filled)
+- Esc: Cancel execution
+- Backspace: Delete character
+
+**Workflow**:
+1. User initiates spell execution (simple, TUI, or background)
+2. System detects placeholders in incantation via regex `<([^>]+)>`
+3. If placeholders found, InputPopup overlay is shown
+4. User fills in values for each placeholder
+5. Upon confirmation, placeholders are substituted: `<pid>` → `1234`
+6. Modified command executes with user-provided values
+
+**Example**:
+```
+Spell: "Kill Process"
+Incantation: "kill -9 <pid>"
+
+InputPopup shows:
+  Command: kill -9 <pid>
+  Process ID: _
+  
+User types: 1234
+  Command: kill -9 1234
+  Process ID: 1234
+
+Result: "kill -9 1234" executes
+```
+
+**Note**: InputPopup is fully implemented but not yet integrated into the execution flow. To activate it, add placeholder detection before spell execution in the browse modes.
 
 ---
 

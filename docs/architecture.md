@@ -52,38 +52,46 @@ pub enum Overlay {
 }
 ```
 
-### 2. Component State Encapsulation
+### 2. Elm Architecture (Mode with Nested State)
 
-Each UI component owns its own state struct:
+V2 implements the Elm Architecture pattern with nested state:
 
 ```rust
-pub struct AppState {
-    // Data
-    pub codex: Codex,
-    pub jobs: JobManager,
-    pub recents: Vec<RecentEntry>,
+/// Mode is the single source of truth for application state
+pub enum Mode {
+    BrowseSpellbooks(BrowseState),  // Home - card/spine view
+    BrowseSpells(BrowseState),      // Spells in selected spellbook
+    AddSpell(FormState),            // Form to add spell
+    EditSpell(FormState),           // Form to edit spell
+    AddSpellbook(FormState),        // Form to add spellbook
+}
 
-    // UI state
-    pub mode: Mode,
-    pub overlays: Vec<Overlay>,
-    pub jobs_sidebar_open: bool,
-    pub focus: FocusTarget,
-    pub theme: Theme,
-    pub config: Config,
+/// Browse state shared across browse modes
+pub enum BrowseState {
+    Idle,
+    Searching { 
+        query: String, 
+        filtered_indices: Vec<usize>, 
+        selected_index: usize 
+    },
+}
 
-    // Component states (encapsulated)
-    pub spellbook_browser: SpellbookBrowserState,
-    pub spell_browser: SpellBrowserState,
-    pub spell_form: SpellFormState,
-    pub spellbook_form: SpellbookFormState,
-    pub output_modal: OutputModalState,
-    pub command_palette: CommandPaletteState,
-    pub confirm_dialog: ConfirmDialogState,
-    pub jobs_sidebar: JobsSidebarState,
+/// Form state for add/edit modes
+pub struct FormState {
+    pub selected_field: usize,
+    pub field_values: Vec<String>,
+}
+
+pub enum Overlay {
+    OutputModal,        // Scrollable command output
+    ConfirmDialog,      // Confirmation prompts
+    CommandPalette,     // : command input
+    Help,               // ? keybind reference
+    InputPopup,         // Parameter input for placeholders
 }
 ```
 
-No flat God-object with hundreds of individual fields.
+No parallel state machines - derive all state from Mode.
 
 ### 3. Jobs Sidebar (Not an Overlay)
 
@@ -97,65 +105,51 @@ The jobs sidebar is a **toggleable panel**, not an overlay:
 
 ## Module Structure
 
+**Note:** The actual implementation uses consolidated modules rather than the granular structure originally planned.
+
 ```
 src/
 ├── main.rs                  # Entry point, CLI args, terminal setup
-├── app.rs                   # AppState, main event loop
-├── config.rs                # Config struct, load/save
+├── state.rs                 # State struct, recents/jobs management
+├── cli.rs                   # CLI argument parsing
+├── clipboard.rs             # Clipboard operations
+├── validation.rs            # Codex validation on load
+├── logging.rs               # Logging setup
+├── lib.rs                   # Library exports
+├── test_utils.rs            # Test helpers
 │
 ├── models/
-│   ├── mod.rs
-│   ├── spell.rs             # Spell struct, RunMode enum
-│   ├── spellbook.rs         # Spellbook struct
+│   ├── mod.rs               # Re-exports, FocusTarget, SpellbookRef
+│   ├── spell.rs             # Spell, RunMode
+│   ├── spellbook.rs         # Spellbook, SpineStyle
 │   ├── codex.rs             # Codex struct
-│   └── job.rs               # Job struct, JobStatus enum
+│   ├── job.rs               # Job, JobManager, RecentEntry (persistence types)
+│   └── theme.rs             # Theme, UserSettings, ViewMode
 │
 ├── archivist/
-│   ├── mod.rs
-│   ├── codex_store.rs       # Load/save codex.toml
-│   ├── config_store.rs      # Load/save config.toml
-│   ├── theme_store.rs       # Load/save theme.toml
-│   ├── job_store.rs         # Load/save jobs.toml
-│   └── recent_store.rs      # Load/save recents.toml
+│   ├── mod.rs               # Re-exports
+│   └── archivist.rs         # All persistence logic (consolidated)
 │
 ├── invoker/
-│   ├── mod.rs
-│   ├── simple.rs            # Simple mode: exit TUI, exec
-│   ├── tui_runner.rs        # TUI mode: capture output
-│   ├── background.rs        # Background mode: detach
-│   └── job_manager.rs       # Job lifecycle, polling
+│   └── mod.rs               # All execution logic (consolidated)
 │
-├── theme/
-│   ├── mod.rs
-│   └── themes.rs            # 10 built-in themes
-│
-├── ui/
-│   ├── mod.rs               # Mode, Overlay enums
-│   ├── render.rs            # Top-level render dispatcher
-│   ├── events.rs            # Event handler dispatcher
-│   ├── components/
-│   │   ├── mod.rs
-│   │   ├── spellbook_browser.rs
-│   │   ├── spell_browser.rs
-│   │   ├── spell_form.rs
-│   │   ├── spellbook_form.rs
-│   │   ├── output_modal.rs
-│   │   ├── confirm_dialog.rs
-│   │   ├── command_palette.rs
-│   │   ├── jobs_sidebar.rs
-│   │   ├── help.rs
-│   │   └── footer.rs
-│   └── widgets/
-│       ├── mod.rs
-│       ├── card.rs          # Spellbook card widget
-│       ├── spine.rs         # Spellbook spine widget
-│       └── search_input.rs  # Search input widget
-│
-├── clipboard.rs             # Clipboard operations
-├── notifications.rs         # D-Bus notification helpers
-├── validation.rs            # Codex validation
-├── logging.rs               # Logging setup
-└── cli.rs                   # CLI argument parsing
+└── ui/
+    ├── mod.rs               # Mode, BrowseState, FormState, UiState
+    ├── render.rs            # Top-level render dispatcher
+    ├── events.rs            # Event router (Elm Architecture)
+    ├── browse_spellbooks.rs # BrowseSpellbooks mode handler
+    ├── browse_spells.rs     # BrowseSpells mode handler
+    ├── form.rs              # AddSpell/EditSpell/AddSpellbook form handler
+    ├── spellbook_browser.rs # Spellbook browser state
+    ├── spell_list.rs        # Spell list rendering
+    ├── add_spell_form.rs    # AddSpell form state
+    ├── add_spellbook_form.rs # AddSpellbook form state
+    ├── streaming_modal.rs   # Streaming output modal
+    ├── jobs.rs              # Jobs sidebar
+    ├── confirm.rs           # Confirm dialog
+    ├── search_overlay.rs    # Search overlay rendering
+    ├── input.rs             # InputPopup overlay
+    └── help.rs              # Help overlay
 ```
 
 ---

@@ -1,4 +1,6 @@
-# Spellbook v2 Roadmap
+# Spellbook v2 Roadmap [ARCHIVED - COMPLETE]
+
+> **STATUS: ALL PHASES COMPLETED** - This roadmap has been fully implemented. The v2 refactor is complete as of refactor-completion.md.
 
 ## Overview
 

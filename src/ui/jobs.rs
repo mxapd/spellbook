@@ -2,7 +2,7 @@ use ratatui::{
     layout::Rect,
     style::{Modifier, Style},
     text::{Line, Span},
-    widgets::{Block, Borders, List, ListItem, Paragraph},
+    widgets::{Block, List, ListItem, Paragraph},
     Frame,
 };
 
@@ -218,7 +218,8 @@ pub fn handle_jobs_key(key: crossterm::event::KeyCode, ui: &mut crate::ui::UiSta
             }
             return false;
         }
-        crossterm::event::KeyCode::Char('v') | crossterm::event::KeyCode::Char('V')
+        crossterm::event::KeyCode::Char('v')
+        | crossterm::event::KeyCode::Char('V')
         | crossterm::event::KeyCode::Enter => {
             if let Some(idx) = ui.jobs_panel_state.selected_index {
                 if idx < job_ids.len() {
@@ -266,5 +267,63 @@ impl JobStatus {
             JobStatus::Failed => "failed".to_string(),
             JobStatus::Cancelled => "cancelled".to_string(),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::ui::UiState;
+    use crossterm::event::KeyCode;
+
+    #[test]
+    fn test_jobs_panel_state_default() {
+        let state = JobsPanelState::default();
+        assert!(state.selected_index.is_none());
+        assert_eq!(state.scroll_offset, 0);
+        assert!(state.job_ids.is_empty());
+    }
+
+    #[test]
+    fn test_jobs_panel_state_with_values() {
+        let state = JobsPanelState {
+            selected_index: Some(5),
+            scroll_offset: 2,
+            job_ids: vec![1, 2, 3],
+        };
+        assert_eq!(state.selected_index, Some(5));
+        assert_eq!(state.scroll_offset, 2);
+        assert_eq!(state.job_ids.len(), 3);
+    }
+
+    #[test]
+    fn test_job_status_to_string() {
+        assert_eq!(JobStatus::Queued.to_string(), "queued");
+        assert_eq!(JobStatus::Running.to_string(), "running");
+        assert_eq!(JobStatus::Completed.to_string(), "completed");
+        assert_eq!(JobStatus::Failed.to_string(), "failed");
+        assert_eq!(JobStatus::Cancelled.to_string(), "cancelled");
+    }
+
+    #[test]
+    fn test_handle_jobs_key_escape_closes_sidebar() {
+        let mut ui = UiState::new(false);
+        ui.jobs_sidebar_open = true;
+        ui.focus = crate::models::FocusTarget::JobsSidebar;
+
+        handle_jobs_key(KeyCode::Esc, &mut ui);
+
+        assert!(!ui.jobs_sidebar_open);
+        assert_eq!(ui.focus, crate::models::FocusTarget::Main);
+    }
+
+    #[test]
+    fn test_handle_jobs_key_escape_does_nothing_when_closed() {
+        let mut ui = UiState::new(false);
+        ui.jobs_sidebar_open = false;
+
+        handle_jobs_key(KeyCode::Esc, &mut ui);
+
+        assert!(!ui.jobs_sidebar_open);
     }
 }

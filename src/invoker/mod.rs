@@ -305,7 +305,7 @@ impl JobManager {
         Ok(id)
     }
 
-    fn spawn_detached_with_sudo(
+    fn _spawn_detached_with_sudo(
         &self,
         job_id: u64,
         command: String,
@@ -932,26 +932,14 @@ pub struct StreamOutput {
     pub is_stderr: bool,
 }
 
-static STREAM_TX: std::sync::OnceLock<std::sync::mpsc::Sender<StreamOutput>> =
-    std::sync::OnceLock::new();
-static STREAM_RX: std::sync::OnceLock<
-    std::sync::Mutex<Option<std::sync::mpsc::Receiver<StreamOutput>>>,
-> = std::sync::OnceLock::new();
-
-pub fn get_stream_receiver() -> Option<std::sync::mpsc::Receiver<StreamOutput>> {
-    STREAM_RX.get().and_then(|rx| {
-        let mut guard = match rx.lock() {
-            Ok(g) => g,
-            Err(_) => return None,
-        };
-        guard.take()
-    })
-}
-
 pub fn stream_command(
     command: &str,
     working_dir: Option<&str>,
-) -> std::io::Result<(u32, thread::JoinHandle<()>)> {
+) -> std::io::Result<(
+    u32,
+    thread::JoinHandle<()>,
+    std::sync::mpsc::Receiver<StreamOutput>,
+)> {
     let shell = detect_shell_static();
 
     let mut cmd = Command::new(&shell);
@@ -975,8 +963,6 @@ pub fn stream_command(
 
     let (tx, rx) = std::sync::mpsc::channel::<StreamOutput>();
     let tx_for_stream = tx.clone();
-    let _ = STREAM_TX.set(tx);
-    let _ = STREAM_RX.set(std::sync::Mutex::new(Some(rx)));
 
     let handle = thread::spawn(move || {
         let mut reader_threads = vec![];
@@ -1019,7 +1005,7 @@ pub fn stream_command(
         });
     });
 
-    Ok((pid, handle))
+    Ok((pid, handle, rx))
 }
 
 #[cfg(unix)]
@@ -1033,10 +1019,11 @@ pub fn exec_simple(command: &str, working_dir: Option<&str>) -> ! {
     let work_dir = working_dir
         .filter(|d| !d.is_empty())
         .unwrap_or(home.as_str());
-    
+
     let _ = std::env::set_current_dir(work_dir);
 
-    exec::execvp(&shell, &["-c", command]);
+    // execvp only returns on error, and the error type is #[must_use]
+    let _error = exec::execvp(&shell, &["-c", command]);
     std::process::exit(1)
 }
 
@@ -1054,7 +1041,7 @@ pub fn exec_simple(command: &str, working_dir: Option<&str>) -> i32 {
     let work_dir = working_dir
         .filter(|d| !d.is_empty() && std::path::Path::new(d).exists())
         .unwrap_or(home.as_str());
-    
+
     cmd.current_dir(work_dir);
     cmd.env("HOME", home);
 
