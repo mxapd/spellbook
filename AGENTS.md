@@ -223,7 +223,7 @@ When testing v2:
 
 2. **Execution**
    - [x] Copy to clipboard (Enter)
-   - [ ] Simple mode (`s`) - TUI exits
+   - [x] Simple mode (`s`) - TUI exits
    - [ ] TUI mode (`Ctrl+r`) - output modal appears
    - [ ] Background mode (`Ctrl+b`) - job in sidebar
    - [ ] Confirmation dialog on `confirm = true` spells
