@@ -230,8 +230,10 @@ pub fn render_in_area(
             .style(Style::new().fg(ratatui::style::Color::Green).bg(theme.bg))
             .alignment(ratatui::layout::Alignment::Center)
     } else {
-        Paragraph::new("arrows/jk navigate  enter copy  s simple  Ctrl+r tui  Ctrl+b bg  h/esc back")
-            .style(Style::new().fg(theme.muted).bg(theme.bg))
+        Paragraph::new(
+            "arrows/jk navigate  enter copy  s simple  Ctrl+r tui  Ctrl+b bg  h/esc back",
+        )
+        .style(Style::new().fg(theme.muted).bg(theme.bg))
     };
     frame.render_widget(footer, chunks[2]);
 }

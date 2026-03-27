@@ -101,10 +101,11 @@ pub struct JobManager {
     registry: Arc<Mutex<JobRegistry>>,
     spool_dir: PathBuf,
     shell_path: String,
+    launch_dir: String,
 }
 
 impl JobManager {
-    pub fn new() -> Self {
+    pub fn new(launch_dir: String) -> Self {
         let spool_dir = dirs::home_dir()
             .unwrap_or_else(|| PathBuf::from("."))
             .join(SPELLBOOK_DIR);
@@ -120,6 +121,7 @@ impl JobManager {
             registry: Arc::new(Mutex::new(registry)),
             spool_dir,
             shell_path,
+            launch_dir,
         };
 
         manager.start_polling_thread();
@@ -393,11 +395,17 @@ impl JobManager {
         let spool_dir = self.spool_dir.clone();
         let shell_path = self.shell_path.clone();
         let registry = Arc::clone(&self.registry);
+        let launch_dir = self.launch_dir.clone();
 
-        let home = std::env::var("HOME").unwrap_or_else(|_| "/".to_string());
+        let default_dir = if std::path::Path::new(&launch_dir).exists() {
+            launch_dir.clone()
+        } else {
+            std::env::var("HOME").unwrap_or_else(|_| "/".to_string())
+        };
+
         let work_dir = working_dir
             .filter(|d| !d.is_empty() && std::path::Path::new(d).exists())
-            .unwrap_or_else(|| home.clone());
+            .unwrap_or(default_dir);
 
         thread::spawn(move || {
             let output_file = spool_dir.join(&format!("job_{:03}.out", job_id));
@@ -620,8 +628,14 @@ impl JobRegistry {
 
 static JOB_MANAGER: std::sync::OnceLock<JobManager> = std::sync::OnceLock::new();
 
+pub fn init_job_manager(launch_dir: String) -> &'static JobManager {
+    JOB_MANAGER.get_or_init(|| JobManager::new(launch_dir))
+}
+
 pub fn get_job_manager() -> &'static JobManager {
-    JOB_MANAGER.get_or_init(|| JobManager::new())
+    JOB_MANAGER
+        .get()
+        .expect("JobManager not initialized - call init_job_manager first")
 }
 
 pub fn start_spell(
@@ -935,6 +949,7 @@ pub struct StreamOutput {
 pub fn stream_command(
     command: &str,
     working_dir: Option<&str>,
+    launch_dir: &str,
 ) -> std::io::Result<(
     u32,
     thread::JoinHandle<()>,
@@ -948,11 +963,20 @@ pub fn stream_command(
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
 
-    if let Some(ref dir) = working_dir {
-        let dir = PathBuf::from(dir);
-        if dir.exists() && dir.is_dir() {
-            cmd.current_dir(dir);
-        }
+    let default_dir = if std::path::Path::new(launch_dir).exists() {
+        launch_dir.to_string()
+    } else {
+        std::env::var("HOME").unwrap_or_else(|_| "/".to_string())
+    };
+
+    let work_dir = working_dir
+        .filter(|d| !d.is_empty())
+        .map(|d| d.to_string())
+        .unwrap_or(default_dir);
+
+    let dir = PathBuf::from(work_dir);
+    if dir.exists() && dir.is_dir() {
+        cmd.current_dir(dir);
     }
 
     let mut child = cmd.spawn()?;
@@ -1009,41 +1033,63 @@ pub fn stream_command(
 }
 
 #[cfg(unix)]
-pub fn exec_simple(command: &str, working_dir: Option<&str>) -> ! {
+pub fn exec_simple(command: &str, working_dir: Option<&str>, launch_dir: &str) -> ! {
     use std::env;
+    use std::io::Write;
 
     let shell = env::var("SHELL").unwrap_or_else(|_| "/bin/sh".to_string());
-    let home = env::var("HOME").unwrap_or_else(|_| "/".to_string());
 
-    // Change to working directory or fallback to HOME
+    let default_dir = if std::path::Path::new(launch_dir).exists() {
+        launch_dir.to_string()
+    } else {
+        env::var("HOME").unwrap_or_else(|_| "/".to_string())
+    };
+
     let work_dir = working_dir
         .filter(|d| !d.is_empty())
-        .unwrap_or(home.as_str());
+        .map(|d| d.to_string())
+        .unwrap_or(default_dir);
 
     let _ = std::env::set_current_dir(work_dir);
 
+    let program = std::path::Path::new(&shell)
+        .file_name()
+        .and_then(|n| n.to_str())
+        .unwrap_or("sh");
+
+    // Leave alternate screen and reset SGR before exec
+    // \x1b[?1049l = Leave alternate screen
+    // \x1b[0m = Reset SGR (colors, bold, etc.)
+    let cleanup = "\x1b[?1049l\x1b[0m";
+    let _ = std::io::stdout().write_all(cleanup.as_bytes());
+    let _ = std::io::stdout().flush();
+
     // execvp only returns on error, and the error type is #[must_use]
-    let _error = exec::execvp(&shell, &["-c", command]);
+    let _error = exec::execvp(&shell, &[program, "-c", command]);
     std::process::exit(1)
 }
 
 #[cfg(not(unix))]
-pub fn exec_simple(command: &str, working_dir: Option<&str>) -> i32 {
+pub fn exec_simple(command: &str, working_dir: Option<&str>, launch_dir: &str) -> i32 {
     use std::env;
 
     let shell = env::var("SHELL").unwrap_or_else(|_| "sh".to_string());
-    let home = env::var("HOME").unwrap_or_else(|_| "/".to_string());
+
+    let default_dir = if std::path::Path::new(launch_dir).exists() {
+        launch_dir
+    } else {
+        env::var("HOME").unwrap_or_else(|_| "/").as_str()
+    };
 
     let mut cmd = Command::new(&shell);
     cmd.arg("-c").arg(command);
 
-    // Use working_dir if valid, otherwise fallback to HOME
     let work_dir = working_dir
         .filter(|d| !d.is_empty() && std::path::Path::new(d).exists())
-        .unwrap_or(home.as_str());
+        .unwrap_or(default_dir);
 
     cmd.current_dir(work_dir);
-    cmd.env("HOME", home);
+    cmd.env("HOME", env::var("HOME").unwrap_or_else(|_| "/".to_string()));
 
     match cmd.status() {
         Ok(status) => status.code().unwrap_or(0),

@@ -3,11 +3,11 @@
 //! This module handles key events when viewing spells inside a spellbook.
 
 use crate::archivist::Archivist;
+use crate::log_info;
 use crate::models::{RecentAction, Spell};
 use crate::state::State;
 use crate::ui::search_overlay::{get_spellbook_item, SpellbookItem};
 use crate::ui::{streaming_modal, Overlay, UiState};
-use crate::{log_info};
 use crossterm::event::{KeyCode, KeyModifiers};
 
 /// Handle key events in BrowseSpells mode (inside a spellbook)
@@ -65,7 +65,11 @@ pub fn handle_browse_spells(
             // Navigate down (arrow or vim j)
             KeyCode::Down | KeyCode::Char('j') => {
                 let current = ui.spell_list_state.selected().unwrap_or(0);
-                let next = if current >= spell_count - 1 { 0 } else { current + 1 };
+                let next = if current >= spell_count - 1 {
+                    0
+                } else {
+                    current + 1
+                };
                 ui.spell_list_state.select(Some(next));
                 return false;
             }
@@ -73,21 +77,12 @@ pub fn handle_browse_spells(
             // Navigate up (arrow or vim k)
             KeyCode::Up | KeyCode::Char('k') => {
                 let current = ui.spell_list_state.selected().unwrap_or(0);
-                let prev = if current == 0 { spell_count - 1 } else { current - 1 };
-                ui.spell_list_state.select(Some(prev));
-                return false;
-            }
-
-            // Page down (arrow or vim l)
-            KeyCode::Right | KeyCode::Char('l') => {
-                let page_size = 10;
-                let current = ui.spell_list_state.selected().unwrap_or(0);
-                let next = if current + page_size >= spell_count {
-                    0
+                let prev = if current == 0 {
+                    spell_count - 1
                 } else {
-                    current + page_size
+                    current - 1
                 };
-                ui.spell_list_state.select(Some(next));
+                ui.spell_list_state.select(Some(prev));
                 return false;
             }
 
@@ -128,10 +123,9 @@ pub fn handle_browse_spells(
                     get_spell_at_index(state, spellbook_index, spell_idx)
                 {
                     if let Some(spell) = state.get_spell(&spell_id) {
-                        ui.confirm_dialog =
-                            Some(crate::ui::confirm::ConfirmDialogState::delete_spell(
-                                spell.clone(),
-                            ));
+                        ui.confirm_dialog = Some(
+                            crate::ui::confirm::ConfirmDialogState::delete_spell(spell.clone()),
+                        );
                         ui.push_overlay(Overlay::ConfirmDialog);
                         log_info!("Delete confirmation requested for: {}", spell_id);
                         return false;
@@ -146,7 +140,11 @@ pub fn handle_browse_spells(
                 {
                     if let Some(spell) = state.codex.spells.iter_mut().find(|s| s.id == *spell_id) {
                         spell.favorite = !spell.favorite;
-                        let status = if spell.favorite { "added to" } else { "removed from" };
+                        let status = if spell.favorite {
+                            "added to"
+                        } else {
+                            "removed from"
+                        };
                         ui.copy_feedback = Some(format!("Spell {} favorites", status));
                     }
                 }
@@ -180,13 +178,13 @@ pub fn handle_browse_spells(
                         "Ctrl+r: Executing spell '{}' in TUI mode with streaming",
                         spell.name
                     );
-                    state.add_recent(
-                        spell.id.clone(),
-                        spell.name.clone(),
-                        RecentAction::Run,
-                    );
+                    state.add_recent(spell.id.clone(), spell.name.clone(), RecentAction::Run);
                     let working_dir = if spell.working_dir.is_empty() {
-                        None
+                        if state.launch_dir.is_empty() {
+                            None
+                        } else {
+                            Some(state.launch_dir.clone())
+                        }
                     } else {
                         Some(spell.working_dir.clone())
                     };
@@ -195,6 +193,7 @@ pub fn handle_browse_spells(
                         spell.incantation.clone(),
                         Some(spell.name.clone()),
                         working_dir,
+                        state.launch_dir.clone(),
                     ) {
                         ui.copy_feedback = Some(format!("Failed to start TUI mode: {}", e));
                     }
@@ -211,7 +210,11 @@ pub fn handle_browse_spells(
                         spell.name.clone(),
                         spell.incantation.clone(),
                         if spell.working_dir.is_empty() {
-                            None
+                            if state.launch_dir.is_empty() {
+                                None
+                            } else {
+                                Some(state.launch_dir.clone())
+                            }
                         } else {
                             Some(spell.working_dir.clone())
                         },
@@ -275,8 +278,6 @@ pub fn handle_browse_spells(
 
 /// Get the count of spells in a spellbook
 fn get_spell_count_for_spellbook(state: &State, spellbook_index: usize) -> usize {
-
-
     if let Some(item) = get_spellbook_item(state, spellbook_index) {
         match item {
             SpellbookItem::VirtualFavorite { .. } => {
@@ -291,36 +292,26 @@ fn get_spell_count_for_spellbook(state: &State, spellbook_index: usize) -> usize
 }
 
 /// Get a spell by index from a spellbook
-fn get_spell_by_index(
-    state: &State,
-    spellbook_index: usize,
-    spell_index: usize,
-) -> Option<Spell> {
-
-
+fn get_spell_by_index(state: &State, spellbook_index: usize, spell_index: usize) -> Option<Spell> {
     let item = get_spellbook_item(state, spellbook_index)?;
 
     match item {
         SpellbookItem::VirtualFavorite { .. } => {
-            let favorites: Vec<_> = state
+            let favorites: Vec<_> = state.codex.spells.iter().filter(|s| s.favorite).collect();
+            favorites.get(spell_index).map(|s| (*s).clone())
+        }
+        SpellbookItem::VirtualRecent { .. } => state.recents.get(spell_index).and_then(|recent| {
+            state
                 .codex
                 .spells
                 .iter()
-                .filter(|s| s.favorite)
-                .collect();
-            favorites.get(spell_index).map(|s| (*s).clone())
-        }
-        SpellbookItem::VirtualRecent { .. } => {
-            state.recents.get(spell_index).and_then(|recent| {
-                state.codex.spells.iter().find(|s| s.id == recent.spell_id).cloned()
-            })
-        }
-        SpellbookItem::Real { spellbook } => {
-            spellbook
-                .spell_ids
-                .get(spell_index)
-                .and_then(|id| state.codex.spells.iter().find(|s| &s.id == id).cloned())
-        }
+                .find(|s| s.id == recent.spell_id)
+                .cloned()
+        }),
+        SpellbookItem::Real { spellbook } => spellbook
+            .spell_ids
+            .get(spell_index)
+            .and_then(|id| state.codex.spells.iter().find(|s| &s.id == id).cloned()),
     }
 }
 
@@ -330,8 +321,7 @@ fn get_spell_at_index(
     spellbook_index: usize,
     spell_index: usize,
 ) -> Option<(String, String)> {
-    get_spell_by_index(state, spellbook_index, spell_index)
-        .map(|spell| (spell.id, spell.name))
+    get_spell_by_index(state, spellbook_index, spell_index).map(|spell| (spell.id, spell.name))
 }
 
 /// Copy spell at index to clipboard
@@ -366,9 +356,7 @@ fn execute_spell_at_index(
         );
 
         if spell.confirm {
-            ui.confirm_dialog = Some(
-                crate::ui::confirm::ConfirmDialogState::execute_spell(spell),
-            );
+            ui.confirm_dialog = Some(crate::ui::confirm::ConfirmDialogState::execute_spell(spell));
             ui.push_overlay(Overlay::ConfirmDialog);
         } else {
             start_spell_execution(state, ui, &spell);
@@ -391,7 +379,11 @@ fn start_spell_execution(state: &mut State, ui: &mut UiState, spell: &Spell) {
         crate::models::RunMode::Tui => {
             log_info!("Using TUI execution mode with streaming");
             let working_dir = if spell.working_dir.is_empty() {
-                None
+                if state.launch_dir.is_empty() {
+                    None
+                } else {
+                    Some(state.launch_dir.clone())
+                }
             } else {
                 Some(spell.working_dir.clone())
             };
@@ -400,6 +392,7 @@ fn start_spell_execution(state: &mut State, ui: &mut UiState, spell: &Spell) {
                 spell.incantation.clone(),
                 Some(spell.name.clone()),
                 working_dir,
+                state.launch_dir.clone(),
             ) {
                 Ok(_) => Ok(crate::clipboard::ExecutionResult {
                     command: spell.incantation.clone(),
@@ -435,7 +428,10 @@ fn start_spell_execution(state: &mut State, ui: &mut UiState, spell: &Spell) {
                     pid: Some(job_id as u32),
                     spell_name: Some(spell.name.clone()),
                 }),
-                Err(e) => Err(std::io::Error::new(std::io::ErrorKind::Other, e.to_string())),
+                Err(e) => Err(std::io::Error::new(
+                    std::io::ErrorKind::Other,
+                    e.to_string(),
+                )),
             }
         }
     };
@@ -444,7 +440,8 @@ fn start_spell_execution(state: &mut State, ui: &mut UiState, spell: &Spell) {
         Ok(exec_result) => {
             log_info!("Spell '{}' executed successfully", spell.name);
             if !exec_result.stdout.is_empty() {
-                ui.copy_feedback = Some(exec_result.stdout.lines().next().unwrap_or("").to_string());
+                ui.copy_feedback =
+                    Some(exec_result.stdout.lines().next().unwrap_or("").to_string());
             } else {
                 ui.copy_feedback = Some(format!("Executed: {}", spell.name));
             }
@@ -456,8 +453,6 @@ fn start_spell_execution(state: &mut State, ui: &mut UiState, spell: &Spell) {
         }
     }
 }
-
-
 
 /// Filters all spells by the current search query.
 pub fn update_search_filter(state: &State, ui: &mut UiState) {
@@ -479,7 +474,10 @@ pub fn update_search_filter(state: &State, ui: &mut UiState) {
             spell.name.to_lowercase().contains(&query)
                 || spell.lore.to_lowercase().contains(&query)
                 || spell.school.to_lowercase().contains(&query)
-                || spell.glyphs.iter().any(|g| g.to_lowercase().contains(&query))
+                || spell
+                    .glyphs
+                    .iter()
+                    .any(|g| g.to_lowercase().contains(&query))
         })
         .map(|(idx, _)| idx)
         .collect();

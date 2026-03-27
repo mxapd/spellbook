@@ -253,7 +253,11 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
     };
 
     // Gray border when inactive, accent (yellow/orange) when active
-    let border_color = if is_searching { theme.accent } else { theme.border };
+    let border_color = if is_searching {
+        theme.accent
+    } else {
+        theme.border
+    };
 
     let input_block = Paragraph::new(input_text)
         .block(
@@ -338,7 +342,8 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
                 "arrows/hjkl navigate  enter open  / search  : cmd".to_string()
             }
             Mode::BrowseSpells(_) => {
-                "arrows/hjkl navigate  enter copy  s simple  Ctrl+r tui  Ctrl+b bg  h back".to_string()
+                "arrows/hjkl navigate  enter copy  s simple  Ctrl+r tui  Ctrl+b bg  h back"
+                    .to_string()
             }
             _ => {
                 if ui.search_query().starts_with(':') {
@@ -399,7 +404,11 @@ pub fn render_in_area(
     };
 
     // Gray border when inactive, accent (yellow/orange) when active
-    let border_color = if is_searching { theme.accent } else { theme.border };
+    let border_color = if is_searching {
+        theme.accent
+    } else {
+        theme.border
+    };
 
     let input_block = Paragraph::new(input_text)
         .block(
@@ -453,7 +462,10 @@ pub fn render_in_area(
             {
                 "arrows/hjkl navigate  enter open  / search  : cmd".to_string()
             }
-            Mode::BrowseSpells(_) => "arrows/hjkl navigate  enter copy  h back".to_string(),
+            Mode::BrowseSpells(_) => {
+                "arrows/hjkl navigate  enter copy  s simple  Ctrl+r tui  Ctrl+b bg  h back"
+                    .to_string()
+            }
             _ => {
                 if ui.search_query().starts_with(':') {
                     "arrows/jk navigate  enter run  esc cancel".to_string()
@@ -631,7 +643,24 @@ pub fn find_nearest_card(
     }
 
     if best_index == current {
-        current
+        let total_rows = (spellbook_count + cards_per_row - 1) / cards_per_row;
+
+        match direction {
+            CardDirection::Right => current_row * cards_per_row,
+            CardDirection::Left => {
+                let row_end = ((current_row + 1) * cards_per_row).min(spellbook_count) - 1;
+                row_end
+            }
+            CardDirection::Down => current_col
+                .min(cards_per_row - 1)
+                .min(spellbook_count.saturating_sub(1)),
+            CardDirection::Up => {
+                let last_row = total_rows.saturating_sub(1);
+                let last_row_start = last_row * cards_per_row;
+                let col = current_col.min(cards_per_row - 1);
+                last_row_start + col
+            }
+        }
     } else {
         best_index
     }
@@ -715,18 +744,18 @@ fn render_spellbook_cards(
                 Line::from(""),
                 Line::from(vec![Span::styled(cover, Style::new().fg(theme.muted))]),
             ];
-            
+
             // Real spellbooks get extra spacing before count
             if !is_virtual {
                 card_lines.push(Line::from(""));
             }
-            
+
             card_lines.push(Line::from(""));
             card_lines.push(Line::from(vec![Span::styled(
                 &spell_count_str,
                 Style::new().fg(theme.muted),
             )]));
-            
+
             let card_text = Text::from(card_lines);
 
             let card_block = if is_selected && !ui.is_searching() {
@@ -1267,10 +1296,10 @@ fn render_spellbook_spells(
         let real_idx = spellbook_index.saturating_sub(if has_favorites { 2 } else { 1 });
         if let Some(spellbook) = state.codex.spellbooks.get(real_idx) {
             let spells: Vec<&crate::models::Spell> = spellbook
-                    .spell_ids
-                    .iter()
-                    .filter_map(|spell_id| state.codex.spells.iter().find(|s| s.id == *spell_id))
-                    .collect();
+                .spell_ids
+                .iter()
+                .filter_map(|spell_id| state.codex.spells.iter().find(|s| s.id == *spell_id))
+                .collect();
             (spells, spellbook.name.clone(), false)
         } else {
             return;

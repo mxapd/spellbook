@@ -296,7 +296,7 @@ fn save_spell(state: &mut State, ui: &mut UiState) {
     // Check for duplicate names (unless editing)
     let is_editing = ui.add_spell.editing_spell_id.is_some();
     let name_lower = ui.add_spell.name.to_lowercase();
-    
+
     if !is_editing {
         let exists = state
             .codex
@@ -304,7 +304,8 @@ fn save_spell(state: &mut State, ui: &mut UiState) {
             .iter()
             .any(|s| s.name.to_lowercase() == name_lower);
         if exists {
-            ui.add_spell.message = Some(("A spell with this name already exists".to_string(), true));
+            ui.add_spell.message =
+                Some(("A spell with this name already exists".to_string(), true));
             return;
         }
     }

@@ -256,9 +256,7 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
     }
 
     let footer_text = if ui.is_typing() {
-        format!(
-            "tab/arrows navigate  Enter next  Ctrl+S save  Esc cancel",
-        )
+        format!("tab/arrows navigate  Enter next  Ctrl+S save  Esc cancel",)
     } else {
         format!(
             "tab/arrows/jk navigate  Enter next  Ctrl+S save  Esc cancel  t {}",

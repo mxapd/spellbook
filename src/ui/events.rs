@@ -507,11 +507,7 @@ pub fn execute_simple_mode(spell: &crate::models::Spell, state: &mut State, _ui:
     use crate::models::RecentAction;
 
     // Step 1: Add to recents (in memory)
-    state.add_recent(
-        spell.id.clone(),
-        spell.name.clone(),
-        RecentAction::Run,
-    );
+    state.add_recent(spell.id.clone(), spell.name.clone(), RecentAction::Run);
 
     // Step 2: CRITICAL - Persist recents to disk BEFORE exec()
     if let Err(e) = Archivist::save_recents(&state.recents) {
@@ -522,7 +518,11 @@ pub fn execute_simple_mode(spell: &crate::models::Spell, state: &mut State, _ui:
 
     // Step 3: Determine working directory
     let working_dir = if spell.working_dir.is_empty() {
-        None
+        if state.launch_dir.is_empty() {
+            None
+        } else {
+            Some(state.launch_dir.clone())
+        }
     } else {
         Some(spell.working_dir.clone())
     };
@@ -536,7 +536,11 @@ pub fn execute_simple_mode(spell: &crate::models::Spell, state: &mut State, _ui:
         spell.name,
         spell.incantation
     );
-    crate::invoker::exec_simple(&spell.incantation, working_dir.as_deref());
+    crate::invoker::exec_simple(
+        &spell.incantation,
+        working_dir.as_deref(),
+        &state.launch_dir,
+    );
 }
 
 /// Update filtered commands based on current query after ":"

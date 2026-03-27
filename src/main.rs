@@ -12,6 +12,7 @@ use crate::cli::{AppMode, CliArgs};
 use crossterm::{
     event::{self, Event, KeyEventKind, KeyboardEnhancementFlags, PushKeyboardEnhancementFlags},
     execute,
+    terminal::{EnterAlternateScreen, LeaveAlternateScreen},
 };
 use ratatui::DefaultTerminal;
 use std::io;
@@ -75,8 +76,11 @@ fn run(terminal: &mut DefaultTerminal) -> io::Result<()> {
     logging::init_logging();
     log_info!("Spellbook started (mode: {:?})", mode);
 
+    // Enable alternate screen for TUI
+    let _ = execute!(io::stdout(), EnterAlternateScreen);
+
     // Initialize job manager (starts background polling thread)
-    let _ = invoker::get_job_manager();
+    let _ = invoker::init_job_manager(state.launch_dir.clone());
     log_info!("Job manager initialized");
 
     let _ = execute!(
@@ -108,6 +112,7 @@ fn run(terminal: &mut DefaultTerminal) -> io::Result<()> {
                         ui::handle_event(key.code, &mut state, &mut ui_state, key.modifiers);
                     if should_quit {
                         log_info!("Spellbook exiting");
+                        let _ = execute!(io::stdout(), LeaveAlternateScreen);
                         return Ok(());
                     }
 

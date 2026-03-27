@@ -216,13 +216,13 @@ pub enum VirtualKind {
 When testing v2:
 
 1. **Navigation**
-   - [ ] Browse spellbooks with arrows
-   - [ ] Enter to open spellbook
-   - [ ] Navigate spells with Up/Down
-   - [ ] Back with Esc or ←
+   - [x] Browse spellbooks with arrows
+   - [x] Enter to open spellbook
+   - [x] Navigate spells with Up/Down
+   - [x] Back with Esc or ←
 
 2. **Execution**
-   - [ ] Copy to clipboard (Enter)
+   - [x] Copy to clipboard (Enter)
    - [ ] Simple mode (`s`) - TUI exits
    - [ ] TUI mode (`Ctrl+r`) - output modal appears
    - [ ] Background mode (`Ctrl+b`) - job in sidebar

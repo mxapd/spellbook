@@ -55,16 +55,23 @@ pub struct StreamingState {
     pub command: String,
     pub spell_name: Option<String>,
     pub working_dir: Option<String>,
+    pub launch_dir: Option<String>,
 }
 
 impl StreamingState {
-    pub fn new(command: String, spell_name: Option<String>, working_dir: Option<String>) -> Self {
+    pub fn new(
+        command: String,
+        spell_name: Option<String>,
+        working_dir: Option<String>,
+        launch_dir: Option<String>,
+    ) -> Self {
         Self {
             pid: None,
             is_running: true,
             command,
             spell_name,
             working_dir,
+            launch_dir,
         }
     }
 }
@@ -94,6 +101,7 @@ impl StreamingModalState {
         command: String,
         spell_name: Option<String>,
         working_dir: Option<String>,
+        launch_dir: String,
     ) -> std::io::Result<u32> {
         use crate::invoker::{stream_command, StreamOutput};
 
@@ -101,10 +109,16 @@ impl StreamingModalState {
         self.output.exit_code = None;
         self.auto_scroll = true;
 
-        let (pid, _handle, receiver) = stream_command(&command, working_dir.as_deref())?;
+        let (pid, _handle, receiver) =
+            stream_command(&command, working_dir.as_deref(), &launch_dir)?;
         self.receiver = Some(receiver);
 
-        self.streaming = Some(StreamingState::new(command, spell_name, working_dir));
+        self.streaming = Some(StreamingState::new(
+            command,
+            spell_name,
+            working_dir,
+            Some(launch_dir),
+        ));
         self.streaming.as_mut().unwrap().pid = Some(pid);
 
         Ok(pid)
@@ -135,6 +149,18 @@ impl StreamingModalState {
                     let _ = crate::invoker::kill_process(pid);
                 }
 
+                // Determine working directory
+                let working_dir = if stream
+                    .working_dir
+                    .as_ref()
+                    .map(|d| !d.is_empty())
+                    .unwrap_or(false)
+                {
+                    stream.working_dir.clone()
+                } else {
+                    stream.launch_dir.clone()
+                };
+
                 // Start as background job
                 let job_id = crate::invoker::start_spell(
                     stream
@@ -142,7 +168,7 @@ impl StreamingModalState {
                         .clone()
                         .unwrap_or_else(|| "Command".to_string()),
                     stream.command.clone(),
-                    stream.working_dir.clone(),
+                    working_dir,
                 )?;
 
                 self.stop_streaming(None);
@@ -173,6 +199,7 @@ pub fn start_tui_execution(
     command: String,
     spell_name: Option<String>,
     working_dir: Option<String>,
+    launch_dir: String,
 ) -> Result<u32, std::io::Error> {
     use crate::ui::Overlay;
 
@@ -182,7 +209,7 @@ pub fn start_tui_execution(
     // Start streaming
     let pid = ui
         .streaming_modal
-        .start_streaming(command, spell_name, working_dir)?;
+        .start_streaming(command, spell_name, working_dir, launch_dir)?;
 
     // Push the output modal overlay
     ui.push_overlay(Overlay::OutputModal);
@@ -530,7 +557,12 @@ mod tests {
         assert!(!state.is_running());
 
         // Running when streaming is active
-        state.streaming = Some(StreamingState::new("sleep 10".to_string(), None, None));
+        state.streaming = Some(StreamingState::new(
+            "sleep 10".to_string(),
+            None,
+            None,
+            None,
+        ));
         assert!(state.is_running());
 
         // Not running after stopped
@@ -546,7 +578,7 @@ mod tests {
         assert!(state.get_pid().is_none());
 
         // Has PID when streaming with PID set
-        let mut streaming = StreamingState::new("echo test".to_string(), None, None);
+        let mut streaming = StreamingState::new("echo test".to_string(), None, None, None);
         streaming.pid = Some(12345);
         state.streaming = Some(streaming);
 
@@ -616,6 +648,7 @@ mod tests {
             command: "ls -la".to_string(),
             spell_name: Some("List Files".to_string()),
             working_dir: Some("/home".to_string()),
+            launch_dir: Some("/home/user".to_string()),
         };
 
         assert_eq!(state.pid, Some(42));
@@ -623,6 +656,7 @@ mod tests {
         assert_eq!(state.command, "ls -la");
         assert_eq!(state.spell_name, Some("List Files".to_string()));
         assert_eq!(state.working_dir, Some("/home".to_string()));
+        assert_eq!(state.launch_dir, Some("/home/user".to_string()));
     }
 
     #[test]
@@ -638,10 +672,21 @@ mod tests {
     }
 
     #[test]
-    fn test_streaming_with_none_spell_name() {
-        let state = StreamingState::new("echo anonymous".to_string(), None, None);
+    fn test_streaming_state_new() {
+        let state = StreamingState::new("echo test".to_string(), None, None, None);
 
-        assert!(state.spell_name.is_none());
-        assert_eq!(state.command, "echo anonymous");
+        assert_eq!(state.command, "echo test");
+        assert!(state.pid.is_none());
+        assert!(state.is_running);
+    }
+
+    #[test]
+    fn test_streaming_state_running() {
+        let mut state = StreamingState::new("sleep 10".to_string(), None, None, None);
+
+        state.pid = Some(1234);
+        assert!(state.is_running());
+        state.stop_streaming(Some(0));
+        assert!(!state.is_running());
     }
 }

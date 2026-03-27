@@ -2,11 +2,11 @@
 //!
 //! This module handles key events when browsing the list of spellbooks.
 
+use crate::log_info;
 use crate::state::State;
 use crate::ui::browse_spells::update_search_filter;
 use crate::ui::search_overlay::{find_nearest_card, total_spellbook_count, CardDirection};
 use crate::ui::{Mode, Overlay, UiState};
-use crate::log_info;
 use crossterm::event::{KeyCode, KeyModifiers};
 
 /// Handle key events in BrowseSpellbooks mode
@@ -124,8 +124,8 @@ pub fn handle_browse_spellbooks(
                     );
                     ui.set_search_spellbook_index(Some(next));
 
-                    let visible_rows =
-                        (spellbook_count.saturating_sub(scroll) + cards_per_row - 1) / cards_per_row;
+                    let visible_rows = (spellbook_count.saturating_sub(scroll) + cards_per_row - 1)
+                        / cards_per_row;
                     if next >= scroll + visible_rows * cards_per_row {
                         ui.set_search_spellbook_scroll(scroll + cards_per_row);
                     }
@@ -218,11 +218,7 @@ pub fn handle_browse_spellbooks(
 }
 
 /// Handle navigation when in search mode
-fn handle_search_navigation(
-    key: KeyCode,
-    state: &mut State,
-    ui: &mut UiState,
-) -> bool {
+fn handle_search_navigation(key: KeyCode, state: &mut State, ui: &mut UiState) -> bool {
     let is_command_mode = ui.search_query().starts_with(':');
 
     // Enter - execute command if in command mode, otherwise copy selected spell
@@ -233,13 +229,17 @@ fn handle_search_navigation(
             // Copy selected spell to clipboard
             let selected = ui.search_results_state().selected().unwrap_or(0);
             let indices = ui.filtered_indices();
-            
+
             if selected < indices.len() {
                 let spell_idx = indices[selected];
                 if let Some(spell) = state.codex.spells.get(spell_idx) {
                     if crate::clipboard::copy_to_clipboard(&spell.incantation) {
                         ui.copy_feedback = Some(format!("Copied: {}", spell.name));
-                        state.add_recent(spell.id.clone(), spell.name.clone(), crate::models::RecentAction::Copy);
+                        state.add_recent(
+                            spell.id.clone(),
+                            spell.name.clone(),
+                            crate::models::RecentAction::Copy,
+                        );
                     } else {
                         ui.copy_feedback = Some("Failed to copy to clipboard".to_string());
                     }
@@ -277,7 +277,7 @@ fn handle_search_navigation(
         if let Some(query) = ui.search_query_mut() {
             query.push(c);
         }
-        
+
         if ui.search_in_command_mode() {
             crate::ui::events::update_command_filter(ui);
         } else {
@@ -291,7 +291,7 @@ fn handle_search_navigation(
         if let Some(query) = ui.search_query_mut() {
             query.pop();
         }
-        
+
         if ui.search_query().is_empty() {
             ui.exit_typing_mode();
             ui.set_showing_spellbooks(true);
@@ -315,7 +315,7 @@ fn execute_command(state: &mut State, ui: &mut UiState) {
     let query_after_colon = query.strip_prefix(':').unwrap_or("");
     let filtered = filter_commands(query_after_colon);
     let selected = ui.search_results_state().selected().unwrap_or(0);
-    
+
     if let Some((cmd_idx, _, _)) = filtered.get(selected) {
         execute_command_by_index(*cmd_idx, state, ui);
     } else {
@@ -335,13 +335,21 @@ fn navigate_command_results(ui: &mut UiState, direction: i32) {
     let query_after_colon = query.strip_prefix(':').unwrap_or("");
     let filtered = filter_commands(query_after_colon);
     let count = filtered.len();
-    
+
     if count > 0 {
         let current = ui.search_results_state().selected().unwrap_or(0);
         let next = if direction > 0 {
-            if current >= count - 1 { 0 } else { current + 1 }
+            if current >= count - 1 {
+                0
+            } else {
+                current + 1
+            }
         } else {
-            if current == 0 { count - 1 } else { current - 1 }
+            if current == 0 {
+                count - 1
+            } else {
+                current - 1
+            }
         };
         ui.search_results_state().select(Some(next));
     }
@@ -350,13 +358,21 @@ fn navigate_command_results(ui: &mut UiState, direction: i32) {
 /// Navigate search results
 fn navigate_search_results(ui: &mut UiState, direction: i32) {
     let count = ui.filtered_indices().len();
-    
+
     if count > 0 {
         let current = ui.search_results_state().selected().unwrap_or(0);
         let next = if direction > 0 {
-            if current >= count - 1 { 0 } else { current + 1 }
+            if current >= count - 1 {
+                0
+            } else {
+                current + 1
+            }
         } else {
-            if current == 0 { count - 1 } else { current - 1 }
+            if current == 0 {
+                count - 1
+            } else {
+                current - 1
+            }
         };
         ui.search_results_state().select(Some(next));
     }

@@ -1,46 +1,41 @@
-use arboard::Clipboard;
 use std::process::Command;
-use std::sync::{LazyLock, Mutex};
 
 const MAX_DISPLAY_LINES: usize = 500;
 
-static CLIPBOARD: LazyLock<Mutex<Option<Clipboard>>> =
-    LazyLock::new(|| Mutex::new(Clipboard::new().ok()));
-
-static CLIPBOARD_AVAILABLE: LazyLock<bool> = LazyLock::new(|| Clipboard::new().is_ok());
-
 pub fn is_clipboard_available() -> bool {
-    *CLIPBOARD_AVAILABLE
+    true
 }
 
 pub fn copy_to_clipboard(text: &str) -> bool {
-    let mut guard = match CLIPBOARD.lock() {
-        Ok(g) => g,
-        Err(_) => {
-            eprintln!("Failed to acquire clipboard lock");
-            return false;
-        }
-    };
+    // Escape single quotes for shell
+    let escaped = text.replace("'", "'\\''");
 
-    match guard.as_mut() {
-        Some(cb) => {
-            match cb.set_text(text) {
-                Ok(_) => {
-                    // Try to send notification, but don't fail if it's not available
-                    let _ = Command::new("notify-send").args(["Copied!", text]).spawn();
-                    true
-                }
-                Err(e) => {
-                    eprintln!("Failed to copy to clipboard: {}", e);
-                    false
-                }
-            }
-        }
-        None => {
-            eprintln!("Clipboard not available - text not copied");
-            false
-        }
+    // Try wl-copy first (Wayland native) - non-blocking
+    if Command::new("sh")
+        .args(["-c", &format!("printf '%s' '{}' | wl-copy", escaped)])
+        .spawn()
+        .is_ok()
+    {
+        // Spawn notification, don't wait
+        let _ = Command::new("notify-send").args(["Copied!", text]).spawn();
+        return true;
     }
+
+    // Fallback to xclip (X11) - non-blocking
+    if Command::new("sh")
+        .args([
+            "-c",
+            &format!("printf '%s' '{}' | xclip -selection clipboard", escaped),
+        ])
+        .spawn()
+        .is_ok()
+    {
+        // Spawn notification, don't wait
+        let _ = Command::new("notify-send").args(["Copied!", text]).spawn();
+        return true;
+    }
+
+    false
 }
 
 #[derive(Debug, Clone)]
