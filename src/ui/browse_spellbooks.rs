@@ -6,7 +6,7 @@ use crate::log_info;
 use crate::state::State;
 use crate::ui::browse_spells::update_search_filter;
 use crate::ui::search_overlay::{find_nearest_card, total_spellbook_count, CardDirection};
-use crate::ui::{Mode, Overlay, UiState};
+use crate::ui::{Overlay, UiState};
 use crossterm::event::{KeyCode, KeyModifiers};
 
 /// Handle key events in BrowseSpellbooks mode

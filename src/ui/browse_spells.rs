@@ -2,7 +2,6 @@
 //!
 //! This module handles key events when viewing spells inside a spellbook.
 
-use crate::archivist::Archivist;
 use crate::log_info;
 use crate::models::{RecentAction, Spell};
 use crate::state::State;

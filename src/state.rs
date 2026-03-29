@@ -1,7 +1,7 @@
 use crate::archivist::Archivist;
 use crate::log_info;
 use crate::models::{
-    Codex, RatatuiColors, RecentAction, RecentEntry, RunMode, Spell, Theme, UserSettings,
+    Codex, RatatuiColors, RecentAction, RecentEntry, Theme, UserSettings,
 };
 
 const THEME_CONFIG_PATH: &str = "theme.toml";

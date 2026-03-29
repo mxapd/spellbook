@@ -816,7 +816,7 @@ pub fn execute_sync(command: &str) -> SyncExecutionResult {
 pub fn execute_sync_spawn(command: &str) -> std::io::Result<(SyncExecutionResult, u32)> {
     use std::process::{Command, Stdio};
 
-    let mut child = Command::new("bash")
+    let child = Command::new("bash")
         .arg("-c")
         .arg(command)
         .stdout(Stdio::piped())

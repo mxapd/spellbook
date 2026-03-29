@@ -8,7 +8,7 @@ use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout},
     style::{Modifier, Style},
     text::{Line, Span, Text},
-    widgets::{Block, Borders, Paragraph, Wrap},
+    widgets::{Block, Borders, Clear, Paragraph, Wrap},
     Frame,
 };
 
@@ -197,11 +197,6 @@ fn render_with_sidebar(frame: &mut Frame, state: &State, ui: &mut UiState, overl
     // Render the current mode in the main area
     render_mode(ui.mode.clone(), frame, state, ui, chunks[0]);
 
-    // Render overlays on top
-    for overlay in overlays {
-        render_overlay(*overlay, frame, state, ui);
-    }
-
     let border_style = if ui.focus == crate::models::FocusTarget::JobsSidebar {
         Style::new().fg(theme.accent).add_modifier(Modifier::BOLD)
     } else {
@@ -237,6 +232,11 @@ fn render_with_sidebar(frame: &mut Frame, state: &State, ui: &mut UiState, overl
         height: 1,
     };
     frame.render_widget(focus_para, focus_area);
+
+    // Render overlays on top of everything (including sidebar)
+    for overlay in overlays {
+        render_overlay(*overlay, frame, state, ui);
+    }
 }
 
 fn render_output_popup(frame: &mut Frame, state: &State, ui: &UiState) {
@@ -538,6 +538,9 @@ fn render_help_overlay(frame: &mut Frame, state: &State) {
         width: popup_width,
         height: popup_height,
     };
+
+    // Clear popup area so it appears over background
+    frame.render_widget(Clear, popup_area);
 
     help::render_help(frame, popup_area, theme);
 }

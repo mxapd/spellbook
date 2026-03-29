@@ -129,7 +129,7 @@ pub fn handle_add_spell(
             false
         }
 
-        KeyCode::Char(c) => {
+        KeyCode::Char(_c) => {
             // In navigation mode, type to filter (optional) or ignore
             false
         }

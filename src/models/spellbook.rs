@@ -161,6 +161,7 @@ mod tests {
         assert!(sb.sigil.is_empty());
         assert!(sb.spell_ids.is_empty());
         assert!(sb.style.is_none());
+        assert!(sb.color.is_none());
     }
 }
 
@@ -177,6 +178,8 @@ pub struct Spellbook {
     pub spells: Vec<String>,
     #[serde(default)]
     pub style: Option<SpineStyle>,
+    #[serde(default)]
+    pub color: Option<(u8, u8, u8)>, // RGB color for spellbook accent
 }
 
 impl Default for Spellbook {
@@ -188,6 +191,7 @@ impl Default for Spellbook {
             spell_ids: Vec::new(),
             spells: Vec::new(),
             style: None,
+            color: None,
         }
     }
 }

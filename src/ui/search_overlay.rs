@@ -65,6 +65,14 @@ impl SpellbookItem<'_> {
             SpellbookItem::Real { spellbook } => spellbook.cover.clone(),
         }
     }
+
+    fn color(&self) -> Option<(u8, u8, u8)> {
+        match self {
+            SpellbookItem::VirtualFavorite { .. } => None,
+            SpellbookItem::VirtualRecent { .. } => None,
+            SpellbookItem::Real { spellbook } => spellbook.color,
+        }
+    }
 }
 
 pub fn get_spellbook_item<'a>(state: &'a State, index: usize) -> Option<SpellbookItem<'a>> {
@@ -215,11 +223,6 @@ fn build_spine_decorations(
 
 pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
     let area = frame.area();
-
-    if ui.output_popup.is_some() {
-        render_output_mode(frame, state, ui, area);
-        return;
-    }
 
     let theme = &state.theme;
 
@@ -435,11 +438,6 @@ pub fn render_in_area(
     ui: &mut UiState,
     area: ratatui::layout::Rect,
 ) {
-    if ui.output_popup.is_some() {
-        render_output_mode(frame, state, ui, area);
-        return;
-    }
-
     let theme = &state.theme;
 
     let chunks = Layout::default()
@@ -673,15 +671,7 @@ fn render_spellbook_browser(
         theme.border
     };
 
-    let block = Block::default()
-        .borders(Borders::ALL)
-        .border_style(Style::new().fg(border_color))
-        .title(" Spellbooks ")
-        .title_style(Style::new().fg(theme.accent));
-
-    let inner = block.inner(area);
-
-    frame.render_widget(block, area);
+    let inner = area;
 
     let view_mode = state.user_settings.view_mode;
     let show_as = match view_mode {
@@ -874,12 +864,17 @@ fn render_spellbook_cards(
             let icon = item.icon();
             let name = item.name();
             let cover = item.cover();
+            
+            // Get custom color or use theme default
+            let accent_color = item.color()
+                .map(|(r, g, b)| ratatui::style::Color::Rgb(r, g, b))
+                .unwrap_or(theme.accent);
 
             // Build card lines with different spacing for virtual vs real spellbooks
             let mut card_lines = vec![
                 Line::from(vec![Span::styled(
                     icon,
-                    Style::new().fg(theme.accent).add_modifier(Modifier::BOLD),
+                    Style::new().fg(accent_color).add_modifier(Modifier::BOLD),
                 )]),
                 Line::from(""),
                 Line::from(vec![Span::styled(name, card_style)]),
@@ -900,15 +895,18 @@ fn render_spellbook_cards(
 
             let card_text = Text::from(card_lines);
 
-            let card_block = if is_selected && !ui.is_searching() && ui.focus != FocusTarget::JobsSidebar {
-                Block::default()
-                    .borders(Borders::ALL)
-                    .border_style(Style::new().fg(theme.selection))
+            // Use custom color for border if not selected
+            let border_color = if is_selected && !ui.is_searching() && ui.focus != FocusTarget::JobsSidebar {
+                theme.selection
             } else {
-                Block::default()
-                    .borders(Borders::ALL)
-                    .border_style(Style::new().fg(theme.border))
+                item.color()
+                    .map(|(r, g, b)| ratatui::style::Color::Rgb(r, g, b))
+                    .unwrap_or(theme.border)
             };
+
+            let card_block = Block::default()
+                .borders(Borders::ALL)
+                .border_style(Style::new().fg(border_color));
 
             let card = Paragraph::new(card_text)
                 .block(card_block)
@@ -1007,9 +1005,11 @@ fn render_spellbook_spines(
                 Style::new().fg(theme.fg)
             };
 
-            let spine_bg = theme.bg;
-            let accent = theme.accent;
-            let decor_style = Style::new().fg(accent);
+            // Get custom color or use theme accent
+            let accent_color = item.color()
+                .map(|(r, g, b)| ratatui::style::Color::Rgb(r, g, b))
+                .unwrap_or(theme.accent);
+            let decor_style = Style::new().fg(accent_color);
 
             let style = if is_virtual {
                 SpineStyle::StarsAndDiamonds
@@ -1034,19 +1034,21 @@ fn render_spellbook_spines(
                 spine_height as usize,
             );
 
-            let spine_block = if is_selected && !ui.is_searching() && ui.focus != FocusTarget::JobsSidebar {
-                Block::default()
-                    .borders(Borders::ALL)
-                    .border_style(Style::new().fg(theme.selection))
+            // Use custom color for border if not selected
+            let border_color = if is_selected && !ui.is_searching() && ui.focus != FocusTarget::JobsSidebar {
+                theme.selection
             } else {
-                Block::default()
-                    .borders(Borders::ALL)
-                    .border_style(Style::new().fg(theme.border))
+                item.color()
+                    .map(|(r, g, b)| ratatui::style::Color::Rgb(r, g, b))
+                    .unwrap_or(theme.border)
             };
+
+            let spine_block = Block::default()
+                .borders(Borders::ALL)
+                .border_style(Style::new().fg(border_color));
 
             let spine = Paragraph::new(spine_text)
                 .block(spine_block)
-                .style(Style::new().bg(spine_bg).fg(theme.fg))
                 .alignment(Alignment::Left)
                 .wrap(Wrap { trim: true });
 
@@ -1128,13 +1130,23 @@ fn render_spellbook_list(
             let name = item.name();
             let is_selected = i == selected;
             let prefix = if is_selected { "> " } else { "  " };
+            
+            // Get custom color for icon
+            let accent_color = item.color()
+                .map(|(r, g, b)| ratatui::style::Color::Rgb(r, g, b))
+                .unwrap_or(theme.accent);
+            
             let display_name = if icon.is_empty() {
                 name.to_string()
             } else {
-                format!("{} {}", icon, name)
+                // Use custom color for icon in list view
+                format!("[{}] {}", icon, name)
             };
             let style = if is_selected {
                 Style::new().fg(theme.selection)
+            } else if !icon.is_empty() {
+                // Use accent color for items with icons
+                Style::new().fg(accent_color)
             } else {
                 Style::new().fg(theme.fg)
             };

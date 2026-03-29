@@ -121,9 +121,11 @@ pub fn render_help(frame: &mut Frame, area: Rect, theme: &RatatuiColors) {
     frame.render_widget(Paragraph::new(jobs_title), chunks[8]);
 
     let jobs_keys = Line::from(vec![
+        Span::styled("J", key_style),
+        Span::raw(" / "),
         Span::styled(":jobs", key_style),
         Span::raw("  "),
-        Span::styled("toggle sidebar", desc_style),
+        Span::styled("toggle", desc_style),
         Span::raw("    "),
         Span::styled("Tab", key_style),
         Span::raw("  "),

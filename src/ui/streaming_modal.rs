@@ -43,7 +43,7 @@ use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span, Text},
-    widgets::{Block, Borders, Paragraph, Wrap},
+    widgets::{Block, Borders, Clear, Paragraph, Wrap},
     Frame,
 };
 
@@ -103,7 +103,7 @@ impl StreamingModalState {
         working_dir: Option<String>,
         launch_dir: String,
     ) -> std::io::Result<u32> {
-        use crate::invoker::{stream_command, StreamOutput};
+        use crate::invoker::stream_command;
 
         self.output.is_streaming = true;
         self.output.exit_code = None;
@@ -220,7 +220,7 @@ pub fn start_tui_execution(
 /// Poll the stream receiver and update the modal state
 pub fn poll_stream_output(ui: &mut UiState) {
     let receiver = ui.streaming_modal.receiver.take();
-    if let Some(mut receiver) = receiver {
+    if let Some(receiver) = receiver {
         let mut stop = false;
         let mut lines = Vec::new();
 
@@ -261,10 +261,6 @@ pub fn render_streaming_modal_in_area(
     theme: &crate::models::RatatuiColors,
     area: Rect,
 ) {
-    // Full-screen overlay
-    let overlay = Paragraph::new("").style(Style::new().bg(theme.bg));
-    frame.render_widget(overlay, area);
-
     // Calculate popup dimensions
     let max_width = area.width.saturating_sub(4).max(20);
     let max_height = area.height.saturating_sub(4).max(6);
@@ -280,6 +276,9 @@ pub fn render_streaming_modal_in_area(
         width: popup_width,
         height: popup_height,
     };
+
+    // Clear just the popup area so it appears floating over the list
+    frame.render_widget(Clear, popup_area);
 
     let state = &ui.streaming_modal;
     let is_running = state.is_running();

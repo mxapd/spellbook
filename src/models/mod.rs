@@ -5,10 +5,10 @@ mod spellbook;
 mod theme;
 
 pub use codex::Codex;
-pub use job::{Job, JobId, JobManager, JobStatus, JobsData, RecentAction, RecentEntry};
-pub use spell::{RunMode, Spell, SpellId};
+pub use job::{JobManager, JobsData, RecentAction, RecentEntry};
+pub use spell::{RunMode, Spell};
 pub use spellbook::{Spellbook, SpineStyle};
-pub use spellbook_ref::{FocusTarget, SpellbookRef, VirtualKind};
+pub use spellbook_ref::FocusTarget;
 pub use theme::{RatatuiColors, Theme, ThemeConfig, UserSettings, ViewMode};
 
 mod spellbook_ref {

@@ -1,6 +1,5 @@
-selected_theme = "GruvboxDark"
+selected_theme = "DarkDefault"
 
 [settings]
 view_mode = "Cards"
 experimental_mode = false
-implicit_search = false

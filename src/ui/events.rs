@@ -29,6 +29,7 @@ enum CommandAction {
     Help,
     Export,
     Import,
+    SetColor(String), // Color argument
     Quit,
 }
 
@@ -99,6 +100,11 @@ fn get_commands() -> Vec<Command> {
             aliases: vec!["import", "im"],
             description: "Import spells from file",
             action: CommandAction::Import,
+        },
+        Command {
+            aliases: vec!["setcolor", "color", "set-color"],
+            description: "Set spellbook color (r,g,b or #hex)",
+            action: CommandAction::SetColor(String::new()),
         },
         Command {
             aliases: vec!["q", "quit"],
@@ -195,11 +201,63 @@ fn execute_command_by_action(action: &CommandAction, state: &mut State, ui: &mut
             log_info!("Command: import (needs arguments)");
             ui.copy_feedback = Some("Usage: :import <filename>".to_string());
         }
+        CommandAction::SetColor(_) => {
+            // Parse color from search query (format: ":setcolor r,g,b" or ":setcolor #RRGGBB")
+            let query = ui.search_query();
+            let color_str = query.trim_start_matches(':').trim();
+            
+            // Find the color argument after the command
+            if let Some(color_arg) = color_str.split_whitespace().nth(1) {
+                if let Some((r, g, b)) = parse_color(color_arg) {
+                    // Get currently selected spellbook
+                    if let Some(spellbook_idx) = ui.search_spellbook_index() {
+                        if spellbook_idx < state.codex.spellbooks.len() {
+                            state.codex.spellbooks[spellbook_idx].color = Some((r, g, b));
+                            ui.copy_feedback = Some(format!("Set spellbook color to rgb({},{},{})", r, g, b));
+                            log_info!("Set spellbook {} color to rgb({},{},{})", 
+                                     state.codex.spellbooks[spellbook_idx].name, r, g, b);
+                        } else {
+                            ui.copy_feedback = Some("Error: Invalid spellbook selection".to_string());
+                        }
+                    } else {
+                        ui.copy_feedback = Some("Error: No spellbook selected".to_string());
+                    }
+                } else {
+                    ui.copy_feedback = Some("Usage: :setcolor r,g,b or :setcolor #RRGGBB".to_string());
+                }
+            } else {
+                ui.copy_feedback = Some("Usage: :setcolor r,g,b or :setcolor #RRGGBB".to_string());
+            }
+        }
         CommandAction::Quit => {
             ui.should_quit = true;
             log_info!("Command: quit");
         }
     }
+}
+
+/// Parse color from string (r,g,b or #RRGGBB format)
+fn parse_color(s: &str) -> Option<(u8, u8, u8)> {
+    let s = s.trim();
+    
+    // Try hex format: #RRGGBB
+    if s.starts_with('#') && s.len() == 7 {
+        let r = u8::from_str_radix(&s[1..3], 16).ok()?;
+        let g = u8::from_str_radix(&s[3..5], 16).ok()?;
+        let b = u8::from_str_radix(&s[5..7], 16).ok()?;
+        return Some((r, g, b));
+    }
+    
+    // Try rgb format: r,g,b
+    let parts: Vec<&str> = s.split(',').map(|p| p.trim()).collect();
+    if parts.len() == 3 {
+        let r = parts[0].parse::<u8>().ok()?;
+        let g = parts[1].parse::<u8>().ok()?;
+        let b = parts[2].parse::<u8>().ok()?;
+        return Some((r, g, b));
+    }
+    
+    None
 }
 
 // ============================================================================
@@ -230,6 +288,12 @@ pub fn handle_event(
 
     // Priority 3: Jobs sidebar (if focused and open)
     if ui.jobs_sidebar_open && ui.focus == FocusTarget::JobsSidebar {
+        // Check for J key to toggle sidebar before routing to sidebar handler
+        if key == KeyCode::Char('J') {
+            ui.toggle_jobs_sidebar();
+            log_info!("Jobs sidebar toggled via J");
+            return false;
+        }
         log_debug!("Routing to jobs sidebar");
         return crate::ui::jobs::handle_jobs_key(key, modifiers, ui);
     }
@@ -279,6 +343,13 @@ fn handle_global_keys(
         return Some(false);
     }
 
+    // Toggle jobs sidebar with Shift+J
+    if key == KeyCode::Char('J') && !ui.is_typing() {
+        ui.toggle_jobs_sidebar();
+        log_info!("Jobs sidebar toggled via Shift+J");
+        return Some(false);
+    }
+
     None // Pass through to mode handler
 }
 
@@ -293,6 +364,10 @@ fn handle_overlay(
 ) -> bool {
     match overlay {
         Overlay::OutputModal => {
+            // Check for Ctrl+C first
+            if key == KeyCode::Char('c') && modifiers.contains(KeyModifiers::CONTROL) {
+                return false; // Let Ctrl+C pass through to global handler
+            }
             // Use new streaming modal if active, otherwise fall back to legacy
             if ui.streaming_modal.streaming.is_some() || ui.streaming_modal.output.is_streaming {
                 let should_close = streaming_modal::handle_streaming_modal_key(key, modifiers, ui);
@@ -305,6 +380,10 @@ fn handle_overlay(
             true
         }
         Overlay::ConfirmDialog => {
+            // Check for Ctrl+C first
+            if key == KeyCode::Char('c') && modifiers.contains(KeyModifiers::CONTROL) {
+                return false; // Let Ctrl+C pass through to global handler
+            }
             handle_confirm_dialog(key, state, ui);
             true
         }
@@ -315,10 +394,16 @@ fn handle_overlay(
         Overlay::Help => {
             if key == KeyCode::Esc {
                 ui.pop_overlay();
+            } else if key == KeyCode::Char('c') && modifiers.contains(KeyModifiers::CONTROL) {
+                return false; // Let Ctrl+C pass through to global handler
             }
             true
         }
         Overlay::InputPopup => {
+            // Check for Ctrl+C first
+            if key == KeyCode::Char('c') && modifiers.contains(KeyModifiers::CONTROL) {
+                return false; // Let Ctrl+C pass through to global handler
+            }
             if ui.input_popup.is_some() {
                 let close = handle_input_popup(key, state, ui);
                 if close {
@@ -331,6 +416,8 @@ fn handle_overlay(
         Overlay::SpellDetails => {
             if key == KeyCode::Esc || key == KeyCode::Char('q') {
                 ui.hide_spell_details();
+            } else if key == KeyCode::Char('c') && modifiers.contains(KeyModifiers::CONTROL) {
+                return false; // Let Ctrl+C pass through to global handler
             }
             true
         }

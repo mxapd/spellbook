@@ -53,6 +53,7 @@ pub fn make_spellbook(name: &str, spell_ids: Vec<String>) -> Spellbook {
         spell_ids,
         spells: vec![],
         style: None,
+        color: None,
     }
 }
 

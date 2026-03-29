@@ -205,12 +205,16 @@ pub enum VirtualKind {
 | `:b` | Browse spellbooks |
 | `:s` | Browse spells |
 | `:jobs` | Toggle jobs sidebar |
+| `J` | Toggle jobs sidebar (hotkey) |
 | `:c` / `:p` / `:a` | Card / Spine / Auto view |
 | `:t` | Cycle theme |
 | `:?` | Help |
+| `:setcolor <r,g,b>` | Set spellbook color (e.g., `:setcolor 255,100,50`) |
+| `:setcolor #hex` | Set spellbook color (e.g., `:setcolor #FF6432`) |
 | `:import <file>` | Import spells |
 | `:export [file]` | Export codex |
 | `:q` | Quit application |
+| `Ctrl+C` | Quit application (works from any popup) |
 
 ## Testing Checklist
 
@@ -380,6 +384,31 @@ enum BrowseState {
 4. Audit remaining UiState fields
 
 See `docs/architecture-refactor.md` for full details.
+
+## Recent Features
+
+### Spellbook Colors (v2.1)
+Spellbooks can now have custom RGB colors that apply to their borders and icons in all views.
+
+**Setting colors:**
+- Select a spellbook in BrowseSpellbooks mode
+- Use `:setcolor 255,100,50` or `:setcolor #FF6432`
+- Color is saved to `codex.toml` and persists across sessions
+
+**How it works:**
+- Color stored in `Spellbook.color: Option<(u8, u8, u8)>`
+- Applied as accent color for borders and icons in card/spine/list views
+- Falls back to `theme.accent` if no color is set
+
+### Jobs Sidebar Improvements
+- **Hotkey:** Press `J` (Shift+j) to toggle jobs sidebar from anywhere
+- **Ctrl+C:** Now works from all popups (Help, Output, Confirm, etc.)
+- **Popup rendering:** Fixed sidebar rendering over popups - overlays now render last
+
+### Popup Rendering Fixes
+- All popups now use `Clear` widget to properly clear background
+- Help popup clears its area before rendering
+- Output popups render correctly over sidebar
 
 ## References
 

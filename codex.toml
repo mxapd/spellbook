@@ -4,7 +4,10 @@ name = "List Files"
 incantation = "ls -la"
 lore = "List all files with details"
 school = "Filesystem"
-glyphs = ["file", "list"]
+glyphs = [
+    "file",
+    "list",
+]
 confirm = false
 run_mode = "simple"
 working_dir = ""
@@ -13,10 +16,13 @@ favorite = true
 [[spells]]
 id = "550e8400-e29b-41d4-a716-446655440002"
 name = "Find Large Files"
-incantation = "find . -type f -size +100M -exec ls -lh {} \\;"
+incantation = 'find . -type f -size +100M -exec ls -lh {} \;'
 lore = "Find files larger than 100MB"
 school = "Filesystem"
-glyphs = ["find", "size"]
+glyphs = [
+    "find",
+    "size",
+]
 confirm = false
 run_mode = "simple"
 working_dir = ""
@@ -28,7 +34,10 @@ name = "Git Status"
 incantation = "git status"
 lore = "Show working tree status"
 school = "Git"
-glyphs = ["git", "status"]
+glyphs = [
+    "git",
+    "status",
+]
 confirm = false
 run_mode = "simple"
 working_dir = ""
@@ -40,7 +49,10 @@ name = "Git Log Graph"
 incantation = "git log --oneline --graph --all -20"
 lore = "Show commit history as graph"
 school = "Git"
-glyphs = ["git", "log"]
+glyphs = [
+    "git",
+    "log",
+]
 confirm = false
 run_mode = "simple"
 working_dir = ""
@@ -52,7 +64,10 @@ name = "Port Scanner"
 incantation = "nmap -sV localhost"
 lore = "Scan local ports for services"
 school = "Network"
-glyphs = ["network", "scan"]
+glyphs = [
+    "network",
+    "scan",
+]
 confirm = true
 run_mode = "tui"
 working_dir = ""
@@ -64,7 +79,10 @@ name = "Tail Logs"
 incantation = "tail -f /var/log/syslog"
 lore = "Follow system logs in real-time"
 school = "System"
-glyphs = ["log", "monitor"]
+glyphs = [
+    "log",
+    "monitor",
+]
 confirm = false
 run_mode = "tui"
 working_dir = ""
@@ -76,7 +94,10 @@ name = "Build Project"
 incantation = "cargo build --release"
 lore = "Build project in release mode"
 school = "Build"
-glyphs = ["build", "rust"]
+glyphs = [
+    "build",
+    "rust",
+]
 confirm = false
 run_mode = "tui"
 working_dir = ""
@@ -88,7 +109,10 @@ name = "Run Tests"
 incantation = "cargo test"
 lore = "Run all project tests"
 school = "Build"
-glyphs = ["test", "rust"]
+glyphs = [
+    "test",
+    "rust",
+]
 confirm = false
 run_mode = "tui"
 working_dir = ""
@@ -100,7 +124,10 @@ name = "Disk Usage"
 incantation = "du -sh * | sort -h"
 lore = "Show disk usage sorted by size"
 school = "Filesystem"
-glyphs = ["disk", "size"]
+glyphs = [
+    "disk",
+    "size",
+]
 confirm = false
 run_mode = "simple"
 working_dir = ""
@@ -112,7 +139,10 @@ name = "HTTP Server"
 incantation = "python3 -m http.server 8000"
 lore = "Start a simple HTTP server"
 school = "Network"
-glyphs = ["http", "server"]
+glyphs = [
+    "http",
+    "server",
+]
 confirm = true
 run_mode = "background"
 working_dir = ""
@@ -122,26 +152,63 @@ favorite = false
 name = "Filesystem"
 cover = ""
 sigil = "#"
-spell_ids = ["550e8400-e29b-41d4-a716-446655440001", "550e8400-e29b-41d4-a716-446655440002", "550e8400-e29b-41d4-a716-446655440009"]
+spell_ids = [
+    "550e8400-e29b-41d4-a716-446655440001",
+    "550e8400-e29b-41d4-a716-446655440002",
+    "550e8400-e29b-41d4-a716-446655440009",
+]
 spells = []
 
 [[spellbooks]]
 name = "Git"
 cover = ""
 sigil = ">"
-spell_ids = ["550e8400-e29b-41d4-a716-446655440003", "550e8400-e29b-41d4-a716-446655440004"]
+spell_ids = [
+    "550e8400-e29b-41d4-a716-446655440003",
+    "550e8400-e29b-41d4-a716-446655440004",
+]
 spells = []
 
 [[spellbooks]]
 name = "Build Tools"
 cover = ""
 sigil = "*"
-spell_ids = ["550e8400-e29b-41d4-a716-446655440007", "550e8400-e29b-41d4-a716-446655440008"]
+spell_ids = [
+    "550e8400-e29b-41d4-a716-446655440007",
+    "550e8400-e29b-41d4-a716-446655440008",
+]
 spells = []
+
+[[spells]]
+id = "550e8400-e29b-41d4-a716-446655440011"
+name = "Test Job (15s)"
+incantation = "for i in {1..15}; do echo \"Progress: $i/15\"; sleep 1; done"
+lore = "Test job that runs for 15 seconds - useful for testing job features"
+school = "Testing"
+glyphs = [
+    "test",
+    "job",
+]
+confirm = false
+run_mode = "tui"
+working_dir = ""
+favorite = true
 
 [[spellbooks]]
 name = "Network"
 cover = ""
 sigil = "@"
-spell_ids = ["550e8400-e29b-41d4-a716-446655440005", "550e8400-e29b-41d4-a716-446655440010"]
+spell_ids = [
+    "550e8400-e29b-41d4-a716-446655440005",
+    "550e8400-e29b-41d4-a716-446655440010",
+]
+spells = []
+
+[[spellbooks]]
+name = "Testing"
+cover = ""
+sigil = "?"
+spell_ids = [
+    "550e8400-e29b-41d4-a716-446655440011",
+]
 spells = []

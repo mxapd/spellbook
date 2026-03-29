@@ -192,7 +192,7 @@ fn render_execute_spell(
     theme: &crate::models::RatatuiColors,
     spell: &Spell,
     inner_width: usize,
-    dialog: &ConfirmDialogState,
+    _dialog: &ConfirmDialogState,
 ) {
     let line1 = if spell.confirm {
         Line::from(vec![
