@@ -8,6 +8,7 @@ use ratatui::{
 
 use crate::invoker::{self, Job, JobStatus};
 use crate::state::State;
+use crate::ui::events;
 
 pub struct JobsPanelState {
     pub selected_index: Option<usize>,
@@ -141,9 +142,20 @@ pub fn render_jobs_panel(f: &mut Frame, state: &State, ui: &mut crate::ui::UiSta
     f.render_widget(help_para, help_area);
 }
 
-pub fn handle_jobs_key(key: crossterm::event::KeyCode, ui: &mut crate::ui::UiState) -> bool {
+pub fn handle_jobs_key(
+    key: crossterm::event::KeyCode,
+    modifiers: crossterm::event::KeyModifiers,
+    ui: &mut crate::ui::UiState,
+) -> bool {
     let jobs = invoker::list_jobs();
     let job_ids: Vec<u64> = jobs.iter().map(|j| j.id).collect();
+
+    // Check Ctrl+C first - should work even in sidebar
+    if key == crossterm::event::KeyCode::Char('c')
+        && modifiers.contains(crossterm::event::KeyModifiers::CONTROL)
+    {
+        return true; // Signal to quit
+    }
 
     match key {
         crossterm::event::KeyCode::Esc => {
@@ -242,6 +254,22 @@ pub fn handle_jobs_key(key: crossterm::event::KeyCode, ui: &mut crate::ui::UiSta
             }
             return false;
         }
+        crossterm::event::KeyCode::Char('/') => {
+            // Switch focus to main and open search
+            ui.focus = crate::models::FocusTarget::Main;
+            ui.open_search();
+            return false;
+        }
+        crossterm::event::KeyCode::Char(':') => {
+            // Switch focus to main and open command search
+            ui.focus = crate::models::FocusTarget::Main;
+            ui.open_search();
+            if let Some(query) = ui.search_query_mut() {
+                query.push(':');
+            }
+            events::update_command_filter(ui);
+            return false;
+        }
         _ => {}
     }
 
@@ -311,7 +339,7 @@ mod tests {
         ui.jobs_sidebar_open = true;
         ui.focus = crate::models::FocusTarget::JobsSidebar;
 
-        handle_jobs_key(KeyCode::Esc, &mut ui);
+        handle_jobs_key(KeyCode::Esc, crossterm::event::KeyModifiers::empty(), &mut ui);
 
         assert!(!ui.jobs_sidebar_open);
         assert_eq!(ui.focus, crate::models::FocusTarget::Main);
@@ -322,7 +350,7 @@ mod tests {
         let mut ui = UiState::new(false);
         ui.jobs_sidebar_open = false;
 
-        handle_jobs_key(KeyCode::Esc, &mut ui);
+        handle_jobs_key(KeyCode::Esc, crossterm::event::KeyModifiers::empty(), &mut ui);
 
         assert!(!ui.jobs_sidebar_open);
     }

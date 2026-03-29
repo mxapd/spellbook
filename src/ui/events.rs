@@ -238,13 +238,20 @@ pub fn handle_event(
         }
     }
 
-    // Priority 2: Jobs sidebar (if focused and open)
-    if ui.jobs_sidebar_open && ui.focus == FocusTarget::JobsSidebar {
-        log_debug!("Routing to jobs sidebar");
-        return crate::ui::jobs::handle_jobs_key(key, ui);
+    // Priority 2: Tab cycles focus when sidebar is open
+    if key == KeyCode::Tab && ui.jobs_sidebar_open {
+        ui.cycle_focus();
+        log_debug!("Focus cycled to: {:?}", ui.focus);
+        return false;
     }
 
-    // Priority 3: Global keybinds (available in all modes when not typing)
+    // Priority 3: Jobs sidebar (if focused and open)
+    if ui.jobs_sidebar_open && ui.focus == FocusTarget::JobsSidebar {
+        log_debug!("Routing to jobs sidebar");
+        return crate::ui::jobs::handle_jobs_key(key, modifiers, ui);
+    }
+
+    // Priority 4: Global keybinds (available in all modes when not typing)
     if let Some(should_quit) = handle_global_keys(key, ui, state, modifiers) {
         return should_quit;
     }
@@ -279,13 +286,6 @@ fn handle_global_keys(
         state.reload_codex();
         ui.copy_feedback = Some("Codex refreshed".to_string());
         ui.request_redraw();
-        return Some(false);
-    }
-
-    // Tab to cycle focus when sidebar is open
-    if key == KeyCode::Tab && ui.jobs_sidebar_open {
-        ui.cycle_focus();
-        log_debug!("Focus cycled to: {:?}", ui.focus);
         return Some(false);
     }
 
@@ -342,6 +342,12 @@ fn handle_overlay(
                     ui.input_popup = None;
                     ui.pop_overlay();
                 }
+            }
+            true
+        }
+        Overlay::SpellDetails => {
+            if key == KeyCode::Esc || key == KeyCode::Char('q') {
+                ui.hide_spell_details();
             }
             true
         }

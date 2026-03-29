@@ -229,16 +229,16 @@ When testing v2:
    - [ ] Confirmation dialog on `confirm = true` spells
 
 3. **CRUD**
-   - [ ] Add spell (`:n`)
-   - [ ] Edit spell (`e`)
-   - [ ] Delete spell (`d`) - confirmation shown
-   - [ ] Toggle favorite (`f`)
-   - [ ] Add spellbook (`:nb`)
+   - [x] Add spell (`:n`)
+   - [x] Edit spell (`e`)
+   - [x] Delete spell (`d`) - confirmation shown
+   - [x] Toggle favorite (`f`)
+   - [x] Add spellbook (`:nb`)
 
 4. **Virtual Spellbooks**
-   - [ ] Favorites appears when favorites exist
-   - [ ] Recent appears with recent activity
-   - [ ] Both at top of list
+   - [x] Favorites appears when favorites exist
+   - [x] Recent appears with recent activity
+   - [x] Both at top of list
 
 5. **Jobs**
    - [ ] Jobs sidebar toggles (`:jobs`)
@@ -270,7 +270,14 @@ When testing v2:
    - [ ] Esc cancels (with confirmation if dirty)
    - [ ] Spellbook appears in list after save
 
-10. **Streaming Output**
+10. **Spell Details**
+    - [ ] `Ctrl+v` shows full spell details popup
+    - [ ] Popup displays: name, command, school, glyphs, mode, dir, flags, lore
+    - [ ] `Esc` or `q` closes popup
+    - [ ] Works in BrowseSpells mode
+    - [ ] Works in search results
+
+11. **Streaming Output**
     - [ ] `Ctrl+r` shows streaming output modal
     - [ ] Output streams in real-time
     - [ ] `Ctrl+C` kills running process

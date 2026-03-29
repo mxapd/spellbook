@@ -1,4 +1,4 @@
-use crate::models::{SpineStyle, ViewMode};
+use crate::models::{FocusTarget, SpineStyle, ViewMode};
 use crate::state::State;
 use crate::ui::{Mode, UiState};
 use ratatui::layout::{Alignment, Constraint, Direction, Layout};
@@ -238,7 +238,7 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
 
     // Only show "/" when searching or has query
     let input_text = if is_searching || has_query {
-        let cursor = if is_searching {
+        let cursor = if is_searching && ui.focus != FocusTarget::JobsSidebar {
             if ui.search_cursor_visible {
                 "_"
             } else {
@@ -252,8 +252,8 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
         String::new()
     };
 
-    // Gray border when inactive, accent (yellow/orange) when active
-    let border_color = if is_searching {
+    // Gray border when inactive or jobs sidebar focused, accent when active main focused
+    let border_color = if is_searching && ui.focus != FocusTarget::JobsSidebar {
         theme.accent
     } else {
         theme.border
@@ -308,26 +308,35 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
         }
     }
 
-    let details = if ui.search_query().is_empty() && ui.showing_spellbooks() {
-        render_spellbook_details(state, ui)
-    } else if !ui.filtered_indices().is_empty() {
-        render_spell_details(state, ui)
-    } else {
-        vec![Line::from("")]
+    // Only render details panel when showing spell results (not spellbook browser)
+    let should_show_details = match &ui.mode {
+        Mode::BrowseSpells(_) => true,
+        Mode::BrowseSpellbooks(_) => {
+            !ui.search_query().is_empty() || !ui.showing_spellbooks()
+        }
+        _ => false,
     };
 
-    let details_block = Paragraph::new(details)
-        .block(
-            Block::default()
-                .borders(Borders::ALL)
-                .title(" Details ")
-                .border_style(Style::new().fg(theme.border))
-                .title_style(Style::new().fg(theme.accent)),
-        )
-        .style(Style::new().bg(theme.bg).fg(theme.fg))
-        .wrap(Wrap { trim: true });
+    if should_show_details {
+        let details = if !ui.filtered_indices().is_empty() {
+            render_spell_details(state, ui)
+        } else {
+            vec![Line::from("Select a spell to view details")]
+        };
 
-    frame.render_widget(details_block, chunks[2]);
+        let details_block = Paragraph::new(details)
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .title(" Details ")
+                    .border_style(Style::new().fg(theme.border))
+                    .title_style(Style::new().fg(theme.accent)),
+            )
+            .style(Style::new().bg(theme.bg).fg(theme.fg))
+            .wrap(Wrap { trim: true });
+
+        frame.render_widget(details_block, chunks[2]);
+    }
 
     let hint = if let Some(ref msg) = ui.copy_feedback {
         let single_line = msg.lines().next().unwrap_or(msg).to_string();
@@ -389,7 +398,7 @@ pub fn render_in_area(
 
     // Only show "/" when searching or has query
     let input_text = if is_searching || has_query {
-        let cursor = if is_searching {
+        let cursor = if is_searching && ui.focus != FocusTarget::JobsSidebar {
             if ui.search_cursor_visible {
                 "_"
             } else {
@@ -403,8 +412,8 @@ pub fn render_in_area(
         String::new()
     };
 
-    // Gray border when inactive, accent (yellow/orange) when active
-    let border_color = if is_searching {
+    // Gray border when inactive or jobs sidebar focused, accent when active main focused
+    let border_color = if is_searching && ui.focus != FocusTarget::JobsSidebar {
         theme.accent
     } else {
         theme.border
@@ -449,6 +458,77 @@ pub fn render_in_area(
         Mode::AddSpellbook(_) => {
             render_add_spellbook_form(frame, state, ui, chunks[1]);
         }
+    }
+
+    // Only render details panel for BrowseSpells mode
+    if matches!(&ui.mode, Mode::BrowseSpells(_)) {
+        let details = if let Some(spellbook_index) = ui.selected_spellbook() {
+            let favorites_count = state.codex.spells.iter().filter(|s| s.favorite).count();
+            let has_favorites = favorites_count > 0;
+            let has_recent = !state.recents.is_empty();
+            
+            // Get the selected spell
+            let spell_opt = if has_favorites && spellbook_index == 0 {
+                // Favorites virtual spellbook
+                let favorites: Vec<_> = state.codex.spells.iter().filter(|s| s.favorite).collect();
+                ui.spell_list_state.selected()
+                    .and_then(|idx| favorites.get(idx).copied())
+            } else if has_recent {
+                let recent_idx = if has_favorites { 1 } else { 0 };
+                if spellbook_index == recent_idx {
+                    // Recent virtual spellbook
+                    ui.spell_list_state.selected()
+                        .and_then(|idx| state.recents.get(idx))
+                        .and_then(|recent| state.codex.spells.iter().find(|s| s.id == recent.spell_id))
+                } else {
+                    // Real spellbook
+                    let offset = (if has_favorites { 1 } else { 0 }) + 1;
+                    let real_idx = spellbook_index.saturating_sub(offset);
+                    state.codex.spellbooks.get(real_idx)
+                        .and_then(|spellbook| {
+                            ui.spell_list_state.selected()
+                                .and_then(|idx| spellbook.spell_ids.get(idx))
+                        })
+                        .and_then(|spell_id| state.codex.spells.iter().find(|s| s.id == *spell_id))
+                }
+            } else {
+                // Real spellbook (no virtual spellbooks)
+                let offset = 0;
+                let real_idx = spellbook_index.saturating_sub(offset);
+                state.codex.spellbooks.get(real_idx)
+                    .and_then(|spellbook| {
+                        ui.spell_list_state.selected()
+                            .and_then(|idx| spellbook.spell_ids.get(idx))
+                    })
+                    .and_then(|spell_id| state.codex.spells.iter().find(|s| s.id == *spell_id))
+            };
+            
+            match spell_opt {
+                Some(spell) => format_compact_spell_details(spell, theme),
+                None => {
+                    if ui.spell_list_state.selected().is_some() {
+                        vec![Line::from("")]
+                    } else {
+                        vec![Line::from("Select a spell to view details")]
+                    }
+                }
+            }
+        } else {
+            vec![Line::from("")]
+        };
+
+        let details_block = Paragraph::new(details)
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .title(" Details ")
+                    .border_style(Style::new().fg(theme.border))
+                    .title_style(Style::new().fg(theme.accent)),
+            )
+            .style(Style::new().bg(theme.bg).fg(theme.fg))
+            .wrap(Wrap { trim: true });
+
+        frame.render_widget(details_block, chunks[2]);
     }
 
     let hint = if ui.search_query().starts_with(':') && !ui.search_query().ends_with(' ') {
@@ -758,7 +838,7 @@ fn render_spellbook_cards(
 
             let card_text = Text::from(card_lines);
 
-            let card_block = if is_selected && !ui.is_searching() {
+            let card_block = if is_selected && !ui.is_searching() && ui.focus != FocusTarget::JobsSidebar {
                 Block::default()
                     .borders(Borders::ALL)
                     .border_style(Style::new().fg(theme.accent))
@@ -896,7 +976,7 @@ fn render_spellbook_spines(
                 spine_height as usize,
             );
 
-            let spine_block = if is_selected && !ui.is_searching() {
+            let spine_block = if is_selected && !ui.is_searching() && ui.focus != FocusTarget::JobsSidebar {
                 Block::default()
                     .borders(Borders::ALL)
                     .border_style(Style::new().fg(theme.accent))
@@ -1206,33 +1286,93 @@ fn render_spellbook_details<'a>(state: &'a State, ui: &mut UiState) -> Vec<Line<
     lines
 }
 
+/// Format spell details for popup (full info)
+pub fn format_full_spell_details<'a>(spell: &'a crate::models::Spell, theme: &crate::models::RatatuiColors) -> Vec<Line<'a>> {
+    let muted = Style::new().fg(theme.muted);
+    let accent = Style::new().fg(theme.accent);
+    let fg = Style::new().fg(theme.fg);
+    
+    let mut lines = Vec::new();
+    
+    // Spell name
+    lines.push(Line::from(vec![
+        Span::styled(&spell.name, accent.add_modifier(Modifier::BOLD)),
+    ]));
+    
+    // Command
+    lines.push(Line::from(vec![
+        Span::raw("$ "),
+        Span::styled(&spell.incantation, accent),
+    ]));
+    lines.push(Line::from(""));
+    
+    // Metadata line with glyphs
+    let glyphs_joined = spell.glyphs.join(", ");
+    let mut meta_parts: Vec<Span> = vec![
+        Span::styled("School: ", muted),
+        Span::styled(&spell.school, fg),
+    ];
+    if !glyphs_joined.is_empty() {
+        meta_parts.push(Span::styled(" | Glyphs: ", muted));
+        meta_parts.push(Span::styled(glyphs_joined, fg));
+    }
+    lines.push(Line::from(meta_parts));
+    
+    // Run mode and working dir
+    let mut mode_parts: Vec<Span> = vec![
+        Span::styled("Mode: ", muted),
+        Span::styled(spell.run_mode.as_str(), fg),
+    ];
+    if !spell.working_dir.is_empty() {
+        mode_parts.push(Span::styled(" | Dir: ", muted));
+        mode_parts.push(Span::styled(&spell.working_dir, fg));
+    }
+    lines.push(Line::from(mode_parts));
+    
+    // Flags (confirm, favorite)
+    let mut flags: Vec<Span> = Vec::new();
+    if spell.confirm {
+        flags.push(Span::styled("⚠ Confirm required", Style::new().fg(theme.selection)));
+    }
+    if spell.favorite {
+        if !flags.is_empty() {
+            flags.push(Span::raw("  "));
+        }
+        flags.push(Span::styled("★ Favorite", Style::new().fg(theme.accent)));
+    }
+    if !flags.is_empty() {
+        lines.push(Line::from(flags));
+    }
+    
+    // Lore
+    if !spell.lore.is_empty() {
+        lines.push(Line::from(""));
+        lines.push(Line::from(vec![Span::styled(&spell.lore, fg)]));
+    }
+    
+    lines
+}
+
+/// Format compact spell details (just command) for details panel
+fn format_compact_spell_details<'a>(spell: &'a crate::models::Spell, theme: &crate::models::RatatuiColors) -> Vec<Line<'a>> {
+    let accent = Style::new().fg(theme.accent);
+    
+    vec![
+        Line::from(vec![
+            Span::raw("$ "),
+            Span::styled(&spell.incantation, accent),
+        ]),
+    ]
+}
+
 fn render_spell_details<'a>(state: &'a State, ui: &mut UiState) -> Vec<Line<'a>> {
-    let theme = &state.theme;
-
     let selected_idx = ui.search_results_state().selected().unwrap_or(0);
-
     let spell_opt = ui.filtered_indices().get(selected_idx).copied();
 
     match spell_opt {
         Some(spell_idx) if spell_idx < state.codex.spells.len() => {
             let spell = &state.codex.spells[spell_idx];
-            let glyphs_str = spell.glyphs.join(", ");
-
-            let muted = Style::new().fg(theme.muted);
-            let command_style = Style::new().fg(theme.accent);
-
-            vec![
-                Line::from(vec![
-                    Span::raw("$ "),
-                    Span::styled(&spell.incantation, command_style),
-                ]),
-                Line::from(vec![
-                    Span::raw("  "),
-                    Span::styled(&spell.school, muted),
-                    Span::styled(" | ", muted),
-                    Span::styled(glyphs_str, muted),
-                ]),
-            ]
+            format_compact_spell_details(spell, &state.theme)
         }
         _ => vec![Line::from("")],
     }

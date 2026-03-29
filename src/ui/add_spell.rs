@@ -20,10 +20,18 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
     let normal_style = Style::new().bg(theme.bg).fg(theme.fg);
     let accent_style = Style::new().fg(theme.accent).bold();
 
+    let title = if ui.add_spell.is_editing {
+        "  Add New Spell (editing)  "
+    } else if ui.add_spell.editing_spell_id.is_some() {
+        "  Edit Spell  "
+    } else {
+        "  Add New Spell  "
+    };
+
     let block = Block::bordered()
         .border_style(Style::new().fg(theme.border))
         .title_style(accent_style)
-        .title("  Add New Spell  ");
+        .title(title);
 
     let form_area = chunks[0];
     let inner_area = block.inner(form_area);
@@ -32,6 +40,7 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
     let form_chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
+            Constraint::Length(1),
             Constraint::Length(1),
             Constraint::Length(1),
             Constraint::Length(1),
@@ -137,6 +146,26 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
     ]));
     frame.render_widget(tags_line, form_chunks[4]);
 
+    let working_dir_value = if ui.add_spell.working_dir.is_empty() {
+        "[...]".to_string()
+    } else {
+        format!("[{}]", ui.add_spell.working_dir)
+    };
+    let working_dir_line = Paragraph::new(Line::from(vec![
+        Span::styled("> Dir:     ", label_style),
+        Span::styled(
+            working_dir_value,
+            if ui.add_spell.field == AddSpellField::WorkingDir {
+                active_style
+            } else {
+                normal_style
+            },
+        ),
+        Span::raw(" "),
+        Span::styled("(optional)", Style::new().fg(theme.muted)),
+    ]));
+    frame.render_widget(working_dir_line, form_chunks[5]);
+
     let run_mode_value = match ui.add_spell.run_mode {
         crate::models::RunMode::Simple => "Simple",
         crate::models::RunMode::Tui => "TUI",
@@ -154,7 +183,7 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
         ),
         Span::styled(" (←→ to change)", Style::new().fg(theme.muted)),
     ]));
-    frame.render_widget(run_mode_line, form_chunks[5]);
+    frame.render_widget(run_mode_line, form_chunks[6]);
 
     let confirm_indicator = if ui.add_spell.confirm { "[x]" } else { "[ ]" };
     let confirm_line = Paragraph::new(Line::from(vec![
@@ -168,7 +197,7 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
             },
         ),
     ]));
-    frame.render_widget(confirm_line, form_chunks[6]);
+    frame.render_widget(confirm_line, form_chunks[7]);
 
     let spellbook_is_active = ui.add_spell.field == AddSpellField::Spellbook;
     let current_selection = if ui.add_spell.skip_spellbook {
@@ -200,7 +229,7 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
             },
         ),
     ]));
-    frame.render_widget(spellbook_line, form_chunks[7]);
+    frame.render_widget(spellbook_line, form_chunks[8]);
 
     // Show dropdown only when Spellbook field is active AND dropdown is open
     if spellbook_is_active && ui.add_spell.dropdown_open {
@@ -232,8 +261,8 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
         dropdown_state.select(Some(ui.add_spell.dropdown_index));
 
         // Calculate dropdown position - show below the spellbook field
-        if form_chunks.len() > 8 {
-            frame.render_stateful_widget(dropdown_list, form_chunks[8], &mut dropdown_state);
+        if form_chunks.len() > 9 {
+            frame.render_stateful_widget(dropdown_list, form_chunks[9], &mut dropdown_state);
         }
     }
 
@@ -247,16 +276,18 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
         let message_line = Paragraph::new(message.as_str())
             .style(msg_style)
             .alignment(Alignment::Center);
-        frame.render_widget(message_line, form_chunks[8]);
+        frame.render_widget(message_line, form_chunks[9]);
     } else {
         let divider = Paragraph::new("-".repeat(30))
             .alignment(Alignment::Center)
             .style(Style::new().fg(theme.border));
-        frame.render_widget(divider, form_chunks[8]);
+        frame.render_widget(divider, form_chunks[9]);
     }
 
     let footer_text = if ui.is_typing() {
-        format!("tab/arrows navigate  Enter next  Ctrl+S save  Esc cancel",)
+        format!(
+            "tab/arrows navigate  Enter edit/exit  Ctrl+S save  Esc cancel",
+        )
     } else {
         format!(
             "tab/arrows/jk navigate  Enter next  Ctrl+S save  Esc cancel  t {}",
@@ -289,10 +320,18 @@ pub fn render_in_area(
         .fg(theme.accent)
         .add_modifier(ratatui::style::Modifier::BOLD);
 
+    let title = if ui.add_spell.is_editing {
+        "  Add New Spell (editing)  "
+    } else if ui.add_spell.editing_spell_id.is_some() {
+        "  Edit Spell  "
+    } else {
+        "  Add New Spell  "
+    };
+
     let block = Block::bordered()
         .border_style(Style::new().fg(theme.border))
         .title_style(accent_style)
-        .title("  Add New Spell  ");
+        .title(title);
 
     let form_area = chunks[0];
     let inner_area = block.inner(form_area);
@@ -301,6 +340,7 @@ pub fn render_in_area(
     let form_chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
+            Constraint::Length(1),
             Constraint::Length(1),
             Constraint::Length(1),
             Constraint::Length(1),
@@ -406,6 +446,26 @@ pub fn render_in_area(
     ]));
     frame.render_widget(tags_line, form_chunks[4]);
 
+    let working_dir_value = if ui.add_spell.working_dir.is_empty() {
+        "[...]".to_string()
+    } else {
+        format!("[{}]", ui.add_spell.working_dir)
+    };
+    let working_dir_line = Paragraph::new(Line::from(vec![
+        Span::styled("> Dir:     ", label_style),
+        Span::styled(
+            working_dir_value,
+            if ui.add_spell.field == AddSpellField::WorkingDir {
+                active_style
+            } else {
+                normal_style
+            },
+        ),
+        Span::raw(" "),
+        Span::styled("(optional)", Style::new().fg(theme.muted)),
+    ]));
+    frame.render_widget(working_dir_line, form_chunks[5]);
+
     let run_mode_value = match ui.add_spell.run_mode {
         crate::models::RunMode::Simple => "Simple",
         crate::models::RunMode::Tui => "TUI",
@@ -423,7 +483,7 @@ pub fn render_in_area(
         ),
         Span::styled(" (arrow keys to change)", Style::new().fg(theme.muted)),
     ]));
-    frame.render_widget(run_mode_line, form_chunks[5]);
+    frame.render_widget(run_mode_line, form_chunks[6]);
 
     let confirm_indicator = if ui.add_spell.confirm { "[x]" } else { "[ ]" };
     let confirm_line = Paragraph::new(Line::from(vec![
@@ -437,7 +497,7 @@ pub fn render_in_area(
             },
         ),
     ]));
-    frame.render_widget(confirm_line, form_chunks[6]);
+    frame.render_widget(confirm_line, form_chunks[7]);
 
     let spellbook_is_active = ui.add_spell.field == AddSpellField::Spellbook;
     let selected_spellbook = ui
@@ -445,11 +505,16 @@ pub fn render_in_area(
         .spellbook_index
         .map(|i| state.codex.spellbooks.get(i).map(|sb| sb.name.clone()))
         .flatten();
-    let spellbook_value = selected_spellbook.unwrap_or_else(|| "[...]".to_string());
+    let spellbook_value = selected_spellbook.unwrap_or_else(|| "...".to_string());
+    let spellbook_indicator = if spellbook_is_active && ui.add_spell.dropdown_open {
+        "▼"
+    } else {
+        " "
+    };
     let spellbook_line = Paragraph::new(Line::from(vec![
         Span::styled("~ Book:    ", label_style),
         Span::styled(
-            format!("[{}]", spellbook_value),
+            format!("[{}] {}", spellbook_indicator, spellbook_value),
             if spellbook_is_active {
                 active_style
             } else {
@@ -457,7 +522,7 @@ pub fn render_in_area(
             },
         ),
     ]));
-    frame.render_widget(spellbook_line, form_chunks[7]);
+    frame.render_widget(spellbook_line, form_chunks[8]);
 
     if spellbook_is_active && ui.add_spell.dropdown_open {
         let dropdown_items: Vec<ListItem> = state
@@ -487,8 +552,8 @@ pub fn render_in_area(
         let mut dropdown_state = ListState::default();
         dropdown_state.select(Some(ui.add_spell.dropdown_index));
 
-        if form_chunks.len() > 8 {
-            frame.render_stateful_widget(dropdown_list, form_chunks[8], &mut dropdown_state);
+        if form_chunks.len() > 9 {
+            frame.render_stateful_widget(dropdown_list, form_chunks[9], &mut dropdown_state);
         }
     }
 
@@ -501,15 +566,19 @@ pub fn render_in_area(
         let message_line = Paragraph::new(message.as_str())
             .style(msg_style)
             .alignment(Alignment::Center);
-        frame.render_widget(message_line, form_chunks[8]);
+        frame.render_widget(message_line, form_chunks[9]);
     } else {
         let divider = Paragraph::new("-".repeat(30))
             .alignment(Alignment::Center)
             .style(Style::new().fg(theme.border));
-        frame.render_widget(divider, form_chunks[8]);
+        frame.render_widget(divider, form_chunks[9]);
     }
 
-    let footer_text = "navigate  Enter next  Ctrl+S save  Esc cancel";
+    let footer_text = if ui.add_spell.is_editing {
+        "type to edit  Enter/Esc exit edit  Ctrl+S save"
+    } else {
+        "arrows navigate  Enter edit  Ctrl+S save  Esc cancel"
+    };
     let footer = Paragraph::new(footer_text).style(Style::new().fg(theme.muted).bg(theme.bg));
     frame.render_widget(footer, chunks[1]);
 }

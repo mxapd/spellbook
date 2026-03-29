@@ -104,6 +104,7 @@ pub enum Overlay {
     CommandPalette,
     Help,
     InputPopup,
+    SpellDetails,
 }
 
 pub struct UiState {
@@ -130,6 +131,9 @@ pub struct UiState {
 
     // Streaming output modal state
     pub streaming_modal: StreamingModalState,
+
+    // Spell details popup state
+    pub spell_details_spell_id: Option<String>,
 
     // Search cursor state for blinking effect
     pub search_cursor_visible: bool,
@@ -161,6 +165,7 @@ impl UiState {
             jobs_sidebar_open: false,
 
             streaming_modal: StreamingModalState::default(),
+            spell_details_spell_id: None,
 
             loading_message: None,
             loading_spinner: 0,
@@ -168,6 +173,18 @@ impl UiState {
             search_cursor_visible: true,
             search_cursor_tick: 0,
         }
+    }
+
+    /// Show spell details popup
+    pub fn show_spell_details(&mut self, spell_id: String) {
+        self.spell_details_spell_id = Some(spell_id);
+        self.push_overlay(Overlay::SpellDetails);
+    }
+
+    /// Hide spell details popup
+    pub fn hide_spell_details(&mut self) {
+        self.pop_overlay();
+        self.spell_details_spell_id = None;
     }
 
     /// Show a loading message for long-running operations

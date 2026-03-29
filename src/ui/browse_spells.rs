@@ -7,7 +7,7 @@ use crate::log_info;
 use crate::models::{RecentAction, Spell};
 use crate::state::State;
 use crate::ui::search_overlay::{get_spellbook_item, SpellbookItem};
-use crate::ui::{streaming_modal, Overlay, UiState};
+use crate::ui::{events, streaming_modal, Overlay, UiState};
 use crossterm::event::{KeyCode, KeyModifiers};
 
 /// Handle key events in BrowseSpells mode (inside a spellbook)
@@ -59,6 +59,47 @@ pub fn handle_browse_spells(
         return false;
     }
 
+        // Ctrl+v - show spell details (view)
+        if key == KeyCode::Char('v') && modifiers.contains(KeyModifiers::CONTROL) {
+        if let Some(selected_idx) = ui.spell_list_state.selected() {
+            if let Some(spellbook_index) = ui.selected_spellbook() {
+                let favorites_count = state.codex.spells.iter().filter(|s| s.favorite).count();
+                let has_favorites = favorites_count > 0;
+                let has_recent = !state.recents.is_empty();
+                
+                // Get the spell ID based on spellbook type
+                let spell_id_opt = if has_favorites && spellbook_index == 0 {
+                    // Favorites
+                    let favorites: Vec<_> = state.codex.spells.iter().filter(|s| s.favorite).collect();
+                    favorites.get(selected_idx).map(|s| s.id.clone())
+                } else if has_recent {
+                    let recent_idx = if has_favorites { 1 } else { 0 };
+                    if spellbook_index == recent_idx {
+                        // Recent
+                        state.recents.get(selected_idx).map(|r| r.spell_id.clone())
+                    } else {
+                        // Real spellbook
+                        let offset = (if has_favorites { 1 } else { 0 }) + 1;
+                        let real_idx = spellbook_index.saturating_sub(offset);
+                        state.codex.spellbooks.get(real_idx)
+                            .and_then(|sb| sb.spell_ids.get(selected_idx))
+                            .cloned()
+                    }
+                } else {
+                    // Real spellbook (no virtual)
+                    state.codex.spellbooks.get(spellbook_index)
+                        .and_then(|sb| sb.spell_ids.get(selected_idx))
+                        .cloned()
+                };
+                
+                if let Some(spell_id) = spell_id_opt {
+                    ui.show_spell_details(spell_id);
+                }
+            }
+        }
+        return false;
+    }
+
     // Handle spell list navigation
     if spell_count > 0 {
         match key {
@@ -86,9 +127,12 @@ pub fn handle_browse_spells(
                 return false;
             }
 
-            // Enter - copy or execute the selected spell
+            // Enter - execute command if in command mode, otherwise copy/execute spell
             KeyCode::Enter => {
-                if modifiers.contains(KeyModifiers::ALT) {
+                let is_command_mode = ui.search_query().starts_with(':');
+                if is_command_mode {
+                    execute_command(state, ui);
+                } else if modifiers.contains(KeyModifiers::ALT) {
                     log_info!("Alt+Enter detected - executing spell");
                     let spell_idx = ui.spell_list_state.selected().unwrap_or(0);
                     execute_spell_at_index(state, ui, spellbook_index, spell_idx);
@@ -490,4 +534,20 @@ pub fn update_search_filter(state: &State, ui: &mut UiState) {
     } else {
         ui.search_results_state().select(None);
     }
+}
+
+/// Execute the selected command
+fn execute_command(state: &mut State, ui: &mut UiState) {
+    let query = ui.search_query().to_string();
+    let query_after_colon = query.strip_prefix(':').unwrap_or("");
+    let filtered = events::filter_commands(query_after_colon);
+    let selected = ui.search_results_state().selected().unwrap_or(0);
+
+    if let Some((cmd_idx, _, _)) = filtered.get(selected) {
+        events::execute_command_by_index(*cmd_idx, state, ui);
+    } else {
+        ui.copy_feedback = Some(format!("Unknown command: {}", query_after_colon));
+        log_info!("Unknown command: {}", query_after_colon);
+    }
+    ui.exit_typing_mode();
 }

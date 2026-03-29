@@ -32,6 +32,7 @@ pub struct AddSpellForm {
     pub skip_spellbook: bool,
     pub dropdown_index: usize,
     pub dropdown_open: bool,
+    pub is_editing: bool,
     pub message: Option<(String, bool)>,
     pub has_unsaved: bool,
     pub editing_spell_id: Option<String>,
@@ -53,6 +54,7 @@ impl Default for AddSpellForm {
             skip_spellbook: false,
             dropdown_index: 0,
             dropdown_open: false,
+            is_editing: false,
             message: None,
             has_unsaved: false,
             editing_spell_id: None,
@@ -73,6 +75,7 @@ impl AddSpellForm {
         self.spellbook_index = None;
         self.skip_spellbook = false;
         self.dropdown_open = false;
+        self.is_editing = false;
         self.message = None;
         self.has_unsaved = false;
         self.editing_spell_id = None;

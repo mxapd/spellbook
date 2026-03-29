@@ -72,9 +72,9 @@ pub fn render_help(frame: &mut Frame, area: Rect, theme: &RatatuiColors) {
         Span::raw("  "),
         Span::styled("delete spell", desc_style),
         Span::raw("    "),
-        Span::styled("D", key_style),
+        Span::styled("Ctrl+v", key_style),
         Span::raw("  "),
-        Span::styled("delete spellbook", desc_style),
+        Span::styled("view details", desc_style),
     ]);
     frame.render_widget(Paragraph::new(action_keys), chunks[3]);
 

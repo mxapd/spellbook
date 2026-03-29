@@ -14,7 +14,7 @@ pub fn handle_browse_spellbooks(
     key: KeyCode,
     state: &mut State,
     ui: &mut UiState,
-    _modifiers: KeyModifiers,
+    modifiers: KeyModifiers,
 ) -> bool {
     ui.copy_feedback = None;
 
@@ -34,7 +34,7 @@ pub fn handle_browse_spellbooks(
 
     // If in search mode with query, handle search navigation
     if is_searching || has_query {
-        return handle_search_navigation(key, state, ui);
+        return handle_search_navigation(key, modifiers, state, ui);
     }
 
     // Handle spellbook browser navigation (card view)
@@ -196,6 +196,20 @@ pub fn handle_browse_spellbooks(
             return false;
         }
 
+        // Ctrl+v - show spell details (view)
+        if key == KeyCode::Char('v') && modifiers.contains(KeyModifiers::CONTROL) {
+            let selected = ui.search_results_state().selected().unwrap_or(0);
+            let indices = ui.filtered_indices();
+            
+            if selected < indices.len() {
+                let spell_idx = indices[selected];
+                if let Some(spell) = state.codex.spells.get(spell_idx) {
+                    ui.show_spell_details(spell.id.clone());
+                }
+            }
+            return false;
+        }
+
         // Any character input - start filtering (respect implicit_search setting)
         if let KeyCode::Char(c) = key {
             let can_type = state.user_settings.implicit_search || ui.is_searching();
@@ -218,7 +232,7 @@ pub fn handle_browse_spellbooks(
 }
 
 /// Handle navigation when in search mode
-fn handle_search_navigation(key: KeyCode, state: &mut State, ui: &mut UiState) -> bool {
+fn handle_search_navigation(key: KeyCode, modifiers: KeyModifiers, state: &mut State, ui: &mut UiState) -> bool {
     let is_command_mode = ui.search_query().starts_with(':');
 
     // Enter - execute command if in command mode, otherwise copy selected spell
@@ -249,9 +263,9 @@ fn handle_search_navigation(key: KeyCode, state: &mut State, ui: &mut UiState) -
         return false;
     }
 
-    // Navigate results (arrows or vim j/k)
-    match key {
-        KeyCode::Down | KeyCode::Char('j') => {
+    // Handle Ctrl+j/Ctrl+k for navigation
+    if modifiers.contains(KeyModifiers::CONTROL) {
+        if let KeyCode::Char('j') = key {
             if is_command_mode {
                 navigate_command_results(ui, 1);
             } else {
@@ -259,8 +273,7 @@ fn handle_search_navigation(key: KeyCode, state: &mut State, ui: &mut UiState) -
             }
             return false;
         }
-
-        KeyCode::Up | KeyCode::Char('k') => {
+        if let KeyCode::Char('k') = key {
             if is_command_mode {
                 navigate_command_results(ui, -1);
             } else {
@@ -268,11 +281,9 @@ fn handle_search_navigation(key: KeyCode, state: &mut State, ui: &mut UiState) -
             }
             return false;
         }
-
-        _ => {}
     }
 
-    // Handle character input
+    // Handle character input FIRST - always type in search mode
     if let KeyCode::Char(c) = key {
         if let Some(query) = ui.search_query_mut() {
             query.push(c);
@@ -286,20 +297,50 @@ fn handle_search_navigation(key: KeyCode, state: &mut State, ui: &mut UiState) -
         return false;
     }
 
-    // Handle backspace
-    if key == KeyCode::Backspace {
-        if let Some(query) = ui.search_query_mut() {
-            query.pop();
+    // Navigate results (arrows only)
+    match key {
+        KeyCode::Down => {
+            if is_command_mode {
+                navigate_command_results(ui, 1);
+            } else {
+                navigate_search_results(ui, 1);
+            }
+            return false;
         }
 
-        if ui.search_query().is_empty() {
+        KeyCode::Up => {
+            if is_command_mode {
+                navigate_command_results(ui, -1);
+            } else {
+                navigate_search_results(ui, -1);
+            }
+            return false;
+        }
+
+        _ => {}
+    }
+
+    // Handle backspace
+    if key == KeyCode::Backspace {
+        let was_empty = ui.search_query().is_empty();
+        
+        if was_empty {
+            // Query was already empty, exit search mode
             ui.exit_typing_mode();
             ui.set_showing_spellbooks(true);
             ui.set_search_spellbook_index(Some(0));
-        } else if ui.search_in_command_mode() {
-            crate::ui::events::update_command_filter(ui);
         } else {
-            update_search_filter(state, ui);
+            // Remove last character
+            if let Some(query) = ui.search_query_mut() {
+                query.pop();
+            }
+            
+            // Update filter (even if now empty, stay in search mode)
+            if ui.search_in_command_mode() {
+                crate::ui::events::update_command_filter(ui);
+            } else {
+                update_search_filter(state, ui);
+            }
         }
         return false;
     }
@@ -324,7 +365,6 @@ fn execute_command(state: &mut State, ui: &mut UiState) {
         log_info!("Unknown command: {}", query_after_colon);
     }
     ui.exit_typing_mode();
-    ui.set_showing_spellbooks(true);
 }
 
 /// Navigate command results

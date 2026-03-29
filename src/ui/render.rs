@@ -3,6 +3,7 @@ use crate::ui::{
     add_spell, add_spellbook_form, confirm, help, jobs, search_overlay, spell_list,
     streaming_modal, Mode, Overlay, UiState,
 };
+use crate::ui::search_overlay::format_full_spell_details;
 use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout},
     style::{Modifier, Style},
@@ -122,6 +123,60 @@ fn render_overlay(overlay: Overlay, frame: &mut Frame, state: &State, ui: &mut U
             if ui.input_popup.is_some() {
                 render_input_popup_overlay(frame, state, ui);
             }
+        }
+        Overlay::SpellDetails => {
+            if ui.spell_details_spell_id.is_some() {
+                render_spell_details_overlay(frame, state, ui);
+            }
+        }
+    }
+}
+
+fn render_spell_details_overlay(frame: &mut Frame, state: &State, ui: &UiState) {
+    let theme = &state.theme;
+    let area = frame.area();
+
+    // Dim the background
+    let overlay_rect = ratatui::layout::Rect {
+        x: 0,
+        y: 0,
+        width: area.width,
+        height: area.height,
+    };
+    let overlay = Paragraph::new("").style(Style::new().bg(ratatui::style::Color::Indexed(0)));
+    frame.render_widget(overlay, overlay_rect);
+
+    // Calculate popup size
+    let popup_width = 70.min(area.width - 4);
+    let popup_height = 15.min(area.height - 4);
+
+    let popup_x = (area.width - popup_width) / 2;
+    let popup_y = (area.height - popup_height) / 2;
+
+    let popup_area = ratatui::layout::Rect {
+        x: popup_x,
+        y: popup_y,
+        width: popup_width,
+        height: popup_height,
+    };
+
+    // Get spell details
+    if let Some(spell_id) = &ui.spell_details_spell_id {
+        if let Some(spell) = state.codex.spells.iter().find(|s| s.id == *spell_id) {
+            let details = format_full_spell_details(spell, theme);
+            
+            let details_block = Paragraph::new(details)
+                .block(
+                    Block::default()
+                        .borders(Borders::ALL)
+                        .title(" Spell Details ")
+                        .border_style(Style::new().fg(theme.accent))
+                        .title_style(Style::new().fg(theme.accent).add_modifier(Modifier::BOLD)),
+                )
+                .style(Style::new().bg(theme.bg).fg(theme.fg))
+                .wrap(Wrap { trim: true });
+
+            frame.render_widget(details_block, popup_area);
         }
     }
 }

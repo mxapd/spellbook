@@ -17,6 +17,7 @@ pub struct AddSpellbookForm {
     pub name: String,
     pub cover: String,
     pub sigil: String,
+    pub is_editing: bool,
     pub message: Option<(String, bool)>, // (message, is_error)
     pub has_unsaved: bool,
 }
@@ -27,6 +28,7 @@ impl AddSpellbookForm {
         self.cover.clear();
         self.sigil.clear();
         self.field = AddSpellbookField::Name;
+        self.is_editing = false;
         self.message = None;
         self.has_unsaved = false;
     }
@@ -85,8 +87,13 @@ pub fn render_in_area(
         ])
         .split(area);
 
-    // Title
-    let title = Paragraph::new("Add New Spellbook")
+    // Title - changes based on edit mode
+    let title_text = if form.is_editing {
+        "Add New Spellbook [EDITING]"
+    } else {
+        "Add New Spellbook"
+    };
+    let title = Paragraph::new(title_text)
         .style(Style::new().fg(theme.accent).add_modifier(Modifier::BOLD))
         .alignment(ratatui::layout::Alignment::Center);
     frame.render_widget(title, chunks[0]);
@@ -109,6 +116,7 @@ pub fn render_in_area(
         '*',
         &form.name,
         form.field == AddSpellbookField::Name,
+        form.is_editing && form.field == AddSpellbookField::Name,
         theme,
     );
 
@@ -120,6 +128,7 @@ pub fn render_in_area(
         ':',
         &form.cover,
         form.field == AddSpellbookField::Cover,
+        form.is_editing && form.field == AddSpellbookField::Cover,
         theme,
     );
 
@@ -131,6 +140,7 @@ pub fn render_in_area(
         '@',
         &form.sigil,
         form.field == AddSpellbookField::Sigil,
+        form.is_editing && form.field == AddSpellbookField::Sigil,
         theme,
     );
 
@@ -140,8 +150,10 @@ pub fn render_in_area(
             msg.clone(),
             Style::new().fg(if *is_error { Color::Red } else { theme.accent }),
         )])
+    } else if form.is_editing {
+        Line::from("Type to edit | Enter: done | Esc: cancel edit")
     } else {
-        Line::from("Tab: next field | Enter: save | Ctrl+S: save | Esc: cancel")
+        Line::from("Tab/Enter: edit field | Ctrl+S: save | Esc: cancel | arrows: navigate")
     };
     let message = Paragraph::new(message_text)
         .alignment(ratatui::layout::Alignment::Center)
@@ -156,17 +168,22 @@ fn render_field(
     icon: char,
     value: &str,
     is_active: bool,
+    is_editing: bool,
     theme: &crate::models::RatatuiColors,
 ) {
     let block = Block::default()
         .borders(Borders::ALL)
-        .border_style(if is_active {
+        .border_style(if is_editing {
+            Style::new().fg(theme.selection)
+        } else if is_active {
             Style::new().fg(theme.accent)
         } else {
             Style::new().fg(theme.muted)
         })
-        .title(format!("{} {}", icon, label))
-        .title_style(if is_active {
+        .title(format!("{} {}{}", icon, label, if is_editing { " [EDIT]" } else { "" }))
+        .title_style(if is_editing {
+            Style::new().fg(theme.selection).add_modifier(Modifier::BOLD)
+        } else if is_active {
             Style::new().fg(theme.accent).add_modifier(Modifier::BOLD)
         } else {
             Style::new().fg(theme.fg)

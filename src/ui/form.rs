@@ -10,6 +10,25 @@ use crate::ui::{AddSpellField, BrowseState, Mode, UiState};
 use crate::{log_error, log_info};
 use crossterm::event::{KeyCode, KeyModifiers};
 
+fn is_text_field(field: AddSpellField) -> bool {
+    matches!(
+        field,
+        AddSpellField::Name
+            | AddSpellField::Command
+            | AddSpellField::Lore
+            | AddSpellField::School
+            | AddSpellField::Tags
+            | AddSpellField::WorkingDir
+    )
+}
+
+fn is_spellbook_text_field(field: AddSpellbookField) -> bool {
+    matches!(
+        field,
+        AddSpellbookField::Name | AddSpellbookField::Cover | AddSpellbookField::Sigil
+    )
+}
+
 /// Handle key events for AddSpell and EditSpell modes
 pub fn handle_add_spell(
     key: KeyCode,
@@ -23,6 +42,12 @@ pub fn handle_add_spell(
         return false;
     }
 
+    // When in edit mode, handle text input only
+    if ui.add_spell.is_editing {
+        return handle_add_spell_edit_mode(key, ui);
+    }
+
+    // Navigation mode
     match key {
         KeyCode::Esc => {
             if ui.add_spell.field == AddSpellField::Spellbook && ui.add_spell.dropdown_open {
@@ -41,50 +66,25 @@ pub fn handle_add_spell(
 
         KeyCode::Tab => {
             ui.add_spell.dropdown_open = false;
+            ui.add_spell.is_editing = false;
             ui.add_spell.field = next_add_spell_field(ui.add_spell.field);
             false
         }
 
         KeyCode::BackTab => {
             ui.add_spell.dropdown_open = false;
+            ui.add_spell.is_editing = false;
             ui.add_spell.field = prev_add_spell_field(ui.add_spell.field);
             false
         }
 
         KeyCode::Up | KeyCode::Char('k') => {
-            if ui.add_spell.field == AddSpellField::Spellbook {
-                if ui.add_spell.dropdown_open {
-                    if ui.add_spell.dropdown_index == 0 {
-                        ui.add_spell.dropdown_open = false;
-                    } else {
-                        let options_count = state.codex.spellbooks.len() + 1;
-                        if options_count > 0 {
-                            ui.add_spell.dropdown_index -= 1;
-                        }
-                    }
-                } else {
-                    ui.add_spell.field = AddSpellField::Confirm;
-                }
-            } else {
-                ui.add_spell.field = prev_add_spell_field(ui.add_spell.field);
-            }
+            handle_navigation_up(ui, state);
             false
         }
 
         KeyCode::Down | KeyCode::Char('j') => {
-            if ui.add_spell.field == AddSpellField::Spellbook {
-                if ui.add_spell.dropdown_open {
-                    let options_count = state.codex.spellbooks.len() + 1;
-                    if options_count > 0 {
-                        ui.add_spell.dropdown_index =
-                            (ui.add_spell.dropdown_index + 1) % options_count;
-                    }
-                } else {
-                    ui.add_spell.dropdown_open = true;
-                }
-            } else {
-                ui.add_spell.field = next_add_spell_field(ui.add_spell.field);
-            }
+            handle_navigation_down(ui, state);
             false
         }
 
@@ -106,8 +106,11 @@ pub fn handle_add_spell(
             false
         }
 
-        KeyCode::Enter => match ui.add_spell.field {
-            AddSpellField::Spellbook => {
+        KeyCode::Enter => {
+            if is_text_field(ui.add_spell.field) {
+                // Enter on text field enters edit mode
+                ui.add_spell.is_editing = true;
+            } else if ui.add_spell.field == AddSpellField::Spellbook {
                 if ui.add_spell.dropdown_open {
                     if ui.add_spell.dropdown_index >= state.codex.spellbooks.len() {
                         ui.add_spell.skip_spellbook = true;
@@ -120,17 +123,34 @@ pub fn handle_add_spell(
                 } else {
                     ui.add_spell.dropdown_open = true;
                 }
-                false
-            }
-            AddSpellField::Confirm => {
+            } else if ui.add_spell.field == AddSpellField::Confirm {
                 save_spell(state, ui);
-                false
             }
-            _ => {
-                ui.add_spell.field = next_add_spell_field_skip_confirm(ui.add_spell.field);
-                false
-            }
-        },
+            false
+        }
+
+        KeyCode::Char(c) => {
+            // In navigation mode, type to filter (optional) or ignore
+            false
+        }
+
+        _ => false,
+    }
+}
+
+fn handle_add_spell_edit_mode(key: KeyCode, ui: &mut UiState) -> bool {
+    match key {
+        KeyCode::Esc => {
+            // Exit edit mode
+            ui.add_spell.is_editing = false;
+            false
+        }
+
+        KeyCode::Enter => {
+            // Exit edit mode, stay on current field
+            ui.add_spell.is_editing = false;
+            false
+        }
 
         KeyCode::Backspace => {
             match ui.add_spell.field {
@@ -190,6 +210,40 @@ pub fn handle_add_spell(
     }
 }
 
+fn handle_navigation_up(ui: &mut UiState, state: &State) {
+    if ui.add_spell.field == AddSpellField::Spellbook {
+        if ui.add_spell.dropdown_open {
+            if ui.add_spell.dropdown_index == 0 {
+                ui.add_spell.dropdown_open = false;
+            } else {
+                let options_count = state.codex.spellbooks.len() + 1;
+                if options_count > 0 {
+                    ui.add_spell.dropdown_index -= 1;
+                }
+            }
+        } else {
+            ui.add_spell.field = AddSpellField::Confirm;
+        }
+    } else {
+        ui.add_spell.field = prev_add_spell_field(ui.add_spell.field);
+    }
+}
+
+fn handle_navigation_down(ui: &mut UiState, state: &State) {
+    if ui.add_spell.field == AddSpellField::Spellbook {
+        if ui.add_spell.dropdown_open {
+            let options_count = state.codex.spellbooks.len() + 1;
+            if options_count > 0 {
+                ui.add_spell.dropdown_index = (ui.add_spell.dropdown_index + 1) % options_count;
+            }
+        } else {
+            ui.add_spell.dropdown_open = true;
+        }
+    } else {
+        ui.add_spell.field = next_add_spell_field(ui.add_spell.field);
+    }
+}
+
 /// Handle key events for AddSpellbook mode
 pub fn handle_add_spellbook(
     key: KeyCode,
@@ -203,6 +257,12 @@ pub fn handle_add_spellbook(
         return false;
     }
 
+    // When in edit mode, handle text input only
+    if ui.add_spellbook.is_editing {
+        return handle_add_spellbook_edit_mode(key, ui);
+    }
+
+    // Navigation mode
     match key {
         KeyCode::Esc => {
             if ui.add_spellbook.has_unsaved {
@@ -219,11 +279,13 @@ pub fn handle_add_spellbook(
         }
 
         KeyCode::Tab => {
+            ui.add_spellbook.is_editing = false;
             ui.add_spellbook.next_field();
             false
         }
 
         KeyCode::BackTab => {
+            ui.add_spellbook.is_editing = false;
             ui.add_spellbook.prev_field();
             false
         }
@@ -233,12 +295,41 @@ pub fn handle_add_spellbook(
             false
         }
 
-        KeyCode::Down | KeyCode::Char('j') | KeyCode::Enter => {
-            if key == KeyCode::Enter && ui.add_spellbook.field == AddSpellbookField::Sigil {
+        KeyCode::Down | KeyCode::Char('j') => {
+            ui.add_spellbook.next_field();
+            false
+        }
+
+        KeyCode::Enter => {
+            if is_spellbook_text_field(ui.add_spellbook.field) {
+                // Enter on text field enters edit mode
+                ui.add_spellbook.is_editing = true;
+            } else if ui.add_spellbook.field == AddSpellbookField::Sigil {
                 save_spellbook(state, ui);
-            } else {
-                ui.add_spellbook.next_field();
             }
+            false
+        }
+
+        KeyCode::Char(_) => {
+            // In navigation mode, ignore character input
+            false
+        }
+
+        _ => false,
+    }
+}
+
+fn handle_add_spellbook_edit_mode(key: KeyCode, ui: &mut UiState) -> bool {
+    match key {
+        KeyCode::Esc => {
+            // Exit edit mode
+            ui.add_spellbook.is_editing = false;
+            false
+        }
+
+        KeyCode::Enter => {
+            // Exit edit mode, stay on current field
+            ui.add_spellbook.is_editing = false;
             false
         }
 
