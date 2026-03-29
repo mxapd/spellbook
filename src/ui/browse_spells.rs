@@ -266,6 +266,7 @@ pub fn handle_browse_spells(
                         Ok(job_id) => {
                             ui.copy_feedback =
                                 Some(format!("Job {} started: {}", job_id, spell.name));
+                            ui.open_jobs_sidebar(); // Auto-open sidebar when job starts
                             state.add_recent(
                                 spell.id.clone(),
                                 spell.name.clone(),

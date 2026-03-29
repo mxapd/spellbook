@@ -254,14 +254,14 @@ When testing v2:
    - [ ] Esc clears and deactivates
 
 7. **Focus**
-   - [ ] Tab cycles between main and sidebar
-   - [ ] Visual indicators correct
-   - [ ] Events route to focused component
+   - [x] Tab cycles between main and sidebar
+   - [x] Visual indicators correct
+   - [x] Events route to focused component
 
 8. **Themes & Views**
-   - [ ] `t` cycles themes
-   - [ ] `v` cycles view modes
    - [ ] Preferences persist across restarts
+   - [ ] View modes work via commands (`:c`, `:p`, `:a`)
+   - [ ] Themes work via command (`:t`)
 
 9. **AddSpellbook Mode**
    - [ ] `:nb` opens AddSpellbook form
@@ -293,9 +293,9 @@ When testing v2:
     - [ ] "Loading..." message shows operation
 
 12. **Vim Keybindings**
-    - [ ] hjkl navigation in spellbook browser
-    - [ ] j/k navigation in spell lists
-    - [ ] h/l for back/forward navigation
+    - [x] hjkl navigation in spellbook browser
+    - [x] j/k navigation in spell lists
+    - [x] h/l for back/forward navigation
 
 13. **Edge Cases**
     - [ ] Empty state displays (no spellbooks, no spells)

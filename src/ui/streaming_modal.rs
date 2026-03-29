@@ -442,6 +442,7 @@ pub fn handle_streaming_modal_key(
                         state
                             .output
                             .add_line(format!("[Moved to background job {}]", job_id));
+                        ui.open_jobs_sidebar(); // Auto-open sidebar when job moved to background
                         return true; // Close modal
                     }
                     Err(e) => {

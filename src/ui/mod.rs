@@ -591,6 +591,13 @@ impl UiState {
         }
     }
 
+    pub fn open_jobs_sidebar(&mut self) {
+        if !self.jobs_sidebar_open {
+            self.jobs_sidebar_open = true;
+            // Keep focus on Main - user can Tab to sidebar if needed
+        }
+    }
+
     pub fn cycle_focus(&mut self) {
         if !self.jobs_sidebar_open {
             return;
