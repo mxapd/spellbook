@@ -15,6 +15,12 @@ The format is based on [Keep a Changelog](https://keepaloggelog.com/en/1.0.0/).
 - Loading states for all archivist operations
 - Context-aware footer hints for all modes
 - 100 unit tests passing
+- Added `:q` / `:quit` command to exit application
+- Removed deprecated `:e` / `:experimental` command
+- Removed implicit search mode (search now always requires explicit `/` or `:` activation)
+- Fixed list view mode crash when switching views
+- Removed double border in list view mode
+- Changed delete spellbook keybinding from `Shift+D` to `Ctrl+D`
 
 ### Fixed
 - Background jobs now persist correctly after app restart (missing `.spellbook` directory creation)
@@ -74,9 +80,10 @@ The format is based on [Keep a Changelog](https://keepaloggelog.com/en/1.0.0/).
 - `:j` / `:jobs` - Toggle jobs sidebar
 - `:?` / `:help` - Show keybind reference
 - `:export` / `:import` - import/export commands
+- `:q` / `:quit` - Quit application
 
 #### Spellbook Management
-- Delete spellbook with `Shift+D`
+- Delete spellbook with `Ctrl+D`
 - Confirmation dialog before deletion
 - Prevents deletion of virtual spellbooks (Favorites/Recent)
 

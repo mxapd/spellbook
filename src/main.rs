@@ -66,10 +66,7 @@ fn run(terminal: &mut DefaultTerminal) -> io::Result<()> {
     let mut ui_state = ui::UiState::new(mode == AppMode::AddSpell);
 
     // Start on BrowseSpellbooks mode by default (unless --add is passed for AddSpell mode)
-    if mode == AppMode::Browse {
-        ui_state.open_search();
-        ui_state.set_mode(ui::Mode::BrowseSpellbooks(ui::BrowseState::default()));
-    } else {
+    if mode != AppMode::Browse {
         ui_state.set_mode(ui::Mode::AddSpell(ui::FormState::default()));
     }
 
@@ -110,7 +107,7 @@ fn run(terminal: &mut DefaultTerminal) -> io::Result<()> {
                     );
                     let should_quit =
                         ui::handle_event(key.code, &mut state, &mut ui_state, key.modifiers);
-                    if should_quit {
+                    if should_quit || ui_state.should_quit {
                         log_info!("Spellbook exiting");
                         let _ = execute!(io::stdout(), LeaveAlternateScreen);
                         return Ok(());

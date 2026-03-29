@@ -1,3 +1,4 @@
+use crate::log_debug;
 use crate::models::{FocusTarget, SpineStyle, ViewMode};
 use crate::state::State;
 use crate::ui::{Mode, UiState};
@@ -222,15 +223,57 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
 
     let theme = &state.theme;
 
-    let chunks = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([
-            Constraint::Length(3),
-            Constraint::Min(8),
-            Constraint::Length(4),
-            Constraint::Length(1),
-        ])
-        .split(area);
+    // Calculate early whether to show details panel
+    let should_show_details = match &ui.mode {
+        Mode::BrowseSpells(_) => true,
+        Mode::BrowseSpellbooks(_) => {
+            !ui.search_query().is_empty() || !ui.showing_spellbooks()
+        }
+        _ => false,
+    };
+
+    // Calculate exact height needed for spellbook browser (for footer positioning)
+    let card_height: u16 = 10;
+    let card_gap: u16 = 1;
+    let available_width = area.width.saturating_sub(4);
+    let cards_per_row = ((available_width as usize) / (14 + 2)).max(1);
+    let total_spellbooks = total_spellbook_count(state);
+    let num_rows = ((total_spellbooks + cards_per_row - 1) / cards_per_row) as u16;
+    let spellbook_content_height = (num_rows * card_height)
+        .saturating_add(if num_rows > 1 { (num_rows - 1) * card_gap } else { 0 })
+        .saturating_add(2); // +2 for Block borders
+    
+    // Debug logging
+    log_debug!("Layout debug: area.height={}, spellbook_content_height={}, cards_per_row={}, num_rows={}, total_spellbooks={}", 
+               area.height, spellbook_content_height, cards_per_row, num_rows, total_spellbooks);
+    
+    // Create layout based on whether details panel is shown
+    let chunks = if should_show_details {
+        // Layout with details panel: search | main | details | footer
+        Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([
+                Constraint::Length(3),   // Search input
+                Constraint::Min(8),      // Main content
+                Constraint::Length(4),   // Details panel
+                Constraint::Length(1),   // Footer
+            ])
+            .split(area)
+    } else {
+        // Layout: search | main(max) | footer - use Max to allow tighter fit
+        let chunks = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([
+                Constraint::Length(3),                      // Search input
+                Constraint::Min(spellbook_content_height),  // Main content (min height, expands to fill)
+                Constraint::Length(1),                      // Footer
+            ])
+            .split(area);
+        
+        log_debug!("Spellbook layout: chunks[1].height={}, chunks[2].y={}", chunks[1].height, chunks[2].y);
+        
+        chunks
+    };
 
     let query = ui.search_query();
     let is_searching = ui.is_searching();
@@ -309,14 +352,6 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
     }
 
     // Only render details panel when showing spell results (not spellbook browser)
-    let should_show_details = match &ui.mode {
-        Mode::BrowseSpells(_) => true,
-        Mode::BrowseSpellbooks(_) => {
-            !ui.search_query().is_empty() || !ui.showing_spellbooks()
-        }
-        _ => false,
-    };
-
     if should_show_details {
         let details = if !ui.filtered_indices().is_empty() {
             render_spell_details(state, ui)
@@ -366,7 +401,32 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
         };
         Paragraph::new(hint_text).style(Style::new().fg(theme.muted).bg(theme.bg))
     };
-    frame.render_widget(hint, chunks[3]);
+    // Render footer at correct position
+    if should_show_details {
+        // With details panel: footer is in chunks[3]
+        frame.render_widget(hint, chunks[3]);
+    } else {
+        // Without details panel: fill gap between Block and footer with background
+        // Calculate if there's space between chunks[1] and chunks[2]
+        let block_bottom = chunks[1].y + chunks[1].height;
+        let footer_top = chunks[2].y;
+        
+        if footer_top > block_bottom {
+            // There's a gap - fill it with background color
+            let gap_height = footer_top - block_bottom;
+            let gap_area = ratatui::layout::Rect {
+                x: chunks[1].x,
+                y: block_bottom,
+                width: chunks[1].width,
+                height: gap_height,
+            };
+            let fill = Paragraph::new("").style(Style::new().bg(theme.bg));
+            frame.render_widget(fill, gap_area);
+        }
+        
+        // Footer is in chunks[2]
+        frame.render_widget(hint, chunks[2]);
+    }
 }
 
 pub fn render_in_area(
@@ -607,9 +667,15 @@ fn render_spellbook_browser(
         }
     }
 
+    let border_color = if ui.jobs_sidebar_open && ui.focus == FocusTarget::Main {
+        theme.accent
+    } else {
+        theme.border
+    };
+
     let block = Block::default()
         .borders(Borders::ALL)
-        .border_style(Style::new().fg(theme.border))
+        .border_style(Style::new().fg(border_color))
         .title(" Spellbooks ")
         .title_style(Style::new().fg(theme.accent));
 
@@ -791,13 +857,9 @@ fn render_spellbook_cards(
             let is_selected = i == selected;
             let is_virtual = item.is_virtual();
             let card_style = if is_selected && !ui.is_searching() {
-                if is_virtual {
-                    Style::new().fg(theme.accent).add_modifier(Modifier::BOLD)
-                } else {
-                    Style::new()
-                        .fg(theme.selection)
-                        .add_modifier(Modifier::BOLD)
-                }
+                Style::new()
+                    .fg(theme.selection)
+                    .add_modifier(Modifier::BOLD)
             } else {
                 Style::new().fg(theme.fg)
             };
@@ -841,7 +903,7 @@ fn render_spellbook_cards(
             let card_block = if is_selected && !ui.is_searching() && ui.focus != FocusTarget::JobsSidebar {
                 Block::default()
                     .borders(Borders::ALL)
-                    .border_style(Style::new().fg(theme.accent))
+                    .border_style(Style::new().fg(theme.selection))
             } else {
                 Block::default()
                     .borders(Borders::ALL)
@@ -940,11 +1002,7 @@ fn render_spellbook_spines(
             let is_virtual = item.is_virtual();
 
             let name_style = if is_selected {
-                if is_virtual {
-                    Style::new().fg(theme.accent).add_modifier(Modifier::BOLD)
-                } else {
-                    Style::new().fg(theme.fg).add_modifier(Modifier::BOLD)
-                }
+                Style::new().fg(theme.selection).add_modifier(Modifier::BOLD)
             } else {
                 Style::new().fg(theme.fg)
             };
@@ -979,7 +1037,7 @@ fn render_spellbook_spines(
             let spine_block = if is_selected && !ui.is_searching() && ui.focus != FocusTarget::JobsSidebar {
                 Block::default()
                     .borders(Borders::ALL)
-                    .border_style(Style::new().fg(theme.accent))
+                    .border_style(Style::new().fg(theme.selection))
             } else {
                 Block::default()
                     .borders(Borders::ALL)
@@ -1068,29 +1126,33 @@ fn render_spellbook_list(
             let item = get_spellbook_item(state, i)?;
             let icon = item.icon();
             let name = item.name();
-            let prefix = if i == selected { "> " } else { "  " };
+            let is_selected = i == selected;
+            let prefix = if is_selected { "> " } else { "  " };
             let display_name = if icon.is_empty() {
                 name.to_string()
             } else {
                 format!("{} {}", icon, name)
             };
+            let style = if is_selected {
+                Style::new().fg(theme.selection)
+            } else {
+                Style::new().fg(theme.fg)
+            };
             Some(
-                ListItem::new(format!("{}{}", prefix, display_name))
-                    .style(Style::new().fg(theme.fg)),
+                ListItem::new(format!("{}{}", prefix, display_name)).style(style),
             )
         })
         .collect();
 
     let list = List::new(items)
-        .block(
-            Block::default()
-                .borders(Borders::ALL)
-                .border_style(Style::new().fg(theme.border))
-                .title_style(Style::new().fg(theme.accent)),
-        )
         .style(Style::new().bg(theme.bg).fg(theme.fg));
 
-    frame.render_stateful_widget(list, area, ui.search_results_state());
+    // Only use stateful widget when in search mode
+    if ui.is_searching() {
+        frame.render_stateful_widget(list, area, ui.search_results_state());
+    } else {
+        frame.render_widget(list, area);
+    }
 }
 
 fn wrap_text_for_spine(text: &str, max_width: usize) -> Vec<String> {
@@ -1193,6 +1255,11 @@ fn render_search_results(
     ui: &mut UiState,
     area: ratatui::layout::Rect,
 ) {
+    // Guard: only render when in Searching state
+    if !ui.is_searching() {
+        return;
+    }
+
     let theme = &state.theme;
 
     let results: Vec<ListItem> = ui
@@ -1366,6 +1433,11 @@ fn format_compact_spell_details<'a>(spell: &'a crate::models::Spell, theme: &cra
 }
 
 fn render_spell_details<'a>(state: &'a State, ui: &mut UiState) -> Vec<Line<'a>> {
+    // Guard: only render when in Searching state
+    if !ui.is_searching() {
+        return vec![Line::from("")];
+    }
+
     let selected_idx = ui.search_results_state().selected().unwrap_or(0);
     let spell_opt = ui.filtered_indices().get(selected_idx).copied();
 
@@ -1463,9 +1535,15 @@ fn render_spellbook_spells(
         })
         .collect();
 
+    let border_color = if ui.jobs_sidebar_open && ui.focus == FocusTarget::Main {
+        theme.accent
+    } else {
+        theme.border
+    };
+
     let list_block = Block::bordered()
         .title(title)
-        .border_style(Style::new().fg(theme.border))
+        .border_style(Style::new().fg(border_color))
         .title_style(Style::new().fg(theme.accent));
 
     if items.is_empty() {

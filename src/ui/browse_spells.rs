@@ -284,11 +284,9 @@ pub fn handle_browse_spells(
         }
     }
 
-    // Handle character input for search/filter
+    // Handle character input for search/filter - only if already in search mode
     if let KeyCode::Char(c) = key {
-        // Only auto-search if implicit_search is enabled OR we're already searching (pressed /)
-        let can_type = state.user_settings.implicit_search || ui.is_searching();
-        if can_type {
+        if ui.is_searching() {
             if let Some(query) = ui.search_query_mut() {
                 query.push(c);
             }

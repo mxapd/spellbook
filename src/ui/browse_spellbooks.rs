@@ -158,8 +158,8 @@ pub fn handle_browse_spellbooks(
             _ => {}
         }
 
-        // Shift+D - Delete spellbook
-        if key == KeyCode::Char('D') {
+        // Ctrl+D - Delete spellbook
+        if key == KeyCode::Char('d') && modifiers.contains(KeyModifiers::CONTROL) {
             if let Some(idx) = ui.search_spellbook_index() {
                 if idx < spellbook_count {
                     use crate::ui::search_overlay::get_spellbook_item;
@@ -210,11 +210,9 @@ pub fn handle_browse_spellbooks(
             return false;
         }
 
-        // Any character input - start filtering (respect implicit_search setting)
+        // Any character input - only if already in search mode
         if let KeyCode::Char(c) = key {
-            let can_type = state.user_settings.implicit_search || ui.is_searching();
-            if can_type {
-                ui.open_search();
+            if ui.is_searching() {
                 if let Some(query) = ui.search_query_mut() {
                     query.push(c);
                 }

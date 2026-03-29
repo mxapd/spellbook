@@ -210,6 +210,7 @@ pub enum VirtualKind {
 | `:?` | Help |
 | `:import <file>` | Import spells |
 | `:export [file]` | Export codex |
+| `:q` | Quit application |
 
 ## Testing Checklist
 
@@ -321,6 +322,9 @@ The following issues require manual testing and potential fixes:
 - **Windows Compatibility**: exec() is Unix-only; test fallback on Windows
 - **Very Long Commands**: Test display truncation in forms
 - **Unicode Handling**: Test spell names/commands with emojis/unicode
+
+### Technical Debt
+- **Error Handling**: Replace `.unwrap()` / `.expect()` calls (37 instances) with proper error handling. Focus on file I/O in archivist.rs and state loading - these should show user-friendly errors instead of panicking. Use `Result` types, provide defaults, or log errors gracefully.
 
 ## Migration Notes
 

@@ -138,6 +138,9 @@ pub struct UiState {
     // Search cursor state for blinking effect
     pub search_cursor_visible: bool,
     pub search_cursor_tick: u64,
+
+    // Quit flag
+    pub should_quit: bool,
 }
 
 impl UiState {
@@ -172,6 +175,8 @@ impl UiState {
 
             search_cursor_visible: true,
             search_cursor_tick: 0,
+
+            should_quit: false,
         }
     }
 

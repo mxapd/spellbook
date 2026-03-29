@@ -27,10 +27,9 @@ enum CommandAction {
     CycleTheme,
     Jobs,
     Help,
-    Experimental,
     Export,
     Import,
-    ToggleImplicitSearch,
+    Quit,
 }
 
 fn get_commands() -> Vec<Command> {
@@ -92,11 +91,6 @@ fn get_commands() -> Vec<Command> {
             action: CommandAction::Jobs,
         },
         Command {
-            aliases: vec!["e", "experimental"],
-            description: "Toggle experimental mode",
-            action: CommandAction::Experimental,
-        },
-        Command {
             aliases: vec!["export", "ex"],
             description: "Export codex or spellbook",
             action: CommandAction::Export,
@@ -107,9 +101,9 @@ fn get_commands() -> Vec<Command> {
             action: CommandAction::Import,
         },
         Command {
-            aliases: vec!["implicit", "implicit-search"],
-            description: "Toggle implicit search mode",
-            action: CommandAction::ToggleImplicitSearch,
+            aliases: vec!["q", "quit"],
+            description: "Quit spellbook",
+            action: CommandAction::Quit,
         },
     ]
 }
@@ -193,10 +187,6 @@ fn execute_command_by_action(action: &CommandAction, state: &mut State, ui: &mut
             ui.toggle_jobs_sidebar();
             log_info!("Command: jobs");
         }
-        CommandAction::Experimental => {
-            log_info!("Command: toggle experimental");
-            ui.copy_feedback = Some("Experimental mode toggled".to_string());
-        }
         CommandAction::Export => {
             log_info!("Command: export (needs arguments)");
             ui.copy_feedback = Some("Usage: :export [filename]".to_string());
@@ -205,16 +195,9 @@ fn execute_command_by_action(action: &CommandAction, state: &mut State, ui: &mut
             log_info!("Command: import (needs arguments)");
             ui.copy_feedback = Some("Usage: :import <filename>".to_string());
         }
-        CommandAction::ToggleImplicitSearch => {
-            state.user_settings.implicit_search = !state.user_settings.implicit_search;
-            let _ = Archivist::save_user_settings("theme.toml", &state.user_settings);
-            let status = if state.user_settings.implicit_search {
-                "enabled"
-            } else {
-                "disabled"
-            };
-            ui.copy_feedback = Some(format!("Implicit search {}", status));
-            log_info!("Command: toggle implicit search (now {})", status);
+        CommandAction::Quit => {
+            ui.should_quit = true;
+            log_info!("Command: quit");
         }
     }
 }

@@ -45,13 +45,17 @@ pub fn render_help(frame: &mut Frame, area: Rect, theme: &RatatuiColors) {
         Span::raw("  "),
         Span::styled("navigate", desc_style),
         Span::raw("    "),
+        Span::styled("h", key_style),
+        Span::raw("  "),
+        Span::styled("back", desc_style),
+        Span::raw("    "),
         Span::styled("Enter", key_style),
         Span::raw("  "),
         Span::styled("open/execute", desc_style),
         Span::raw("    "),
         Span::styled("Esc", key_style),
         Span::raw("  "),
-        Span::styled("back/close", desc_style),
+        Span::styled("close", desc_style),
     ]);
     frame.render_widget(Paragraph::new(nav_keys), chunks[1]);
 
@@ -126,10 +130,20 @@ pub fn render_help(frame: &mut Frame, area: Rect, theme: &RatatuiColors) {
         Span::styled("cycle focus", desc_style),
         Span::raw("    "),
         Span::styled("k", key_style),
-        Span::raw("/"),
+        Span::raw("  "),
+        Span::styled("kill job", desc_style),
+        Span::raw("  "),
         Span::styled("c", key_style),
         Span::raw("  "),
-        Span::styled("kill/cancel job", desc_style),
+        Span::styled("cancel", desc_style),
+        Span::raw("  "),
+        Span::styled("d", key_style),
+        Span::raw("  "),
+        Span::styled("dismiss", desc_style),
+        Span::raw("  "),
+        Span::styled("v", key_style),
+        Span::raw("  "),
+        Span::styled("view", desc_style),
     ]);
     frame.render_widget(Paragraph::new(jobs_keys), chunks[8]);
 

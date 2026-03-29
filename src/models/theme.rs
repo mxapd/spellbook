@@ -244,12 +244,6 @@ pub struct UserSettings {
     pub view_mode: ViewMode,
     #[serde(default)]
     pub experimental_mode: bool,
-    #[serde(default = "default_implicit_search")]
-    pub implicit_search: bool,
-}
-
-fn default_implicit_search() -> bool {
-    false
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]

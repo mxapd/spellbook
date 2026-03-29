@@ -31,13 +31,13 @@ pub fn render_jobs_panel(f: &mut Frame, state: &State, ui: &mut crate::ui::UiSta
     let jobs = invoker::list_jobs();
 
     if jobs.is_empty() {
-        let empty_msg = Paragraph::new("No jobs yet. Run a spell with Alt+Enter to start.")
+        let empty_msg = Paragraph::new("No jobs yet")
             .style(Style::new().fg(theme.muted));
         f.render_widget(empty_msg, area);
         return;
     }
 
-    let visible_height = area.height as usize;
+    let visible_height = area.height.saturating_sub(1) as usize;
     let total_height = jobs.len();
 
     if ui.jobs_panel_state.selected_index.is_none() && !jobs.is_empty() {
@@ -118,27 +118,22 @@ pub fn render_jobs_panel(f: &mut Frame, state: &State, ui: &mut crate::ui::UiSta
         .block(Block::default())
         .style(Style::new().bg(theme.bg));
 
-    f.render_widget(list, area);
+    let list_area = Rect::new(area.x, area.y, area.width, area.height.saturating_sub(2));
+    f.render_widget(list, list_area);
 
     let help_text = Line::from(vec![
-        Span::raw("["),
-        Span::styled("k", Style::new().fg(theme.accent)),
-        Span::raw("]ill  ["),
-        Span::styled("c", Style::new().fg(theme.accent)),
-        Span::raw("]ancel  ["),
-        Span::styled("d", Style::new().fg(theme.accent)),
-        Span::raw("]ismiss  ["),
-        Span::styled("v", Style::new().fg(theme.accent)),
-        Span::raw("]iew  ["),
-        Span::styled("Esc", Style::new().fg(theme.accent)),
-        Span::raw("] close"),
+        Span::styled("[k]ill", Style::new().fg(theme.accent)),
+        Span::raw("  "),
+        Span::styled("[c]ancel", Style::new().fg(theme.accent)),
+        Span::raw("  "),
+        Span::styled("[d]ismiss", Style::new().fg(theme.accent)),
+        Span::raw("  "),
+        Span::styled("[v]iew", Style::new().fg(theme.accent)),
     ]);
-
     let help_para = Paragraph::new(help_text)
         .alignment(ratatui::layout::Alignment::Center)
         .style(Style::new().fg(theme.muted));
-
-    let help_area = Rect::new(area.x, area.y + area.height - 1, area.width, 1);
+    let help_area = Rect::new(area.x, area.y + area.height.saturating_sub(2), area.width, 1);
     f.render_widget(help_para, help_area);
 }
 
