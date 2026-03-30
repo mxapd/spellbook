@@ -19,6 +19,7 @@ pub enum ConfirmAction {
 pub struct ConfirmDialogState {
     pub action: ConfirmAction,
     pub typed_confirmation: String,
+    pub execution_mode: Option<RunMode>,
 }
 
 impl Default for ConfirmDialogState {
@@ -26,6 +27,7 @@ impl Default for ConfirmDialogState {
         Self {
             action: ConfirmAction::DeleteSpell(Spell::default()),
             typed_confirmation: String::new(),
+            execution_mode: None,
         }
     }
 }
@@ -35,6 +37,7 @@ impl ConfirmDialogState {
         Self {
             action: ConfirmAction::DeleteSpell(spell),
             typed_confirmation: String::new(),
+            execution_mode: None,
         }
     }
 
@@ -42,13 +45,15 @@ impl ConfirmDialogState {
         Self {
             action: ConfirmAction::DeleteSpellbook(name),
             typed_confirmation: String::new(),
+            execution_mode: None,
         }
     }
 
-    pub fn execute_spell(spell: Spell) -> Self {
+    pub fn execute_spell(spell: Spell, mode: RunMode) -> Self {
         Self {
             action: ConfirmAction::ExecuteSpell(spell),
             typed_confirmation: String::new(),
+            execution_mode: Some(mode),
         }
     }
 

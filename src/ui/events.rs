@@ -1,5 +1,5 @@
 use crate::archivist::Archivist;
-use crate::models::FocusTarget;
+use crate::models::{FocusTarget, RunMode};
 use crate::state::State;
 use crate::ui::{streaming_modal, Mode, Overlay, UiState, ViewMode};
 use crate::{log_debug, log_error, log_info};
@@ -364,10 +364,6 @@ fn handle_overlay(
 ) -> bool {
     match overlay {
         Overlay::OutputModal => {
-            // Check for Ctrl+C first
-            if key == KeyCode::Char('c') && modifiers.contains(KeyModifiers::CONTROL) {
-                return false; // Let Ctrl+C pass through to global handler
-            }
             // Use new streaming modal if active, otherwise fall back to legacy
             if ui.streaming_modal.streaming.is_some() || ui.streaming_modal.output.is_streaming {
                 let should_close = streaming_modal::handle_streaming_modal_key(key, modifiers, ui);
@@ -380,9 +376,10 @@ fn handle_overlay(
             true
         }
         Overlay::ConfirmDialog => {
-            // Check for Ctrl+C first
+            // Handle Ctrl+C to close the dialog
             if key == KeyCode::Char('c') && modifiers.contains(KeyModifiers::CONTROL) {
-                return false; // Let Ctrl+C pass through to global handler
+                ui.pop_overlay();
+                return true;
             }
             handle_confirm_dialog(key, state, ui);
             true
@@ -392,17 +389,17 @@ fn handle_overlay(
             false
         }
         Overlay::Help => {
-            if key == KeyCode::Esc {
+            if key == KeyCode::Esc || (key == KeyCode::Char('c') && modifiers.contains(KeyModifiers::CONTROL)) {
                 ui.pop_overlay();
-            } else if key == KeyCode::Char('c') && modifiers.contains(KeyModifiers::CONTROL) {
-                return false; // Let Ctrl+C pass through to global handler
             }
             true
         }
         Overlay::InputPopup => {
-            // Check for Ctrl+C first
+            // Handle Ctrl+C to close the popup
             if key == KeyCode::Char('c') && modifiers.contains(KeyModifiers::CONTROL) {
-                return false; // Let Ctrl+C pass through to global handler
+                ui.input_popup = None;
+                ui.pop_overlay();
+                return true;
             }
             if ui.input_popup.is_some() {
                 let close = handle_input_popup(key, state, ui);
@@ -555,9 +552,59 @@ fn handle_confirm_dialog(key: KeyCode, state: &mut State, ui: &mut UiState) -> b
                         }
                     }
                     ConfirmAction::ExecuteSpell(spell) => {
-                        log_info!("Confirmed: execute spell {}", spell.name);
-                        // Execute the spell
-                        execute_simple_mode(&spell, state, ui);
+                        log_info!("Confirmed: execute spell {} in {:?} mode", spell.name, dialog.execution_mode);
+                        match dialog.execution_mode {
+                            Some(RunMode::Simple) | None => {
+                                execute_simple_mode(&spell, state, ui);
+                            }
+                            Some(RunMode::Tui) => {
+                                state.add_recent(spell.id.clone(), spell.name.clone(), crate::models::RecentAction::Run);
+                                let working_dir = if spell.working_dir.is_empty() {
+                                    if state.launch_dir.is_empty() {
+                                        None
+                                    } else {
+                                        Some(state.launch_dir.clone())
+                                    }
+                                } else {
+                                    Some(spell.working_dir.clone())
+                                };
+                                if let Err(e) = crate::ui::streaming_modal::start_tui_execution(
+                                    ui,
+                                    spell.incantation.clone(),
+                                    Some(spell.name.clone()),
+                                    working_dir,
+                                    state.launch_dir.clone(),
+                                ) {
+                                    ui.copy_feedback = Some(format!("Failed to start TUI mode: {}", e));
+                                }
+                            }
+                            Some(RunMode::Background) => {
+                                let spell_id = spell.id.clone();
+                                let spell_name = spell.name.clone();
+                                match crate::invoker::start_spell(
+                                    spell.name.clone(),
+                                    spell.incantation.clone(),
+                                    if spell.working_dir.is_empty() {
+                                        if state.launch_dir.is_empty() {
+                                            None
+                                        } else {
+                                            Some(state.launch_dir.clone())
+                                        }
+                                    } else {
+                                        Some(spell.working_dir.clone())
+                                    },
+                                ) {
+                                    Ok(job_id) => {
+                                        ui.copy_feedback = Some(format!("Job {} started: {}", job_id, spell.name));
+                                        ui.open_jobs_sidebar();
+                                        state.add_recent(spell_id, spell_name, crate::models::RecentAction::Run);
+                                    }
+                                    Err(e) => {
+                                        ui.copy_feedback = Some(format!("Failed to start background job: {}", e));
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }

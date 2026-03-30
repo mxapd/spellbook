@@ -3,7 +3,7 @@
 //! This module handles key events when viewing spells inside a spellbook.
 
 use crate::log_info;
-use crate::models::{RecentAction, Spell};
+use crate::models::{RecentAction, RunMode, Spell};
 use crate::state::State;
 use crate::ui::search_overlay::{get_spellbook_item, SpellbookItem};
 use crate::ui::{events, streaming_modal, Overlay, UiState};
@@ -65,6 +65,9 @@ pub fn handle_browse_spells(
                 let favorites_count = state.codex.spells.iter().filter(|s| s.favorite).count();
                 let has_favorites = favorites_count > 0;
                 let has_recent = !state.recents.is_empty();
+                let real_spellbook_count = state.codex.spellbooks.len();
+                let virtual_offset = (if has_favorites { 1 } else { 0 }) + (if has_recent { 1 } else { 0 });
+                let all_index = virtual_offset + real_spellbook_count;
                 
                 // Get the spell ID based on spellbook type
                 let spell_id_opt = if has_favorites && spellbook_index == 0 {
@@ -76,6 +79,9 @@ pub fn handle_browse_spells(
                     if spellbook_index == recent_idx {
                         // Recent
                         state.recents.get(selected_idx).map(|r| r.spell_id.clone())
+                    } else if spellbook_index == all_index {
+                        // All spells
+                        state.codex.spells.get(selected_idx).map(|s| s.id.clone())
                     } else {
                         // Real spellbook
                         let offset = (if has_favorites { 1 } else { 0 }) + 1;
@@ -84,6 +90,9 @@ pub fn handle_browse_spells(
                             .and_then(|sb| sb.spell_ids.get(selected_idx))
                             .cloned()
                     }
+                } else if spellbook_index == all_index {
+                    // All spells (no favorites, no recent)
+                    state.codex.spells.get(selected_idx).map(|s| s.id.clone())
                 } else {
                     // Real spellbook (no virtual)
                     state.codex.spellbooks.get(spellbook_index)
@@ -146,8 +155,8 @@ pub fn handle_browse_spells(
                 return false;
             }
 
-            // 'e' key - edit the selected spell
-            KeyCode::Char('e') => {
+            // 'e' key - edit the selected spell (works with Ctrl in search mode too)
+            KeyCode::Char('e') if !ui.is_searching() || modifiers.contains(KeyModifiers::CONTROL) => {
                 let spell_idx = ui.spell_list_state.selected().unwrap_or(0);
                 if let Some((spell_id, _)) = get_spell_at_index(state, spellbook_index, spell_idx) {
                     if let Some(spell) = state.get_spell(&spell_id) {
@@ -160,7 +169,7 @@ pub fn handle_browse_spells(
             }
 
             // 'd' key - delete the selected spell (with confirmation)
-            KeyCode::Char('d') => {
+            KeyCode::Char('d') if !ui.is_searching() || modifiers.contains(KeyModifiers::CONTROL) => {
                 let spell_idx = ui.spell_list_state.selected().unwrap_or(0);
                 if let Some((spell_id, _spell_name)) =
                     get_spell_at_index(state, spellbook_index, spell_idx)
@@ -177,7 +186,7 @@ pub fn handle_browse_spells(
             }
 
             // 'f' key - toggle favorite
-            KeyCode::Char('f') => {
+            KeyCode::Char('f') if !ui.is_searching() || modifiers.contains(KeyModifiers::CONTROL) => {
                 let spell_index = ui.spell_list_state.selected().unwrap_or(0);
                 if let Some((spell_id, _)) = get_spell_at_index(state, spellbook_index, spell_index)
                 {
@@ -195,13 +204,13 @@ pub fn handle_browse_spells(
             }
 
             // 's' - simple execution (exit TUI and run via exec)
-            KeyCode::Char('s') if !modifiers.contains(KeyModifiers::CONTROL) => {
+            KeyCode::Char('s') if !ui.is_searching() || modifiers.contains(KeyModifiers::CONTROL) => {
                 let spell_idx = ui.spell_list_state.selected().unwrap_or(0);
                 if let Some(spell) = get_spell_by_index(state, spellbook_index, spell_idx) {
                     if spell.confirm {
                         // Show confirmation dialog first
                         ui.confirm_dialog = Some(
-                            crate::ui::confirm::ConfirmDialogState::execute_spell(spell.clone()),
+                            crate::ui::confirm::ConfirmDialogState::execute_spell(spell.clone(), RunMode::Simple),
                         );
                         ui.push_overlay(Overlay::ConfirmDialog);
                         return false;
@@ -217,6 +226,13 @@ pub fn handle_browse_spells(
             KeyCode::Char('r') if modifiers.contains(KeyModifiers::CONTROL) => {
                 let spell_idx = ui.spell_list_state.selected().unwrap_or(0);
                 if let Some(spell) = get_spell_by_index(state, spellbook_index, spell_idx) {
+                    if spell.confirm {
+                        ui.confirm_dialog = Some(
+                            crate::ui::confirm::ConfirmDialogState::execute_spell(spell.clone(), RunMode::Tui),
+                        );
+                        ui.push_overlay(Overlay::ConfirmDialog);
+                        return false;
+                    }
                     log_info!(
                         "Ctrl+r: Executing spell '{}' in TUI mode with streaming",
                         spell.name
@@ -248,6 +264,13 @@ pub fn handle_browse_spells(
             KeyCode::Char('b') if modifiers.contains(KeyModifiers::CONTROL) => {
                 let spell_idx = ui.spell_list_state.selected().unwrap_or(0);
                 if let Some(spell) = get_spell_by_index(state, spellbook_index, spell_idx) {
+                    if spell.confirm {
+                        ui.confirm_dialog = Some(
+                            crate::ui::confirm::ConfirmDialogState::execute_spell(spell.clone(), RunMode::Background),
+                        );
+                        ui.push_overlay(Overlay::ConfirmDialog);
+                        return false;
+                    }
                     log_info!("Ctrl+b: Starting spell '{}' in background", spell.name);
                     match crate::invoker::start_spell(
                         spell.name.clone(),
@@ -284,9 +307,9 @@ pub fn handle_browse_spells(
         }
     }
 
-    // Handle character input for search/filter - only if already in search mode
+    // Handle character input for search/filter - only if already in search mode and not with Ctrl
     if let KeyCode::Char(c) = key {
-        if ui.is_searching() {
+        if ui.is_searching() && !modifiers.contains(KeyModifiers::CONTROL) {
             if let Some(query) = ui.search_query_mut() {
                 query.push(c);
             }
@@ -326,6 +349,7 @@ fn get_spell_count_for_spellbook(state: &State, spellbook_index: usize) -> usize
                 state.codex.spells.iter().filter(|s| s.favorite).count()
             }
             SpellbookItem::VirtualRecent { .. } => state.recents.len(),
+            SpellbookItem::VirtualAll { .. } => state.codex.spells.len(),
             SpellbookItem::Real { spellbook } => spellbook.spell_ids.len(),
         }
     } else {
@@ -350,6 +374,7 @@ fn get_spell_by_index(state: &State, spellbook_index: usize, spell_index: usize)
                 .find(|s| s.id == recent.spell_id)
                 .cloned()
         }),
+        SpellbookItem::VirtualAll { .. } => state.codex.spells.get(spell_index).cloned(),
         SpellbookItem::Real { spellbook } => spellbook
             .spell_ids
             .get(spell_index)
@@ -398,7 +423,8 @@ fn execute_spell_at_index(
         );
 
         if spell.confirm {
-            ui.confirm_dialog = Some(crate::ui::confirm::ConfirmDialogState::execute_spell(spell));
+            let run_mode = spell.run_mode;
+            ui.confirm_dialog = Some(crate::ui::confirm::ConfirmDialogState::execute_spell(spell, run_mode));
             ui.push_overlay(Overlay::ConfirmDialog);
         } else {
             start_spell_execution(state, ui, &spell);

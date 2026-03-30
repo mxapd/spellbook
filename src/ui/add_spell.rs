@@ -196,6 +196,7 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
                 normal_style
             },
         ),
+        Span::styled(" (Space/Enter to toggle)", Style::new().fg(theme.muted)),
     ]));
     frame.render_widget(confirm_line, form_chunks[7]);
 
@@ -496,6 +497,7 @@ pub fn render_in_area(
                 normal_style
             },
         ),
+        Span::styled(" (Space/Enter to toggle)", Style::new().fg(theme.muted)),
     ]));
     frame.render_widget(confirm_line, form_chunks[7]);
 

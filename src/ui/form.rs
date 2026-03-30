@@ -106,6 +106,13 @@ pub fn handle_add_spell(
             false
         }
 
+        KeyCode::Char(' ') => {
+            if ui.add_spell.field == AddSpellField::Confirm {
+                ui.add_spell.confirm = !ui.add_spell.confirm;
+            }
+            false
+        }
+
         KeyCode::Enter => {
             if is_text_field(ui.add_spell.field) {
                 // Enter on text field enters edit mode
@@ -124,7 +131,7 @@ pub fn handle_add_spell(
                     ui.add_spell.dropdown_open = true;
                 }
             } else if ui.add_spell.field == AddSpellField::Confirm {
-                save_spell(state, ui);
+                ui.add_spell.confirm = !ui.add_spell.confirm;
             }
             false
         }

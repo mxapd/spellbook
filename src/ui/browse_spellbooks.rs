@@ -3,6 +3,8 @@
 //! This module handles key events when browsing the list of spellbooks.
 
 use crate::log_info;
+use crate::log_error;
+use crate::archivist::Archivist;
 use crate::state::State;
 use crate::ui::browse_spells::update_search_filter;
 use crate::ui::search_overlay::{find_nearest_card, total_spellbook_count, CardDirection};
@@ -210,9 +212,72 @@ pub fn handle_browse_spellbooks(
             return false;
         }
 
-        // Any character input - only if already in search mode
+        // Ctrl+e - edit selected spell (works in both search and normal mode)
+        if key == KeyCode::Char('e') && modifiers.contains(KeyModifiers::CONTROL) {
+            let selected = ui.search_results_state().selected().unwrap_or(0);
+            let indices = ui.filtered_indices();
+            
+            if selected < indices.len() {
+                let spell_idx = indices[selected];
+                if let Some(spell) = state.codex.spells.get(spell_idx) {
+                    // Find which spellbook contains this spell
+                    for (sb_idx, sb) in state.codex.spellbooks.iter().enumerate() {
+                        if sb.spell_ids.contains(&spell.id) {
+                            ui.add_spell.start_edit(spell, Some(sb_idx));
+                            ui.enter_edit_spell(sb_idx, 0);
+                            return false;
+                        }
+                    }
+                    // If spell not in any spellbook, edit without spellbook
+                    ui.add_spell.start_edit(spell, None);
+                    ui.enter_edit_spell(0, 0);
+                }
+            }
+            return false;
+        }
+
+        // Ctrl+d - delete selected spell (works in both search and normal mode)
+        if key == KeyCode::Char('d') && modifiers.contains(KeyModifiers::CONTROL) {
+            let selected = ui.search_results_state().selected().unwrap_or(0);
+            let indices = ui.filtered_indices();
+            
+            if selected < indices.len() {
+                let spell_idx = indices[selected];
+                if let Some(spell) = state.codex.spells.get(spell_idx) {
+                    ui.confirm_dialog = Some(
+                        crate::ui::confirm::ConfirmDialogState::delete_spell(spell.clone()),
+                    );
+                    ui.push_overlay(Overlay::ConfirmDialog);
+                }
+            }
+            return false;
+        }
+
+        // Ctrl+f - toggle favorite (works in both search and normal mode)
+        if key == KeyCode::Char('f') && modifiers.contains(KeyModifiers::CONTROL) {
+            let selected = ui.search_results_state().selected().unwrap_or(0);
+            let indices = ui.filtered_indices();
+            
+            if selected < indices.len() {
+                let spell_idx = indices[selected];
+                let new_favorite = if let Some(spell) = state.codex.spells.get_mut(spell_idx) {
+                    spell.favorite = !spell.favorite;
+                    spell.favorite
+                } else {
+                    return false;
+                };
+                if let Err(e) = Archivist::save(&state.codex, "codex.toml") {
+                    log_error!("Failed to save codex: {}", e);
+                }
+                let status = if new_favorite { "added to" } else { "removed from" };
+                ui.copy_feedback = Some(format!("Spell {} favorites", status));
+            }
+            return false;
+        }
+
+        // Any character input - only if already in search mode and not with Ctrl
         if let KeyCode::Char(c) = key {
-            if ui.is_searching() {
+            if ui.is_searching() && !modifiers.contains(KeyModifiers::CONTROL) {
                 if let Some(query) = ui.search_query_mut() {
                     query.push(c);
                 }
@@ -279,10 +344,175 @@ fn handle_search_navigation(key: KeyCode, modifiers: KeyModifiers, state: &mut S
             }
             return false;
         }
+
+        // Ctrl+e - edit selected spell
+        if let KeyCode::Char('e') = key {
+            let selected = ui.search_results_state().selected().unwrap_or(0);
+            let indices = ui.filtered_indices();
+            if selected < indices.len() {
+                let spell_idx = indices[selected];
+                if let Some(spell) = state.codex.spells.get(spell_idx) {
+                    for (sb_idx, sb) in state.codex.spellbooks.iter().enumerate() {
+                        if sb.spell_ids.contains(&spell.id) {
+                            ui.add_spell.start_edit(spell, Some(sb_idx));
+                            ui.enter_edit_spell(sb_idx, 0);
+                            return false;
+                        }
+                    }
+                    ui.add_spell.start_edit(spell, None);
+                    ui.enter_edit_spell(0, 0);
+                }
+            }
+            return false;
+        }
+
+        // Ctrl+d - delete selected spell
+        if let KeyCode::Char('d') = key {
+            let selected = ui.search_results_state().selected().unwrap_or(0);
+            let indices = ui.filtered_indices();
+            if selected < indices.len() {
+                let spell_idx = indices[selected];
+                if let Some(spell) = state.codex.spells.get(spell_idx) {
+                    ui.confirm_dialog = Some(
+                        crate::ui::confirm::ConfirmDialogState::delete_spell(spell.clone()),
+                    );
+                    ui.push_overlay(Overlay::ConfirmDialog);
+                }
+            }
+            return false;
+        }
+
+        // Ctrl+f - toggle favorite
+        if let KeyCode::Char('f') = key {
+            let selected = ui.search_results_state().selected().unwrap_or(0);
+            let indices = ui.filtered_indices();
+            if selected < indices.len() {
+                let spell_idx = indices[selected];
+                let new_favorite = if let Some(spell) = state.codex.spells.get_mut(spell_idx) {
+                    spell.favorite = !spell.favorite;
+                    spell.favorite
+                } else {
+                    return false;
+                };
+                if let Err(e) = Archivist::save(&state.codex, "codex.toml") {
+                    log_error!("Failed to save codex: {}", e);
+                }
+                let status = if new_favorite { "added to" } else { "removed from" };
+                ui.copy_feedback = Some(format!("Spell {} favorites", status));
+            }
+            return false;
+        }
+
+        // 's' - simple execution (exit TUI and run via exec)
+        if let KeyCode::Char('s') = key {
+            let selected = ui.search_results_state().selected().unwrap_or(0);
+            let indices = ui.filtered_indices();
+            if selected < indices.len() {
+                let spell_idx = indices[selected];
+                if let Some(spell) = state.codex.spells.get(spell_idx).cloned() {
+                    if spell.confirm {
+                        ui.confirm_dialog = Some(
+                            crate::ui::confirm::ConfirmDialogState::execute_spell(spell, crate::models::RunMode::Simple),
+                        );
+                        ui.push_overlay(Overlay::ConfirmDialog);
+                        return false;
+                    }
+                    crate::ui::events::execute_simple_mode(&spell, state, ui);
+                }
+            }
+            return false;
+        }
+
+        // Ctrl+r - TUI execution with streaming
+        if let KeyCode::Char('r') = key {
+            let selected = ui.search_results_state().selected().unwrap_or(0);
+            let indices = ui.filtered_indices();
+            if selected < indices.len() {
+                let spell_idx = indices[selected];
+                let spell_opt = state.codex.spells.get(spell_idx).cloned();
+                if let Some(spell) = spell_opt {
+                    if spell.confirm {
+                        ui.confirm_dialog = Some(
+                            crate::ui::confirm::ConfirmDialogState::execute_spell(spell, crate::models::RunMode::Tui),
+                        );
+                        ui.push_overlay(Overlay::ConfirmDialog);
+                        return false;
+                    }
+                    log_info!("Ctrl+r: Executing spell '{}' in TUI mode", spell.name);
+                    let spell_id = spell.id.clone();
+                    let spell_name = spell.name.clone();
+                    state.add_recent(spell_id, spell_name, crate::models::RecentAction::Run);
+                    let working_dir = if spell.working_dir.is_empty() {
+                        if state.launch_dir.is_empty() {
+                            None
+                        } else {
+                            Some(state.launch_dir.clone())
+                        }
+                    } else {
+                        Some(spell.working_dir.clone())
+                    };
+                    if let Err(e) = crate::ui::streaming_modal::start_tui_execution(
+                        ui,
+                        spell.incantation.clone(),
+                        Some(spell.name.clone()),
+                        working_dir,
+                        state.launch_dir.clone(),
+                    ) {
+                        ui.copy_feedback = Some(format!("Failed to start TUI mode: {}", e));
+                    }
+                }
+            }
+            return false;
+        }
+
+        // Ctrl+b - background execution
+        if let KeyCode::Char('b') = key {
+            let selected = ui.search_results_state().selected().unwrap_or(0);
+            let indices = ui.filtered_indices();
+            if selected < indices.len() {
+                let spell_idx = indices[selected];
+                let spell_opt = state.codex.spells.get(spell_idx).cloned();
+                if let Some(spell) = spell_opt {
+                    if spell.confirm {
+                        ui.confirm_dialog = Some(
+                            crate::ui::confirm::ConfirmDialogState::execute_spell(spell, crate::models::RunMode::Background),
+                        );
+                        ui.push_overlay(Overlay::ConfirmDialog);
+                        return false;
+                    }
+                    log_info!("Ctrl+b: Starting spell '{}' in background", spell.name);
+                    let spell_id = spell.id.clone();
+                    let spell_name = spell.name.clone();
+                    match crate::invoker::start_spell(
+                        spell.name.clone(),
+                        spell.incantation.clone(),
+                        if spell.working_dir.is_empty() {
+                            if state.launch_dir.is_empty() {
+                                None
+                            } else {
+                                Some(state.launch_dir.clone())
+                            }
+                        } else {
+                            Some(spell.working_dir.clone())
+                        },
+                    ) {
+                        Ok(job_id) => {
+                            ui.copy_feedback = Some(format!("Job {} started: {}", job_id, spell.name));
+                            ui.open_jobs_sidebar();
+                            state.add_recent(spell_id, spell_name, crate::models::RecentAction::Run);
+                        }
+                        Err(e) => {
+                            ui.copy_feedback = Some(format!("Failed to start background job: {}", e));
+                        }
+                    }
+                }
+            }
+            return false;
+        }
     }
 
-    // Handle character input FIRST - always type in search mode
-    if let KeyCode::Char(c) = key {
+    // Handle character input - only type in search mode when NOT holding Ctrl
+    if let KeyCode::Char(c) = key && !modifiers.contains(KeyModifiers::CONTROL) {
         if let Some(query) = ui.search_query_mut() {
             query.push(c);
         }
