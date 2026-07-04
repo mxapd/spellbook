@@ -568,14 +568,21 @@ fn handle_confirm_dialog(key: KeyCode, state: &mut State, ui: &mut UiState) -> b
                                 } else {
                                     Some(spell.working_dir.clone())
                                 };
-                                if let Err(e) = crate::ui::streaming_modal::start_tui_execution(
+                                log_info!("Starting TUI execution for spell: {}", spell.name);
+                                match crate::ui::streaming_modal::start_tui_execution(
                                     ui,
                                     spell.incantation.clone(),
                                     Some(spell.name.clone()),
                                     working_dir,
                                     state.launch_dir.clone(),
                                 ) {
-                                    ui.copy_feedback = Some(format!("Failed to start TUI mode: {}", e));
+                                    Ok(pid) => {
+                                        log_info!("TUI execution started successfully with pid: {}", pid);
+                                    }
+                                    Err(e) => {
+                                        log_error!("TUI execution failed: {}", e);
+                                        ui.copy_feedback = Some(format!("Failed to start TUI mode: {}", e));
+                                    }
                                 }
                             }
                             Some(RunMode::Background) => {
@@ -619,6 +626,7 @@ fn handle_confirm_dialog(key: KeyCode, state: &mut State, ui: &mut UiState) -> b
     };
 
     if should_close {
+        log_info!("Popping confirm dialog overlay");
         ui.pop_overlay();
     }
 

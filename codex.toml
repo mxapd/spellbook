@@ -148,6 +148,33 @@ run_mode = "background"
 working_dir = ""
 favorite = false
 
+[[spells]]
+id = "550e8400-e29b-41d4-a716-446655440011"
+name = "Test Job (15s)"
+incantation = 'for i in {1..15}; do echo "Progress: $i/15"; sleep 1; done'
+lore = "Test job that runs for 15 seconds - useful for testing job features"
+school = "Testing"
+glyphs = [
+    "test",
+    "job",
+]
+confirm = false
+run_mode = "tui"
+working_dir = ""
+favorite = true
+
+[[spells]]
+id = "640100f8-2e25-4187-a30b-a19ee281776b"
+name = "DANGER"
+incantation = "echo 'DANGER'"
+lore = ""
+school = "destruction"
+glyphs = []
+confirm = true
+run_mode = "simple"
+working_dir = ""
+favorite = false
+
 [[spellbooks]]
 name = "Filesystem"
 cover = ""
@@ -156,6 +183,7 @@ spell_ids = [
     "550e8400-e29b-41d4-a716-446655440001",
     "550e8400-e29b-41d4-a716-446655440002",
     "550e8400-e29b-41d4-a716-446655440009",
+    "640100f8-2e25-4187-a30b-a19ee281776b",
 ]
 spells = []
 
@@ -179,21 +207,6 @@ spell_ids = [
 ]
 spells = []
 
-[[spells]]
-id = "550e8400-e29b-41d4-a716-446655440011"
-name = "Test Job (15s)"
-incantation = "for i in {1..15}; do echo \"Progress: $i/15\"; sleep 1; done"
-lore = "Test job that runs for 15 seconds - useful for testing job features"
-school = "Testing"
-glyphs = [
-    "test",
-    "job",
-]
-confirm = false
-run_mode = "tui"
-working_dir = ""
-favorite = true
-
 [[spellbooks]]
 name = "Network"
 cover = ""
@@ -210,5 +223,6 @@ cover = ""
 sigil = "?"
 spell_ids = [
     "550e8400-e29b-41d4-a716-446655440011",
+    "640100f8-2e25-4187-a30b-a19ee281776b",
 ]
 spells = []
