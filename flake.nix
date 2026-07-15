@@ -1,28 +1,18 @@
 {
-  description = "A terminal-based spellbook manager";
+  description = "a tool for remembering and using commands";
 
-  inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-  };
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
   outputs = { self, nixpkgs }:
     let
-      overlay = final: prev: {
-        rustc = prev.rustc;
-      };
-      pkgs = import nixpkgs {
-        overlays = [ overlay ];
-        system = "x86_64-linux";
-      };
-    in
-    {
-      devShells.x86_64-linux.default = pkgs.mkShell {
-        buildInputs = with pkgs; [
-          rustc
-          cargo
-        ];
-
-        RUST_BACKTRACE = "1";
-      };
+      systems = [ "x86_64-linux" "aarch64-linux" ];
+      forAllSystems = nixpkgs.lib.genAttrs systems;
+    in {
+      packages = forAllSystems (system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+        in {
+          default = pkgs.callPackage ./package.nix { };
+        });
     };
 }

@@ -213,8 +213,8 @@ impl RatatuiColors {
 /// Controls how spellbooks are displayed in the search browser
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize, Default)]
 pub enum ViewMode {
-    #[default]
     List, // Simple vertical list
+    #[default]
     Cards,  // Card view
     Spines, // Compact spine view
 }
@@ -242,8 +242,6 @@ impl ViewMode {
 pub struct UserSettings {
     #[serde(default)]
     pub view_mode: ViewMode,
-    #[serde(default)]
-    pub experimental_mode: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
@@ -342,8 +340,8 @@ mod tests {
     }
 
     #[test]
-    fn test_view_mode_default_is_list() {
-        assert_eq!(ViewMode::default(), ViewMode::List);
+    fn test_view_mode_default_is_cards() {
+        assert_eq!(ViewMode::default(), ViewMode::Cards);
     }
 
     #[test]

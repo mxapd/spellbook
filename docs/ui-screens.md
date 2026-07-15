@@ -1,8 +1,8 @@
-# UI Screens (v2)
+# UI Screens
 
 ## Overview
 
-Spellbook v2 uses a **single-mode navigation system** with overlays, not multiple top-level screens. The application always has one active `Mode` and zero or more `Overlay`s rendered on top.
+Spellbook uses a **single-mode navigation system** with overlays, not multiple top-level screens. The application always has one active `Mode` and zero or more `Overlay`s rendered on top.
 
 ---
 
@@ -159,7 +159,7 @@ pub struct SpellbookBrowserState {
 **View Modes**:
 - **Cards**: Large card view with sigils, names, descriptions
 - **Spines**: Compact book spine view
-- **Auto**: Responsive (cards on wide terminals, spines on narrow)
+- **List**: Simple vertical list
 
 ---
 
@@ -418,7 +418,7 @@ pub struct CommandPaletteState {
 - `:jobs` - Toggle jobs sidebar
 - `:c` - Card view mode
 - `:p` - Spine view mode
-- `:a` - Auto view mode
+- `:l` - List view mode
 - `:t` - Cycle theme
 - `:?` - Show help
 - `:import <file>` - Import spells
@@ -612,10 +612,9 @@ BrowseSpellbooks supports three view modes:
 - Fits more spellbooks on screen
 - Works on narrow terminals
 
-### Auto
-- Automatically switches based on terminal width
-- Cards when width > 100 cols
-- Spines when width ≤ 100 cols
+### List
+- Simple vertical list of spellbooks
+- Compact, works on narrow terminals
 
-**Toggle**: `v` key or commands (`:c`, `:p`, `:a`)
-**Persistence**: Saved in `config.toml`
+**Toggle**: `v` key or commands (`:c`, `:p`, `:l`)
+**Persistence**: Saved in `theme.toml`

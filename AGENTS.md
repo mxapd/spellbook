@@ -1,4 +1,4 @@
-# Spellbook v2 Developer Notes
+# Spellbook Developer Notes
 
 ## Design Preferences
 
@@ -28,7 +28,7 @@ Do not use traditional package managers (apt, brew, cargo install, etc.) for sys
 - Prefer pattern matching over if/else chains
 - Use `#[serde(default)]` for all new optional fields in data models
 
-## Architecture (v2)
+## Architecture
 
 ### Core Principles
 
@@ -70,7 +70,7 @@ pub enum Overlay {
 - Has own focus state (`FocusTarget::JobsSidebar`)
 - Tab key cycles focus between Main and Sidebar
 
-## Key Features (v2)
+## Key Features
 
 ### Execution Modes
 
@@ -114,7 +114,7 @@ pub enum FocusTarget {
 | File | Purpose |
 |------|---------|
 | `codex.toml` | Spells and spellbooks |
-| `config.toml` | User settings (view mode, defaults) |
+| `theme.toml` | User settings (view mode, theme) |
 | `theme.toml` | Theme selection |
 | `~/.spellbook/jobs.toml` | Job registry |
 | `~/.spellbook/recents.toml` | Recently used spells |
@@ -206,7 +206,7 @@ pub enum VirtualKind {
 | `:s` | Browse spells |
 | `:jobs` | Toggle jobs sidebar |
 | `J` | Toggle jobs sidebar (hotkey) |
-| `:c` / `:p` / `:a` | Card / Spine / Auto view |
+| `:c` / `:p` / `:l` | Card / Spine / List view |
 | `:t` | Cycle theme |
 | `:?` | Help |
 | `:setcolor <r,g,b>` | Set spellbook color (e.g., `:setcolor 255,100,50`) |
@@ -218,7 +218,7 @@ pub enum VirtualKind {
 
 ## Testing Checklist
 
-When testing v2:
+When testing:
 
 1. **Navigation**
    - [x] Browse spellbooks with arrows
@@ -330,19 +330,6 @@ The following issues require manual testing and potential fixes:
 ### Technical Debt
 - **Error Handling**: Replace `.unwrap()` / `.expect()` calls (37 instances) with proper error handling. Focus on file I/O in archivist.rs and state loading - these should show user-friendly errors instead of panicking. Use `Result` types, provide defaults, or log errors gracefully.
 
-## Migration Notes
-
-### V1 → V2
-
-On first v2 run:
-1. Detect missing `id` fields in spells
-2. Generate UUIDs for all spells
-3. Update spellbook references from names to IDs
-4. Rewrite `codex.toml` with new format
-5. Log migration in `spellbook.log`
-
-Backup `codex.toml` before migration (automatic).
-
 ## Debug Tips
 
 - Set `SPELLBOOK_LOG=debug` for verbose logging
@@ -383,11 +370,11 @@ enum BrowseState {
 3. Split events.rs into browse_spells.rs, browse_spellbooks.rs, form.rs
 4. Audit remaining UiState fields
 
-See `docs/architecture-refactor.md` for full details.
+
 
 ## Recent Features
 
-### Spellbook Colors (v2.1)
+### Spellbook Colors
 Spellbooks can now have custom RGB colors that apply to their borders and icons in all views.
 
 **Setting colors:**
@@ -412,9 +399,8 @@ Spellbooks can now have custom RGB colors that apply to their borders and icons 
 
 ## References
 
-- [refactor.md](refactor.md) - Complete v2 specification (source of truth)
 - [docs/architecture.md](docs/architecture.md) - System design
-- [docs/architecture-diagram.md](docs/architecture-diagram.md) - Visual architecture diagrams (DEBUGGING AID)
+- [docs/architecture-diagrams-mermaid.md](docs/architecture-diagrams-mermaid.md) - Visual architecture diagrams (DEBUGGING AID)
 - [docs/data-model.md](docs/data-model.md) - Data structures
 - [docs/ui-screens.md](docs/ui-screens.md) - UI details
-- [docs/roadmap.md](docs/roadmap.md) - Implementation phases
+- [docs/keybindings.md](docs/keybindings.md) - Complete keybind reference

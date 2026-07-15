@@ -156,7 +156,6 @@ classDiagram
 
     class UserSettings {
         +ViewMode view_mode
-        +bool experimental_mode
     }
 
     class ViewMode {

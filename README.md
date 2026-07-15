@@ -23,7 +23,7 @@ A powerful TUI application for managing and executing CLI command snippets with 
 ### UI/UX
 
 - **10 Built-in Themes** - Beautiful color schemes from Dracula to Solarized
-- **View Modes** - Cards, spines, or responsive auto mode
+- **View Modes** - Cards or spines view mode
 - **Command Palette** - Quick actions with `:` prefix
 - **Vi-style Navigation** - Use j/k or arrow keys
 - **Jobs Sidebar** - Monitor running jobs without leaving the TUI
@@ -118,7 +118,7 @@ Type `:` then:
 | `:jobs` | Toggle jobs sidebar |
 | `:import <file>` | Import spells |
 | `:export [file]` | Export codex |
-| `:c` / `:p` / `:a` | Card / Spine / Auto view |
+| `:c` / `:p` / `:l` | Card / Spine / List view |
 
 ---
 
@@ -155,7 +155,7 @@ Each spell has a default mode, but you can override it at execution time.
 | File | Purpose |
 |------|---------|
 | `codex.toml` | Your spells and spellbooks |
-| `config.toml` | User preferences (view mode, defaults) |
+| `theme.toml` | User preferences (view mode, theme) |
 | `theme.toml` | Selected theme |
 | `~/.spellbook/jobs.toml` | Background job registry |
 | `~/.spellbook/recents.toml` | Recently used spells |
@@ -177,9 +177,9 @@ Cycle with `t` key or `:t` command.
 
 - **Cards**: Large card view with sigils and descriptions
 - **Spines**: Compact book spine view
-- **Auto**: Responsive (cards on wide, spines on narrow)
+- **List**: Simple vertical list
 
-Cycle with `v` key or commands (`:c`, `:p`, `:a`).
+Cycle with `v` key or commands (`:c`, `:p`, `:l`).
 
 ---
 
@@ -188,25 +188,46 @@ Cycle with `v` key or commands (`:c`, `:p`, `:a`).
 ```
 src/
 ├── main.rs              # Entry point
-├── app.rs               # Main event loop
+├── cli.rs               # CLI argument parsing
+├── state.rs             # Application state
 ├── models/              # Data structures
-├── archivist/         # TOML load/save
-├── invoker/            # Execution modes & job manager
+│   ├── spell.rs
+│   ├── spellbook.rs
+│   ├── codex.rs
+│   ├── job.rs
+│   └── theme.rs
+├── archivist/           # TOML load/save
+├── invoker/             # Execution modes & job manager
 ├── ui/                  # Rendering & events
-│   ├── components/      # Mode-specific UI
-│   └── widgets/         # Reusable widgets
-├── theme/               # Theme definitions
+│   ├── mod.rs
+│   ├── render.rs
+│   ├── events.rs
+│   ├── browse_spellbooks.rs
+│   ├── browse_spells.rs
+│   ├── search_overlay.rs
+│   ├── form.rs
+│   ├── add_spell_form.rs
+│   ├── add_spellbook_form.rs
+│   ├── spellbook_browser.rs
+│   ├── spell_list.rs
+│   ├── streaming_modal.rs
+│   ├── jobs.rs
+│   ├── confirm.rs
+│   ├── input.rs
+│   ├── help.rs
+│   └── quick_add_spell.rs
 ├── clipboard.rs         # Clipboard operations
-├── notifications.rs     # D-Bus notifications
-└── validation.rs        # Data validation
+├── editor.rs            # External editor integration
+├── logging.rs           # Logging setup
+├── validation.rs        # Data validation
+└── test_utils.rs        # Test helpers
 
 docs/                    # Documentation
 ├── architecture.md      # System design
+├── architecture-diagrams-mermaid.md # Architecture diagrams
 ├── data-model.md        # Data structures
 ├── ui-screens.md        # UI details
-├── keybindings.md       # Complete keybind reference
-├── diagrams.md          # Architecture diagrams
-└── roadmap.md           # Implementation plan
+└── keybindings.md       # Complete keybind reference
 ```
 
 ---
@@ -286,7 +307,7 @@ cargo build --release
 - [Data Model](docs/data-model.md) - Spell, Spellbook, Job structures
 - [UI Screens](docs/ui-screens.md) - Mode/Overlay system details
 - [Keybindings](docs/keybindings.md) - Complete keybind reference
-- [Roadmap](docs/roadmap.md) - Implementation plan
+- [Architecture Diagrams](docs/architecture-diagrams-mermaid.md) - Visual architecture diagrams
 
 ---
 

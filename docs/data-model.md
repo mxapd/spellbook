@@ -1,4 +1,4 @@
-# Data Model (v2)
+# Data Model
 
 ## Codex
 
@@ -286,18 +286,20 @@ action = "copy"
 
 ## Config
 
-User configuration settings.
+User configuration settings are persisted in `theme.toml`:
 
 ```toml
-view_mode = "auto"          # auto / cards / spines
-default_run_mode = "simple"  # simple / tui / background
+selected_theme = "DarkDefault"
+
+[settings]
+view_mode = "Cards"  # list / cards / spines
 ```
 
 ### ViewMode
 
 ```rust
 pub enum ViewMode {
-    Auto,    // Responsive (cards on wide, spines on narrow)
+    List,    // Simple vertical list
     Cards,   // Large card view
     Spines,  // Compact spine view
 }
@@ -343,18 +345,7 @@ pub struct RatatuiColors {
 
 ---
 
-## Migration Notes
-
-### V1 → V2 Migration
-
-When loading a V1 `codex.toml`:
-
-1. **Add IDs**: Generate UUIDs for spells without `id` field
-2. **Update references**: Convert spellbook spell references from names to IDs
-3. **Remove deprecated fields**: `elevated`, `dangerous`, `background`
-4. **Rewrite file**: Save updated codex with new format
-
-### Forward Compatibility
+## Forward Compatibility
 
 - All optional fields use `#[serde(default)]`
 - Old TOML files load with defaults for missing fields

@@ -1,4 +1,4 @@
-# Keybindings (v2)
+# Keybindings
 
 ## Global Keybinds
 
@@ -10,7 +10,7 @@ Available in all modes and overlays.
 | `Tab` | Cycle focus (Main ↔ Jobs Sidebar when sidebar open) |
 | `:` | Open command palette |
 | `t` | Cycle to next theme |
-| `v` | Cycle view mode (cards → spines → auto) |
+| `v` | Cycle view mode (cards → spines → list) |
 | `q` | Quit application |
 | `Esc` | Close overlay / deactivate search / go back |
 | `?` | Show help overlay |
@@ -179,7 +179,7 @@ Type `:` to open command palette, then:
 | `:jobs` | `:j` | Toggle jobs sidebar |
 | `:c` | `:cards` | Switch to cards view mode |
 | `:p` | `:spines` | Switch to spines view mode |
-| `:a` | `:auto` | Switch to auto view mode |
+| `:l` | `:list` | Switch to list view mode |
 | `:t` | `:theme` | Cycle to next theme |
 | `:?` | `:help`, `:h` | Show help overlay |
 | `:import <file>` | | Import spells from file |
