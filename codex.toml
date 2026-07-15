@@ -175,6 +175,21 @@ run_mode = "simple"
 working_dir = ""
 favorite = false
 
+[[spells]]
+id = "c287365d-6b71-496a-a6c5-13add1df8f76"
+name = "nix temp package"
+incantation = "nix-shell -p <package>"
+lore = ""
+school = ""
+glyphs = [
+    "nix",
+    "package",
+]
+confirm = false
+run_mode = "simple"
+working_dir = ""
+favorite = false
+
 [[spellbooks]]
 name = "Filesystem"
 cover = ""
@@ -184,6 +199,7 @@ spell_ids = [
     "550e8400-e29b-41d4-a716-446655440002",
     "550e8400-e29b-41d4-a716-446655440009",
     "640100f8-2e25-4187-a30b-a19ee281776b",
+    "c287365d-6b71-496a-a6c5-13add1df8f76",
 ]
 spells = []
 
