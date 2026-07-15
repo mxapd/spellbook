@@ -175,6 +175,7 @@ mod tests {
             spell_ids,
             spells: vec![],
             style: None,
+            color: None,
         }
     }
 

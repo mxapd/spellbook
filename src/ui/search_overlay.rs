@@ -1926,7 +1926,7 @@ mod tests {
     }
 
     fn make_test_state() -> State {
-        State::new(make_codex())
+        State::new_test(make_codex())
     }
 
     #[test]
@@ -1947,7 +1947,7 @@ mod tests {
         let mut codex = make_codex();
         codex.spells.push(make_favorite_spell("Fav1"));
         codex.spells.push(make_favorite_spell("Fav2"));
-        let state = State::new(codex);
+        let state = State::new_test(codex);
 
         let item = get_spellbook_item(&state, 0);
         assert!(matches!(
@@ -1958,8 +1958,8 @@ mod tests {
 
     #[test]
     fn test_get_spellbook_item_with_recent() {
-        let mut codex = make_codex();
-        let mut state = State::new(codex);
+        let codex = make_codex();
+        let mut state = State::new_test(codex);
         state.recents.push(make_recent_entry("id1", "Recent1"));
 
         let item = get_spellbook_item(&state, 0);
@@ -1971,11 +1971,10 @@ mod tests {
     fn test_get_spellbook_item_real_spellbook() {
         let mut codex = make_codex();
         codex.spellbooks.push(make_spellbook("Test Book"));
-        let state = State::new(codex);
+        let state = State::new_test(codex);
 
-        // First item could be VirtualRecent if recents were loaded
-        // So check index 1 or use a different approach
-        let item = get_spellbook_item(&state, 1);
+        // With isolated test state (no recents), real spellbooks appear first.
+        let item = get_spellbook_item(&state, 0);
         assert!(matches!(item, Some(SpellbookItem::Real { .. })));
     }
 
@@ -1990,9 +1989,9 @@ mod tests {
     fn test_total_spellbook_count_with_favorites() {
         let mut codex = make_codex();
         codex.spells.push(make_favorite_spell("Fav1"));
-        let state = State::new(codex);
-        // 1 for Favorites + 1 for All = 2
-        assert_eq!(total_spellbook_count(&state), 2);
+        let state = State::new_test(codex);
+        // 1 for Favorites + 1 for All + 1 for Unassigned = 3
+        assert_eq!(total_spellbook_count(&state), 3);
     }
 
     #[test]
@@ -2008,11 +2007,11 @@ mod tests {
         let mut codex = make_codex();
         codex.spells.push(make_favorite_spell("Fav1"));
         codex.spellbooks.push(make_spellbook("Book"));
-        let mut state = State::new(codex);
+        let mut state = State::new_test(codex);
         state.recents.push(make_recent_entry("id1", "Recent1"));
 
-        // 1 for Favorites + 1 for Recent + 1 for Book + 1 for All = 4
-        assert_eq!(total_spellbook_count(&state), 4);
+        // 1 for Favorites + 1 for Recent + 1 for Book + 1 for All + 1 for Unassigned = 5
+        assert_eq!(total_spellbook_count(&state), 5);
     }
 
     #[test]
@@ -2020,7 +2019,7 @@ mod tests {
         let mut codex = make_codex();
         codex.spells.push(make_spell("Spell1"));
         codex.spells.push(make_spell("Spell2"));
-        let state = State::new(codex);
+        let state = State::new_test(codex);
 
         // All is at the end, so with 0 spellbooks: index 0 should be VirtualAll
         let item = get_spellbook_item(&state, 0);
@@ -2035,7 +2034,7 @@ mod tests {
         let mut codex = make_codex();
         codex.spells.push(make_favorite_spell("Fav1"));
         codex.spells.push(make_spell("Spell1"));
-        let mut state = State::new(codex);
+        let mut state = State::new_test(codex);
         state.recents.push(make_recent_entry("id1", "Recent1"));
 
         // With 0 spellbooks: index 0 = Favorites, index 1 = Recent, index 2 = All

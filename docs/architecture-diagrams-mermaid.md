@@ -1,6 +1,6 @@
 # Spellbook Architecture Diagrams
 
-> Visual reference for the Spellbook v2 codebase. These diagrams use [Mermaid](https://mermaid.js.org/) syntax and render natively in GitHub, GitLab, and most modern Markdown viewers.
+> Visual reference for the Spellbook codebase. These diagrams use [Mermaid](https://mermaid.js.org/) syntax and render natively in GitHub, GitLab, and most modern Markdown viewers.
 
 ---
 

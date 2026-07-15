@@ -1,10 +1,10 @@
-# Spellbook v2 Architecture
+# Spellbook Architecture
 
 ## Overview
 
 Spellbook is a TUI (Terminal User Interface) application for managing and executing CLI command snippets. It uses a fantasy/magic theme where commands are "spells" organized into "spellbooks", stored in a "codex".
 
-This document describes the architecture for **Spellbook v2**, a complete redesign focused on:
+This document describes the architecture, which is focused on:
 - Clean state management with encapsulated component state
 - Unified Mode/Overlay navigation system
 - Three execution modes (Simple, TUI, Background)
@@ -33,7 +33,7 @@ This document describes the architecture for **Spellbook v2**, a complete redesi
 
 ### 1. Single-Mode Navigation
 
-V2 uses a single primary mode with overlays, not multiple top-level screens:
+Spellbook uses a single primary mode with overlays, not multiple top-level screens:
 
 ```rust
 pub enum Mode {
@@ -54,7 +54,7 @@ pub enum Overlay {
 
 ### 2. Elm Architecture (Mode with Nested State)
 
-V2 implements the Elm Architecture pattern with nested state:
+Spellbook implements the Elm Architecture pattern with nested state:
 
 ```rust
 /// Mode is the single source of truth for application state
@@ -161,8 +161,8 @@ src/
 1. **Parse CLI args** → Determine initial mode (`--add` opens AddSpell)
 2. **Initialize logging** → `~/.spellbook/spellbook.log`
 3. **Load codex** → `archivist::codex_store::load("codex.toml")`
-4. **Load config** → `archivist::config_store::load("config.toml")`
-5. **Load theme** → `archivist::theme_store::load("theme.toml")`
+4. **Load settings** → `Archivist::load_user_settings("theme.toml")`
+5. **Load theme** → `Archivist::load_theme("theme.toml")`
 6. **Load jobs** → `archivist::job_store::load()` from `~/.spellbook/jobs.toml`
 7. **Load recents** → `archivist::recent_store::load()` from `~/.spellbook/recents.toml`
 8. **Validate codex** → Check references, duplicates, required fields
@@ -416,8 +416,7 @@ Prevents corruption if process dies mid-write.
 | File | Purpose |
 |------|---------|
 | `codex.toml` | Spells and spellbooks |
-| `config.toml` | User settings (view mode, defaults) |
-| `theme.toml` | Theme selection |
+| `theme.toml` | Theme selection and user settings (view mode) |
 | `~/.spellbook/jobs.toml` | Job registry |
 | `~/.spellbook/job_<id>.out` | Job stdout |
 | `~/.spellbook/job_<id>.err` | Job stderr |
@@ -448,8 +447,7 @@ On load, validate codex:
 ## Error Handling
 
 - Missing `codex.toml` → create default empty one
-- Missing `config.toml` → create with defaults
-- Missing `theme.toml` → create with default theme
+- Missing `theme.toml` → create with default theme and settings
 - Missing `~/.spellbook/` → create directory
 - Invalid TOML → show error message in TUI, don't crash
 - Clipboard tool not found → show error in footer
@@ -458,22 +456,7 @@ On load, validate codex:
 
 ---
 
-## Migration Strategy
-
-### V1 → V2 Migration
-
-On first v2 load:
-
-1. **Check for spell IDs** - if any spell lacks `id` field:
-   - Generate UUID for each spell without ID
-   - Rewrite `codex.toml` with IDs
-2. **Update spellbook references** - if spellbooks use name references:
-   - Resolve names to IDs
-   - Rewrite `codex.toml` with ID references
-3. **Remove deprecated fields** - `elevated`, `dangerous`, `background` (replaced by `run_mode` and `confirm`)
-4. **Log migration** - record actions in `spellbook.log`
-
-### Forward Compatibility
+## Forward Compatibility
 
 - Use `#[serde(default)]` for all new optional fields
 - Old TOML files load successfully with defaults for missing fields
@@ -509,4 +492,4 @@ Example log entries:
 
 ## See Also
 
-- [architecture-diagram.md](architecture-diagram.md) - Visual diagrams of module relationships, data flow, and component hierarchy (useful for debugging)
+- [architecture-diagrams-mermaid.md](architecture-diagrams-mermaid.md) - Visual diagrams of module relationships, data flow, and component hierarchy (useful for debugging)

@@ -174,6 +174,7 @@ mod tests {
             message: Some(("Error".to_string(), true)),
             has_unsaved: true,
             editing_spell_id: Some("uuid".to_string()),
+            is_editing: true,
         };
 
         form.clear();

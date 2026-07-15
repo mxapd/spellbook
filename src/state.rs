@@ -1,8 +1,6 @@
 use crate::archivist::Archivist;
 use crate::log_info;
-use crate::models::{
-    Codex, RatatuiColors, RecentAction, RecentEntry, Theme, UserSettings,
-};
+use crate::models::{Codex, RatatuiColors, RecentAction, RecentEntry, Theme, UserSettings};
 
 const THEME_CONFIG_PATH: &str = "theme.toml";
 
@@ -61,6 +59,26 @@ impl State {
             current_theme,
             user_settings,
             recents,
+            launch_dir,
+        }
+    }
+
+    #[cfg(test)]
+    pub fn new_test(codex: Codex) -> Self {
+        let current_theme = crate::models::Theme::default();
+        let theme = current_theme.colors();
+        let user_settings = crate::models::UserSettings::default();
+
+        let launch_dir = std::env::current_dir()
+            .map(|p| p.to_string_lossy().to_string())
+            .unwrap_or_else(|_| "/".to_string());
+
+        Self {
+            codex,
+            theme,
+            current_theme,
+            user_settings,
+            recents: Vec::new(),
             launch_dir,
         }
     }
@@ -165,7 +183,7 @@ impl State {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::{Theme, ThemeConfig, UserSettings, ViewMode};
+    use crate::models::{RunMode, Spell, Theme, UserSettings, ViewMode};
     use serial_test::serial;
     use std::fs;
     use std::path::PathBuf;
@@ -206,6 +224,7 @@ mod tests {
             codex,
             theme: theme.colors(),
             current_theme: theme,
+            launch_dir: String::from("/home/xam/"),
             user_settings,
             recents: vec![],
         }
@@ -335,6 +354,7 @@ mod tests {
                 spell_ids: vec![spell_id.clone()],
                 spells: vec![],
                 style: None,
+                color: None,
             }],
         });
 

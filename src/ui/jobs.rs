@@ -142,9 +142,6 @@ pub fn handle_jobs_key(
     modifiers: crossterm::event::KeyModifiers,
     ui: &mut crate::ui::UiState,
 ) -> bool {
-    let jobs = invoker::list_jobs();
-    let job_ids: Vec<u64> = jobs.iter().map(|j| j.id).collect();
-
     // Check Ctrl+C first - should work even in sidebar
     if key == crossterm::event::KeyCode::Char('c')
         && modifiers.contains(crossterm::event::KeyModifiers::CONTROL)
@@ -159,101 +156,106 @@ pub fn handle_jobs_key(
                 ui.jobs_sidebar_open = false;
                 ui.focus = crate::models::FocusTarget::Main;
             }
-            return false;
+            false
         }
-        crossterm::event::KeyCode::Up => {
+        crossterm::event::KeyCode::Up | crossterm::event::KeyCode::Down => {
+            let jobs = invoker::list_jobs();
             if let Some(idx) = ui.jobs_panel_state.selected_index {
-                if idx > 0 {
-                    ui.jobs_panel_state.selected_index = Some(idx - 1);
-                } else {
-                    ui.jobs_panel_state.selected_index = Some(jobs.len().saturating_sub(1));
-                }
-            }
-            return false;
-        }
-        crossterm::event::KeyCode::Down => {
-            if let Some(idx) = ui.jobs_panel_state.selected_index {
-                if idx < jobs.len().saturating_sub(1) {
-                    ui.jobs_panel_state.selected_index = Some(idx + 1);
-                } else {
-                    ui.jobs_panel_state.selected_index = Some(0);
-                }
-            }
-            return false;
-        }
-        crossterm::event::KeyCode::Char('k') | crossterm::event::KeyCode::Char('K') => {
-            if let Some(idx) = ui.jobs_panel_state.selected_index {
-                if idx < job_ids.len() {
-                    let job_id = job_ids[idx];
-                    if let Err(e) = invoker::kill_job(job_id) {
-                        ui.copy_feedback = Some(format!("Kill failed: {}", e));
-                    } else {
-                        ui.copy_feedback = Some(format!("Job {} killed", job_id));
-                    }
-                }
-            }
-            return false;
-        }
-        crossterm::event::KeyCode::Char('c') | crossterm::event::KeyCode::Char('C') => {
-            if let Some(idx) = ui.jobs_panel_state.selected_index {
-                if idx < job_ids.len() {
-                    let job_id = job_ids[idx];
-                    if let Err(e) = invoker::cancel_job(job_id) {
-                        ui.copy_feedback = Some(format!("Cancel failed: {}", e));
-                    } else {
-                        ui.copy_feedback = Some(format!("Job {} cancelled", job_id));
-                    }
-                }
-            }
-            return false;
-        }
-        crossterm::event::KeyCode::Char('d') | crossterm::event::KeyCode::Char('D') => {
-            if let Some(idx) = ui.jobs_panel_state.selected_index {
-                if idx < job_ids.len() {
-                    let job_id = job_ids[idx];
-                    if let Err(e) = invoker::dismiss_job(job_id) {
-                        ui.copy_feedback = Some(format!("Dismiss failed: {}", e));
-                    } else {
-                        ui.copy_feedback = Some(format!("Job {} dismissed", job_id));
-                        if jobs.len() > 1 {
-                            ui.jobs_panel_state.selected_index = Some(idx.min(jobs.len() - 2));
+                let new_idx = match key {
+                    crossterm::event::KeyCode::Up => {
+                        if idx > 0 {
+                            idx - 1
                         } else {
-                            ui.jobs_panel_state.selected_index = None;
+                            jobs.len().saturating_sub(1)
                         }
                     }
-                }
+                    crossterm::event::KeyCode::Down => {
+                        if idx < jobs.len().saturating_sub(1) {
+                            idx + 1
+                        } else {
+                            0
+                        }
+                    }
+                    _ => idx,
+                };
+                ui.jobs_panel_state.selected_index = Some(new_idx);
             }
-            return false;
+            false
         }
-        crossterm::event::KeyCode::Char('v')
+        crossterm::event::KeyCode::Char('k')
+        | crossterm::event::KeyCode::Char('K')
+        | crossterm::event::KeyCode::Char('c')
+        | crossterm::event::KeyCode::Char('C')
+        | crossterm::event::KeyCode::Char('d')
+        | crossterm::event::KeyCode::Char('D')
+        | crossterm::event::KeyCode::Char('v')
         | crossterm::event::KeyCode::Char('V')
         | crossterm::event::KeyCode::Enter => {
+            let jobs = invoker::list_jobs();
+            let job_ids: Vec<u64> = jobs.iter().map(|j| j.id).collect();
             if let Some(idx) = ui.jobs_panel_state.selected_index {
                 if idx < job_ids.len() {
                     let job_id = job_ids[idx];
-                    if let Some(job) = invoker::get_job(job_id) {
-                        let (stdout, stderr) = invoker::get_job_output(job_id);
-                        let result = crate::clipboard::ExecutionResult {
-                            command: job.command.clone(),
-                            stdout: stdout.clone(),
-                            stderr: stderr.clone(),
-                            exit_code: job.exit_code,
-                            full_stdout: stdout,
-                            full_stderr: stderr,
-                            pid: job.pid,
-                            spell_name: Some(job.name.clone()),
-                        };
-                        ui.show_output_popup(result);
+                    match key {
+                        crossterm::event::KeyCode::Char('k')
+                        | crossterm::event::KeyCode::Char('K') => {
+                            if let Err(e) = invoker::kill_job(job_id) {
+                                ui.copy_feedback = Some(format!("Kill failed: {}", e));
+                            } else {
+                                ui.copy_feedback = Some(format!("Job {} killed", job_id));
+                            }
+                        }
+                        crossterm::event::KeyCode::Char('c')
+                        | crossterm::event::KeyCode::Char('C') => {
+                            if let Err(e) = invoker::cancel_job(job_id) {
+                                ui.copy_feedback = Some(format!("Cancel failed: {}", e));
+                            } else {
+                                ui.copy_feedback = Some(format!("Job {} cancelled", job_id));
+                            }
+                        }
+                        crossterm::event::KeyCode::Char('d')
+                        | crossterm::event::KeyCode::Char('D') => {
+                            if let Err(e) = invoker::dismiss_job(job_id) {
+                                ui.copy_feedback = Some(format!("Dismiss failed: {}", e));
+                            } else {
+                                ui.copy_feedback = Some(format!("Job {} dismissed", job_id));
+                                if jobs.len() > 1 {
+                                    ui.jobs_panel_state.selected_index =
+                                        Some(idx.min(jobs.len() - 2));
+                                } else {
+                                    ui.jobs_panel_state.selected_index = None;
+                                }
+                            }
+                        }
+                        crossterm::event::KeyCode::Char('v')
+                        | crossterm::event::KeyCode::Char('V')
+                        | crossterm::event::KeyCode::Enter => {
+                            if let Some(job) = invoker::get_job(job_id) {
+                                let (stdout, stderr) = invoker::get_job_output(job_id);
+                                let result = crate::clipboard::ExecutionResult {
+                                    command: job.command.clone(),
+                                    stdout: stdout.clone(),
+                                    stderr: stderr.clone(),
+                                    exit_code: job.exit_code,
+                                    full_stdout: stdout,
+                                    full_stderr: stderr,
+                                    pid: job.pid,
+                                    spell_name: Some(job.name.clone()),
+                                };
+                                ui.show_output_popup(result);
+                            }
+                        }
+                        _ => {}
                     }
                 }
             }
-            return false;
+            false
         }
         crossterm::event::KeyCode::Char('/') => {
             // Switch focus to main and open search
             ui.focus = crate::models::FocusTarget::Main;
             ui.open_search();
-            return false;
+            false
         }
         crossterm::event::KeyCode::Char(':') => {
             // Switch focus to main and open command search
@@ -263,12 +265,10 @@ pub fn handle_jobs_key(
                 query.push(':');
             }
             events::update_command_filter(ui);
-            return false;
+            false
         }
-        _ => {}
+        _ => false,
     }
-
-    false
 }
 
 fn format_duration(seconds: i64) -> String {

@@ -225,6 +225,7 @@ mod tests {
             sigil: "*".to_string(),
             message: Some(("Error".to_string(), true)),
             has_unsaved: true,
+            is_editing: true,
         };
 
         form.clear();

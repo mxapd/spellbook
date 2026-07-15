@@ -1,6 +1,6 @@
 use crate::models::{Codex, JobManager, RecentEntry, SpineStyle, Theme, ThemeConfig, UserSettings};
 use crate::validation::validate_codex;
-use crate::{log_debug, log_info, log_warn};
+use crate::{log_debug, log_info};
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
@@ -31,57 +31,9 @@ impl Archivist {
 
         let mut codex: Codex = toml::from_str(&contents)?;
 
-        let needs_migration = codex.spells.iter().any(|s| s.id.is_empty())
-            || codex.spellbooks.iter().any(|sb| !sb.spells.is_empty());
-
-        if needs_migration {
-            log_info!("Migrating codex from v1 to v2 format...");
-            for spell in &mut codex.spells {
-                if spell.id.is_empty() {
-                    spell.id = uuid::Uuid::new_v4().to_string();
-                }
-            }
-            for spellbook in &mut codex.spellbooks {
-                if spellbook.spell_ids.is_empty() && !spellbook.spells.is_empty() {
-                    let resolved_ids: Vec<String> = spellbook
-                        .spells
-                        .iter()
-                        .filter_map(|name| {
-                            codex
-                                .spells
-                                .iter()
-                                .find(|s| &s.name == name)
-                                .map(|s| s.id.clone())
-                        })
-                        .collect();
-                    spellbook.spell_ids = resolved_ids;
-                }
-            }
-            if let Err(e) = Self::save(&codex, path) {
-                log_warn!("Failed to save migrated codex: {}", e);
-            }
-        } else {
-            for spell in &mut codex.spells {
-                if spell.id.is_empty() {
-                    spell.id = uuid::Uuid::new_v4().to_string();
-                }
-            }
-        }
-
-        for spellbook in &mut codex.spellbooks {
-            if spellbook.spell_ids.is_empty() && !spellbook.spells.is_empty() {
-                let resolved_ids: Vec<String> = spellbook
-                    .spells
-                    .iter()
-                    .filter_map(|name| {
-                        codex
-                            .spells
-                            .iter()
-                            .find(|s| &s.name == name)
-                            .map(|s| s.id.clone())
-                    })
-                    .collect();
-                spellbook.spell_ids = resolved_ids;
+        for spell in &mut codex.spells {
+            if spell.id.is_empty() {
+                spell.id = uuid::Uuid::new_v4().to_string();
             }
         }
 

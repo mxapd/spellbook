@@ -1,0 +1,82 @@
+# Spellbook v1.0.0 Test Coverage Plan
+
+## Phase 1 — Persistence (must-have for v1.0.0)
+Target: `src/archivist/archivist.rs`
+
+- [ ] Archivist::load / save round-trip for Codex
+- [ ] load assigns UUIDs to spells with empty id
+- [ ] load rejects invalid codex via validate_codex
+- [ ] save uses atomic write (tmp file cleaned up)
+- [ ] load_theme / save_theme round-trip
+- [ ] load_theme returns default when file missing
+- [ ] load_user_settings / save_user_settings round-trip
+- [ ] load_recents / save_recents round-trip
+- [ ] export_codex produces valid TOML that import_codex can reload
+- [ ] export_spellbook exports only the selected book + its spells
+- [ ] import_codex validates imported data
+- [ ] merge_codex with all three strategies (Skip, Overwrite, Rename)
+- [ ] append_spell adds a spell to existing codex
+- [ ] append_spellbook adds a spellbook to existing codex
+
+## Phase 2 — State mutations (must-have)
+Target: `src/state.rs`
+
+- [ ] add_spell adds spell to codex and assigns to spellbook
+- [ ] add_spellbook adds a new spellbook
+- [ ] delete_spellbook removes book but keeps spells
+- [ ] save persists codex to disk
+- [ ] recents survive a load round-trip
+
+## Phase 3 — Browse/navigation logic (high-value)
+Targets:
+- `src/ui/browse_spellbooks.rs`
+- `src/ui/browse_spells.rs`
+- `src/ui/form.rs`
+- `src/ui/jobs.rs`
+
+- [ ] browse_spellbooks: arrow navigation wraps correctly
+- [ ] browse_spellbooks: Enter opens selected spellbook
+- [ ] browse_spellbooks: search filter updates visible indices
+- [ ] browse_spellbooks: command palette opens with ':'
+- [ ] browse_spells: up/down wraps at list boundaries
+- [ ] browse_spells: Enter copies selected spell
+- [ ] browse_spells: edit trigger ('e') opens edit form
+- [ ] browse_spells: favorite toggle ('f') flips flag
+- [ ] browse_spells: execute modes (simple/TUI/background)
+- [ ] form: Tab/BackTab cycles fields
+- [ ] form: Ctrl+S saves spell/spellbook
+- [ ] form: Esc cancels (with unsaved-changes warning)
+- [ ] form: dropdown navigation in spellbook field
+- [ ] jobs: Up/Down changes selected job
+- [ ] jobs: kill/cancel/dismiss with initialized JobManager
+
+## Phase 4 — Supporting modules (nice-to-have)
+Targets:
+- `src/clipboard.rs`
+- `src/ui/confirm.rs`
+- `src/ui/input.rs`
+- `src/ui/quick_add_spell.rs`
+- `src/editor.rs`
+
+- [ ] clipboard: ExecutionResult display stdout/stderr truncation
+- [ ] clipboard: save_to_file output format
+- [ ] confirm: requires_typed_confirmation per action
+- [ ] confirm: title and confirmation_word per action
+- [ ] input: substitute replaces placeholders
+- [ ] input: validate requires all placeholders filled
+- [ ] quick_add_spell: field navigation and save flow
+- [ ] quick_add_spell: dropdown index maps to spellbook index
+- [ ] editor: resolve_editor priority and fallback behavior
+
+## Phase 5 — Test infrastructure
+
+- [ ] Extend or add shared test helpers in `src/test_utils.rs`
+- [ ] Helper: isolated temporary codex/theme/settings/recents files
+- [ ] Helper: deterministic State for archivist tests (no ~/.spellbook)
+- [ ] Document test helper usage in AGENTS.md
+
+## Notes
+
+- Default view mode is now Cards (verified in theme tests).
+- Use `State::new_test()` for isolated unit tests; keep `State::new()` for production + integration tests.
+- All new tests must run with `nix develop --command cargo test`.

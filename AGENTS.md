@@ -364,7 +364,7 @@ enum BrowseState {
 }
 ```
 
-### Migration Steps
+### Refactor Steps
 1. Freeze events.rs (no new features)
 2. Add BrowseState to Mode, collapse search state
 3. Split events.rs into browse_spells.rs, browse_spellbooks.rs, form.rs

@@ -74,6 +74,14 @@ impl StreamingState {
             launch_dir,
         }
     }
+
+    pub fn is_running(&self) -> bool {
+        self.is_running
+    }
+
+    pub fn stop_streaming(&mut self, _exit_code: Option<i32>) {
+        self.is_running = false;
+    }
 }
 
 /// Extended output modal state with streaming support
@@ -512,11 +520,13 @@ mod tests {
             "echo hello".to_string(),
             Some("Test Spell".to_string()),
             Some("/tmp".to_string()),
+            Some("/home/user".to_string()),
         );
 
         assert_eq!(state.command, "echo hello");
         assert_eq!(state.spell_name, Some("Test Spell".to_string()));
         assert_eq!(state.working_dir, Some("/tmp".to_string()));
+        assert_eq!(state.launch_dir, Some("/home/user".to_string()));
         assert!(state.is_running);
         assert!(state.pid.is_none());
     }
@@ -535,7 +545,7 @@ mod tests {
     #[test]
     fn test_stop_streaming() {
         let mut state = StreamingModalState::default();
-        state.streaming = Some(StreamingState::new("echo test".to_string(), None, None));
+        state.streaming = Some(StreamingState::new("echo test".to_string(), None, None, None));
         state.output.is_streaming = true;
 
         state.stop_streaming(Some(0));
@@ -588,7 +598,7 @@ mod tests {
     #[test]
     fn test_kill_sets_exit_code() {
         let mut state = StreamingModalState::default();
-        state.streaming = Some(StreamingState::new("sleep 10".to_string(), None, None));
+        state.streaming = Some(StreamingState::new("sleep 10".to_string(), None, None, None));
         state.output.is_streaming = true;
 
         // Since we can't actually test process killing in unit tests,
@@ -665,19 +675,11 @@ mod tests {
             "pwd".to_string(),
             Some("Current Directory".to_string()),
             None,
+            None,
         );
 
         assert!(state.working_dir.is_none());
         assert_eq!(state.command, "pwd");
-    }
-
-    #[test]
-    fn test_streaming_state_new() {
-        let state = StreamingState::new("echo test".to_string(), None, None, None);
-
-        assert_eq!(state.command, "echo test");
-        assert!(state.pid.is_none());
-        assert!(state.is_running);
     }
 
     #[test]
