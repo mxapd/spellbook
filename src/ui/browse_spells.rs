@@ -58,50 +58,12 @@ pub fn handle_browse_spells(
         return false;
     }
 
-        // Ctrl+v - show spell details (view)
-        if key == KeyCode::Char('v') && modifiers.contains(KeyModifiers::CONTROL) {
+    // Ctrl+v - show spell details (view)
+    if key == KeyCode::Char('v') && modifiers.contains(KeyModifiers::CONTROL) {
         if let Some(selected_idx) = ui.spell_list_state.selected() {
             if let Some(spellbook_index) = ui.selected_spellbook() {
-                let favorites_count = state.codex.spells.iter().filter(|s| s.favorite).count();
-                let has_favorites = favorites_count > 0;
-                let has_recent = !state.recents.is_empty();
-                let real_spellbook_count = state.codex.spellbooks.len();
-                let virtual_offset = (if has_favorites { 1 } else { 0 }) + (if has_recent { 1 } else { 0 });
-                let all_index = virtual_offset + real_spellbook_count;
-                
-                // Get the spell ID based on spellbook type
-                let spell_id_opt = if has_favorites && spellbook_index == 0 {
-                    // Favorites
-                    let favorites: Vec<_> = state.codex.spells.iter().filter(|s| s.favorite).collect();
-                    favorites.get(selected_idx).map(|s| s.id.clone())
-                } else if has_recent {
-                    let recent_idx = if has_favorites { 1 } else { 0 };
-                    if spellbook_index == recent_idx {
-                        // Recent
-                        state.recents.get(selected_idx).map(|r| r.spell_id.clone())
-                    } else if spellbook_index == all_index {
-                        // All spells
-                        state.codex.spells.get(selected_idx).map(|s| s.id.clone())
-                    } else {
-                        // Real spellbook
-                        let offset = (if has_favorites { 1 } else { 0 }) + 1;
-                        let real_idx = spellbook_index.saturating_sub(offset);
-                        state.codex.spellbooks.get(real_idx)
-                            .and_then(|sb| sb.spell_ids.get(selected_idx))
-                            .cloned()
-                    }
-                } else if spellbook_index == all_index {
-                    // All spells (no favorites, no recent)
-                    state.codex.spells.get(selected_idx).map(|s| s.id.clone())
-                } else {
-                    // Real spellbook (no virtual)
-                    state.codex.spellbooks.get(spellbook_index)
-                        .and_then(|sb| sb.spell_ids.get(selected_idx))
-                        .cloned()
-                };
-                
-                if let Some(spell_id) = spell_id_opt {
-                    ui.show_spell_details(spell_id);
+                if let Some(spell) = get_spell_by_index(state, spellbook_index, selected_idx) {
+                    ui.show_spell_details(spell.id);
                 }
             }
         }
@@ -350,6 +312,7 @@ fn get_spell_count_for_spellbook(state: &State, spellbook_index: usize) -> usize
             }
             SpellbookItem::VirtualRecent { .. } => state.recents.len(),
             SpellbookItem::VirtualAll { .. } => state.codex.spells.len(),
+            SpellbookItem::VirtualUnassigned { .. } => unassigned_spells(state).len(),
             SpellbookItem::Real { spellbook } => spellbook.spell_ids.len(),
         }
     } else {
@@ -375,11 +338,29 @@ fn get_spell_by_index(state: &State, spellbook_index: usize, spell_index: usize)
                 .cloned()
         }),
         SpellbookItem::VirtualAll { .. } => state.codex.spells.get(spell_index).cloned(),
+        SpellbookItem::VirtualUnassigned { .. } => {
+            unassigned_spells(state).get(spell_index).map(|s| (*s).clone())
+        }
         SpellbookItem::Real { spellbook } => spellbook
             .spell_ids
             .get(spell_index)
             .and_then(|id| state.codex.spells.iter().find(|s| &s.id == id).cloned()),
     }
+}
+
+fn unassigned_spells(state: &State) -> Vec<&crate::models::Spell> {
+    state
+        .codex
+        .spells
+        .iter()
+        .filter(|spell| {
+            !state
+                .codex
+                .spellbooks
+                .iter()
+                .any(|sb| sb.spell_ids.contains(&spell.id))
+        })
+        .collect()
 }
 
 /// Get spell ID and name at index

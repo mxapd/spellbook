@@ -42,6 +42,12 @@ pub struct QuickAddSpellState {
 
 impl QuickAddSpellState {
     pub fn new(command: String, spellbook_index: Option<usize>) -> Self {
+        // Dropdown index 0 is "None (unassigned)"; real spellbooks start at 1.
+        let dropdown_index = match spellbook_index {
+            Some(idx) => idx + 1,
+            None => 0,
+        };
+
         Self {
             command,
             name: String::new(),
@@ -50,7 +56,7 @@ impl QuickAddSpellState {
             spellbook_index,
             field: QuickAddField::Name,
             dropdown_open: false,
-            dropdown_index: spellbook_index.unwrap_or(0),
+            dropdown_index,
             is_editing: false,
             message: None,
         }
@@ -162,7 +168,7 @@ pub fn render(frame: &mut Frame, state: &crate::state::State, ui: &mut UiState) 
             .map(|sb| sb.name.as_str())
             .unwrap_or("None")
     } else {
-        "Select spellbook..."
+        "None (unassigned)"
     };
     let show_dropdown = form.dropdown_open && form.field == QuickAddField::Spellbook;
     render_select_field(
@@ -292,16 +298,14 @@ fn render_spellbook_dropdown(
     form: &QuickAddSpellState,
     theme: &crate::models::RatatuiColors,
 ) {
-    let items: Vec<ListItem> = state
-        .codex
-        .spellbooks
-        .iter()
-        .map(|sb| ListItem::new(sb.name.clone()).style(Style::new().fg(theme.fg)))
-        .collect();
-
-    if items.is_empty() {
-        return;
-    }
+    let mut items: Vec<ListItem> = vec![ListItem::new("None (unassigned)").style(Style::new().fg(theme.fg))];
+    items.extend(
+        state
+            .codex
+            .spellbooks
+            .iter()
+            .map(|sb| ListItem::new(sb.name.clone()).style(Style::new().fg(theme.fg))),
+    );
 
     let list = List::new(items)
         .block(
@@ -321,7 +325,7 @@ fn render_spellbook_dropdown(
     list_state.select(Some(form.dropdown_index));
 
     // Render dropdown below the field if there's room, otherwise above.
-    let dropdown_height = (state.codex.spellbooks.len() as u16 + 2).min(8);
+    let dropdown_height = (state.codex.spellbooks.len() as u16 + 3).min(8);
     let y = if area.y + area.height + dropdown_height <= frame.area().height {
         area.y + area.height
     } else {
@@ -399,13 +403,12 @@ pub fn handle_key(
                     form.is_editing = true;
                 }
                 QuickAddField::Spellbook => {
-                    if state.codex.spellbooks.is_empty() {
-                        form.message = Some(("No spellbooks exist".to_string(), true));
-                    } else {
-                        form.dropdown_open = !form.dropdown_open;
-                        if form.dropdown_open && form.spellbook_index.is_some() {
-                            form.dropdown_index = form.spellbook_index.unwrap_or(0);
-                        }
+                    form.dropdown_open = !form.dropdown_open;
+                    if form.dropdown_open {
+                        form.dropdown_index = match form.spellbook_index {
+                            Some(idx) => idx + 1,
+                            None => 0,
+                        };
                     }
                 }
                 QuickAddField::RunMode => {
@@ -464,6 +467,7 @@ fn handle_edit_mode(key: KeyCode, ui: &mut UiState) -> bool {
 
 fn handle_dropdown_navigation(key: KeyCode, state: &State, ui: &mut UiState) -> bool {
     let form = ui.quick_add_spell.as_mut().expect("quick_add_spell state missing");
+    let option_count = state.codex.spellbooks.len() + 1; // +1 for "None"
 
     match key {
         KeyCode::Esc => {
@@ -477,13 +481,17 @@ fn handle_dropdown_navigation(key: KeyCode, state: &State, ui: &mut UiState) -> 
             false
         }
         KeyCode::Down | KeyCode::Char('j') => {
-            if form.dropdown_index + 1 < state.codex.spellbooks.len() {
+            if form.dropdown_index + 1 < option_count {
                 form.dropdown_index += 1;
             }
             false
         }
         KeyCode::Enter => {
-            form.spellbook_index = Some(form.dropdown_index);
+            form.spellbook_index = if form.dropdown_index == 0 {
+                None
+            } else {
+                Some(form.dropdown_index - 1)
+            };
             form.dropdown_open = false;
             false
         }
@@ -543,21 +551,6 @@ fn save(state: &mut State, ui: &mut UiState) {
         return;
     }
 
-    let spellbook_index = match form.spellbook_index {
-        Some(idx) => idx,
-        None => {
-            ui.quick_add_spell.as_mut().unwrap().message =
-                Some(("Select a spellbook".to_string(), true));
-            return;
-        }
-    };
-
-    if spellbook_index >= state.codex.spellbooks.len() {
-        ui.quick_add_spell.as_mut().unwrap().message =
-            Some(("Invalid spellbook".to_string(), true));
-        return;
-    }
-
     let name_lower = form.name.to_lowercase();
     let exists = state
         .codex
@@ -595,9 +588,13 @@ fn save(state: &mut State, ui: &mut UiState) {
     let spell_id_for_book = spell.id.clone();
 
     state.codex.spells.push(spell);
-    state.codex.spellbooks[spellbook_index]
-        .spell_ids
-        .push(spell_id_for_book);
+    if let Some(spellbook_index) = form.spellbook_index {
+        if spellbook_index < state.codex.spellbooks.len() {
+            state.codex.spellbooks[spellbook_index]
+                .spell_ids
+                .push(spell_id_for_book);
+        }
+    }
 
     match Archivist::save(&state.codex, "codex.toml") {
         Ok(_) => {

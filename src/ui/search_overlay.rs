@@ -18,6 +18,9 @@ pub enum SpellbookItem<'a> {
     VirtualAll {
         count: usize,
     },
+    VirtualUnassigned {
+        count: usize,
+    },
     Real {
         spellbook: &'a crate::models::Spellbook,
     },
@@ -29,6 +32,7 @@ impl SpellbookItem<'_> {
             SpellbookItem::VirtualFavorite { .. } => "Favorites".to_string(),
             SpellbookItem::VirtualRecent { .. } => "Recent".to_string(),
             SpellbookItem::VirtualAll { .. } => "All".to_string(),
+            SpellbookItem::VirtualUnassigned { .. } => "Unassigned".to_string(),
             SpellbookItem::Real { spellbook } => spellbook.name.clone(),
         }
     }
@@ -36,7 +40,10 @@ impl SpellbookItem<'_> {
     pub fn is_virtual(&self) -> bool {
         matches!(
             self,
-            SpellbookItem::VirtualFavorite { .. } | SpellbookItem::VirtualRecent { .. } | SpellbookItem::VirtualAll { .. }
+            SpellbookItem::VirtualFavorite { .. }
+                | SpellbookItem::VirtualRecent { .. }
+                | SpellbookItem::VirtualAll { .. }
+                | SpellbookItem::VirtualUnassigned { .. }
         )
     }
 
@@ -45,6 +52,7 @@ impl SpellbookItem<'_> {
             SpellbookItem::VirtualFavorite { count } => *count,
             SpellbookItem::VirtualRecent { count } => *count,
             SpellbookItem::VirtualAll { count } => *count,
+            SpellbookItem::VirtualUnassigned { count } => *count,
             SpellbookItem::Real { spellbook } => spellbook.spell_ids.len(),
         }
     }
@@ -54,6 +62,7 @@ impl SpellbookItem<'_> {
             SpellbookItem::VirtualFavorite { .. } => "*".to_string(),
             SpellbookItem::VirtualRecent { .. } => "~".to_string(),
             SpellbookItem::VirtualAll { .. } => "=".to_string(),
+            SpellbookItem::VirtualUnassigned { .. } => "\u{2205}".to_string(), // ∅
             SpellbookItem::Real { spellbook } => {
                 if spellbook.sigil.is_empty() {
                     String::new()
@@ -69,6 +78,7 @@ impl SpellbookItem<'_> {
             SpellbookItem::VirtualFavorite { .. } => "starred spells".to_string(),
             SpellbookItem::VirtualRecent { .. } => "recently used".to_string(),
             SpellbookItem::VirtualAll { .. } => "all spells".to_string(),
+            SpellbookItem::VirtualUnassigned { .. } => "spells not in a spellbook".to_string(),
             SpellbookItem::Real { spellbook } => spellbook.cover.clone(),
         }
     }
@@ -78,6 +88,7 @@ impl SpellbookItem<'_> {
             SpellbookItem::VirtualFavorite { .. } => None,
             SpellbookItem::VirtualRecent { .. } => None,
             SpellbookItem::VirtualAll { .. } => None,
+            SpellbookItem::VirtualUnassigned { .. } => None,
             SpellbookItem::Real { spellbook } => spellbook.color,
         }
     }
@@ -88,6 +99,8 @@ pub fn get_spellbook_item<'a>(state: &'a State, index: usize) -> Option<Spellboo
     let has_favorites = favorites_count > 0;
     let has_recent = !state.recents.is_empty();
     let all_count = state.codex.spells.len();
+    let unassigned_count = count_unassigned_spells(state);
+    let has_unassigned = unassigned_count > 0;
 
     if has_favorites && index == 0 {
         return Some(SpellbookItem::VirtualFavorite {
@@ -104,13 +117,19 @@ pub fn get_spellbook_item<'a>(state: &'a State, index: usize) -> Option<Spellboo
         }
     }
 
-    let offset = (if has_favorites { 1 } else { 0}) + (if has_recent { 1 } else { 0 });
+    let offset = (if has_favorites { 1 } else { 0 }) + (if has_recent { 1 } else { 0 });
     let real_spellbook_count = state.codex.spellbooks.len();
-    let total_without_all = offset + real_spellbook_count;
+    let all_index = offset + real_spellbook_count;
 
-    if index == total_without_all {
+    if index == all_index {
         return Some(SpellbookItem::VirtualAll {
             count: all_count,
+        });
+    }
+
+    if has_unassigned && index == all_index + 1 {
+        return Some(SpellbookItem::VirtualUnassigned {
+            count: unassigned_count,
         });
     }
 
@@ -124,10 +143,11 @@ pub fn get_spellbook_item<'a>(state: &'a State, index: usize) -> Option<Spellboo
 }
 
 /// Convert a visible spellbook index (including virtual spellbooks) to a real spellbook index.
-/// Returns `None` if the visible index points to a virtual spellbook (Favorites, Recent, All).
+/// Returns `None` if the visible index points to a virtual spellbook (Favorites, Recent, All, Unassigned).
 pub fn real_spellbook_index(state: &State, visible_index: usize) -> Option<usize> {
     let has_favorites = state.codex.spells.iter().any(|s| s.favorite);
     let has_recent = !state.recents.is_empty();
+    let has_unassigned = count_unassigned_spells(state) > 0;
     let offset = (if has_favorites { 1 } else { 0 }) + (if has_recent { 1 } else { 0 });
     let real_count = state.codex.spellbooks.len();
 
@@ -141,6 +161,7 @@ pub fn real_spellbook_index(state: &State, visible_index: usize) -> Option<usize
 pub fn total_spellbook_count(state: &State) -> usize {
     let favorites = state.codex.spells.iter().filter(|s| s.favorite).count();
     let recent = if state.recents.is_empty() { 0 } else { 1 };
+    let unassigned = count_unassigned_spells(state);
 
     let mut count = 0;
     if favorites > 0 {
@@ -149,7 +170,26 @@ pub fn total_spellbook_count(state: &State) -> usize {
     if recent > 0 {
         count += 1;
     }
-    count + state.codex.spellbooks.len() + 1 // +1 for All
+    count += state.codex.spellbooks.len() + 1; // +1 for All
+    if unassigned > 0 {
+        count += 1; // +1 for Unassigned
+    }
+    count
+}
+
+fn count_unassigned_spells(state: &State) -> usize {
+    state
+        .codex
+        .spells
+        .iter()
+        .filter(|spell| {
+            !state
+                .codex
+                .spellbooks
+                .iter()
+                .any(|sb| sb.spell_ids.contains(&spell.id))
+        })
+        .count()
 }
 
 fn build_spine_decorations(
