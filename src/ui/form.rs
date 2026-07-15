@@ -119,12 +119,13 @@ pub fn handle_add_spell(
                 ui.add_spell.is_editing = true;
             } else if ui.add_spell.field == AddSpellField::Spellbook {
                 if ui.add_spell.dropdown_open {
-                    if ui.add_spell.dropdown_index >= state.codex.spellbooks.len() {
+                    if ui.add_spell.dropdown_index == 0 {
+                        // None (unassigned)
                         ui.add_spell.skip_spellbook = true;
                         ui.add_spell.spellbook_index = None;
                     } else {
                         ui.add_spell.skip_spellbook = false;
-                        ui.add_spell.spellbook_index = Some(ui.add_spell.dropdown_index);
+                        ui.add_spell.spellbook_index = Some(ui.add_spell.dropdown_index - 1);
                     }
                     ui.add_spell.dropdown_open = false;
                 } else {
@@ -450,14 +451,17 @@ fn save_spell(state: &mut State, ui: &mut UiState) {
         state.codex.spells.push(spell.clone());
     }
 
-    // Add to spellbook if selected
+    // Remove spell from all spellbooks, then add to selected if not unassigned.
+    for spellbook in state.codex.spellbooks.iter_mut() {
+        spellbook.spell_ids.retain(|id| id != &spell.id);
+    }
+
     if !ui.add_spell.skip_spellbook {
         if let Some(spellbook_idx) = ui.add_spell.spellbook_index {
             if spellbook_idx < state.codex.spellbooks.len() {
-                let spellbook = &mut state.codex.spellbooks[spellbook_idx];
-                if !spellbook.spell_ids.contains(&spell.id) {
-                    spellbook.spell_ids.push(spell.id.clone());
-                }
+                state.codex.spellbooks[spellbook_idx]
+                    .spell_ids
+                    .push(spell.id.clone());
             }
         }
     }

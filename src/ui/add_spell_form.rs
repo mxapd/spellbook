@@ -102,6 +102,12 @@ impl AddSpellForm {
         self.confirm = spell.confirm;
         self.working_dir = spell.working_dir.clone();
         self.spellbook_index = spellbook_index;
+        self.skip_spellbook = spellbook_index.is_none();
+        // Dropdown index 0 is "None (unassigned)"; real spellbooks start at 1.
+        self.dropdown_index = match spellbook_index {
+            Some(idx) => idx + 1,
+            None => 0,
+        };
     }
 
     pub fn is_typing(&self) -> bool {

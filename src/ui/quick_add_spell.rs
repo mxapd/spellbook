@@ -2,7 +2,7 @@ use crate::archivist::Archivist;
 use crate::models::{RunMode, Spell};
 use crate::state::State;
 use crate::ui::UiState;
-use crate::{log_error, log_info};
+use crate::{log_error, log_info, log_warn};
 use crossterm::event::{KeyCode, KeyModifiers};
 use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
@@ -587,20 +587,36 @@ fn save(state: &mut State, ui: &mut UiState) {
     let spell_name = spell.name.clone();
     let spell_id_for_book = spell.id.clone();
 
-    state.codex.spells.push(spell);
-    if let Some(spellbook_index) = form.spellbook_index {
+    let saved_to_book = if let Some(spellbook_index) = form.spellbook_index {
         if spellbook_index < state.codex.spellbooks.len() {
             state.codex.spellbooks[spellbook_index]
                 .spell_ids
                 .push(spell_id_for_book);
+            true
+        } else {
+            log_warn!(
+                "Spellbook index {} out of bounds; saving spell '{}' as unassigned",
+                spellbook_index,
+                spell_name
+            );
+            false
         }
-    }
+    } else {
+        false
+    };
+
+    state.codex.spells.push(spell);
 
     match Archivist::save(&state.codex, "codex.toml") {
         Ok(_) => {
             state.reload_codex();
             log_info!("Spell saved: {}", spell_name);
-            ui.copy_feedback = Some(format!("Spell '{}' saved", spell_name));
+            let feedback = if saved_to_book {
+                format!("Spell '{}' saved", spell_name)
+            } else {
+                format!("Spell '{}' saved as unassigned", spell_name)
+            };
+            ui.copy_feedback = Some(feedback);
             ui.quick_add_spell = None;
             ui.pop_overlay();
         }

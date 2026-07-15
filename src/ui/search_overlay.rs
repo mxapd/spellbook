@@ -99,7 +99,7 @@ pub fn get_spellbook_item<'a>(state: &'a State, index: usize) -> Option<Spellboo
     let has_favorites = favorites_count > 0;
     let has_recent = !state.recents.is_empty();
     let all_count = state.codex.spells.len();
-    let unassigned_count = count_unassigned_spells(state);
+    let unassigned_count = state.codex.unassigned_count();
     let has_unassigned = unassigned_count > 0;
 
     if has_favorites && index == 0 {
@@ -147,7 +147,6 @@ pub fn get_spellbook_item<'a>(state: &'a State, index: usize) -> Option<Spellboo
 pub fn real_spellbook_index(state: &State, visible_index: usize) -> Option<usize> {
     let has_favorites = state.codex.spells.iter().any(|s| s.favorite);
     let has_recent = !state.recents.is_empty();
-    let has_unassigned = count_unassigned_spells(state) > 0;
     let offset = (if has_favorites { 1 } else { 0 }) + (if has_recent { 1 } else { 0 });
     let real_count = state.codex.spellbooks.len();
 
@@ -161,7 +160,7 @@ pub fn real_spellbook_index(state: &State, visible_index: usize) -> Option<usize
 pub fn total_spellbook_count(state: &State) -> usize {
     let favorites = state.codex.spells.iter().filter(|s| s.favorite).count();
     let recent = if state.recents.is_empty() { 0 } else { 1 };
-    let unassigned = count_unassigned_spells(state);
+    let unassigned = state.codex.unassigned_count();
 
     let mut count = 0;
     if favorites > 0 {
@@ -177,19 +176,73 @@ pub fn total_spellbook_count(state: &State) -> usize {
     count
 }
 
-fn count_unassigned_spells(state: &State) -> usize {
-    state
-        .codex
-        .spells
-        .iter()
-        .filter(|spell| {
-            !state
+/// Get the count of spells in a spellbook (real or virtual).
+pub fn get_spell_count_for_spellbook(state: &State, spellbook_index: usize) -> usize {
+    if let Some(item) = get_spellbook_item(state, spellbook_index) {
+        match item {
+            SpellbookItem::VirtualFavorite { .. } => {
+                state.codex.spells.iter().filter(|s| s.favorite).count()
+            }
+            SpellbookItem::VirtualRecent { .. } => state.recents.len(),
+            SpellbookItem::VirtualAll { .. } => state.codex.spells.len(),
+            SpellbookItem::VirtualUnassigned { .. } => state.codex.unassigned_count(),
+            SpellbookItem::Real { spellbook } => spellbook.spell_ids.len(),
+        }
+    } else {
+        0
+    }
+}
+
+/// Get a spell reference by index from a spellbook (real or virtual).
+pub fn get_spell_ref_by_index(
+    state: &State,
+    spellbook_index: usize,
+    spell_index: usize,
+) -> Option<&crate::models::Spell> {
+    let item = get_spellbook_item(state, spellbook_index)?;
+
+    match item {
+        SpellbookItem::VirtualFavorite { .. } => {
+            let favorites: Vec<_> = state.codex.spells.iter().filter(|s| s.favorite).collect();
+            favorites.get(spell_index).copied()
+        }
+        SpellbookItem::VirtualRecent { .. } => state.recents.get(spell_index).and_then(|recent| {
+            state
                 .codex
-                .spellbooks
+                .spells
                 .iter()
-                .any(|sb| sb.spell_ids.contains(&spell.id))
-        })
-        .count()
+                .find(|s| s.id == recent.spell_id)
+        }),
+        SpellbookItem::VirtualAll { .. } => state.codex.spells.get(spell_index),
+        SpellbookItem::VirtualUnassigned { .. } => state
+            .codex
+            .unassigned_spells()
+            .get(spell_index)
+            .copied(),
+        SpellbookItem::Real { spellbook } => spellbook
+            .spell_ids
+            .get(spell_index)
+            .and_then(|id| state.codex.spells.iter().find(|s| &s.id == id)),
+    }
+}
+
+/// Get a cloned spell by index from a spellbook (real or virtual).
+pub fn get_spell_by_index(
+    state: &State,
+    spellbook_index: usize,
+    spell_index: usize,
+) -> Option<crate::models::Spell> {
+    get_spell_ref_by_index(state, spellbook_index, spell_index).cloned()
+}
+
+/// Get spell ID and name at index.
+pub fn get_spell_at_index(
+    state: &State,
+    spellbook_index: usize,
+    spell_index: usize,
+) -> Option<(String, String)> {
+    get_spell_ref_by_index(state, spellbook_index, spell_index)
+        .map(|spell| (spell.id.clone(), spell.name.clone()))
 }
 
 fn build_spine_decorations(
@@ -594,63 +647,11 @@ pub fn render_in_area(
     // Only render details panel for BrowseSpells mode
     if matches!(&ui.mode, Mode::BrowseSpells(_)) {
         let details = if let Some(spellbook_index) = ui.selected_spellbook() {
-            let favorites_count = state.codex.spells.iter().filter(|s| s.favorite).count();
-            let has_favorites = favorites_count > 0;
-            let has_recent = !state.recents.is_empty();
-            let real_spellbook_count = state.codex.spellbooks.len();
-            let virtual_offset = (if has_favorites { 1 } else { 0 }) + (if has_recent { 1 } else { 0 });
-            let all_index = virtual_offset + real_spellbook_count;
-            
-            // Get the selected spell
-            let spell_opt = if has_favorites && spellbook_index == 0 {
-                // Favorites virtual spellbook
-                let favorites: Vec<_> = state.codex.spells.iter().filter(|s| s.favorite).collect();
-                ui.spell_list_state.selected()
-                    .and_then(|idx| favorites.get(idx).copied())
-            } else if has_recent {
-                let recent_idx = if has_favorites { 1 } else { 0 };
-                if spellbook_index == recent_idx {
-                    // Recent virtual spellbook
-                    ui.spell_list_state.selected()
-                        .and_then(|idx| state.recents.get(idx))
-                        .and_then(|recent| state.codex.spells.iter().find(|s| s.id == recent.spell_id))
-                } else if spellbook_index == all_index {
-                    // All spells virtual spellbook
-                    ui.spell_list_state.selected()
-                        .and_then(|idx| state.codex.spells.get(idx))
-                } else {
-                    // Real spellbook
-                    let offset = (if has_favorites { 1 } else { 0 }) + 1;
-                    let real_idx = spellbook_index.saturating_sub(offset);
-                    state.codex.spellbooks.get(real_idx)
-                        .and_then(|spellbook| {
-                            ui.spell_list_state.selected()
-                                .and_then(|idx| spellbook.spell_ids.get(idx))
-                        })
-                        .and_then(|spell_id| state.codex.spells.iter().find(|s| s.id == *spell_id))
-                }
-            } else if spellbook_index == all_index {
-                // All spells virtual spellbook (no favorites, no recent)
-                ui.spell_list_state.selected()
-                    .and_then(|idx| state.codex.spells.get(idx))
-            } else {
-                // Real spellbook (no virtual spellbooks, but check for All)
-                let all_idx = real_spellbook_count;
-                if spellbook_index == all_idx {
-                    ui.spell_list_state.selected()
-                        .and_then(|idx| state.codex.spells.get(idx))
-                } else {
-                    let offset = 0;
-                    let real_idx = spellbook_index.saturating_sub(offset);
-                    state.codex.spellbooks.get(real_idx)
-                        .and_then(|spellbook| {
-                            ui.spell_list_state.selected()
-                                .and_then(|idx| spellbook.spell_ids.get(idx))
-                        })
-                        .and_then(|spell_id| state.codex.spells.iter().find(|s| s.id == *spell_id))
-                }
-            };
-            
+            let spell_opt = ui
+                .spell_list_state
+                .selected()
+                .and_then(|idx| get_spell_ref_by_index(state, spellbook_index, idx));
+
             match spell_opt {
                 Some(spell) => format_compact_spell_details(spell, theme),
                 None => {
@@ -1578,14 +1579,24 @@ fn render_spellbook_spells(
     let favorites_count = state.codex.spells.iter().filter(|s| s.favorite).count();
     let has_favorites = favorites_count > 0;
     let has_recent = !state.recents.is_empty();
+    let has_unassigned = state.codex.unassigned_count() > 0;
     let real_spellbook_count = state.codex.spellbooks.len();
     let virtual_offset = (if has_favorites { 1 } else { 0 }) + (if has_recent { 1 } else { 0 });
     let all_index = virtual_offset + real_spellbook_count;
+    let unassigned_index = if has_unassigned {
+        Some(all_index + 1)
+    } else {
+        None
+    };
 
     let (spells, title, is_virtual) = if has_favorites && spellbook_index == 0 {
         let fav_spells: Vec<_> = state.codex.spells.iter().filter(|s| s.favorite).collect();
         let count = fav_spells.len();
         (fav_spells, format!("* Favorites ({})", count), true)
+    } else if unassigned_index == Some(spellbook_index) {
+        let unassigned_spells: Vec<_> = state.codex.unassigned_spells();
+        let count = unassigned_spells.len();
+        (unassigned_spells, format!("\u{2205} Unassigned ({})", count), true)
     } else if has_recent {
         let recent_idx = if has_favorites { 1 } else { 0 };
         if spellbook_index == recent_idx {

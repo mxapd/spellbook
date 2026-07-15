@@ -201,8 +201,8 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
     frame.render_widget(confirm_line, form_chunks[7]);
 
     let spellbook_is_active = ui.add_spell.field == AddSpellField::Spellbook;
-    let current_selection = if ui.add_spell.skip_spellbook {
-        "Skip - just create spell".to_string()
+    let current_selection = if ui.add_spell.spellbook_index.is_none() {
+        "None (unassigned)".to_string()
     } else {
         let selected = ui.add_spell.spellbook_index.unwrap_or(0);
         state
@@ -210,7 +210,7 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
             .spellbooks
             .get(selected)
             .map(|b| b.name.clone())
-            .unwrap_or_else(|| "None".to_string())
+            .unwrap_or_else(|| "None (unassigned)".to_string())
     };
 
     let spellbook_indicator = if spellbook_is_active && ui.add_spell.dropdown_open {
@@ -234,15 +234,15 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
 
     // Show dropdown only when Spellbook field is active AND dropdown is open
     if spellbook_is_active && ui.add_spell.dropdown_open {
-        let dropdown_items: Vec<ListItem> = state
-            .codex
-            .spellbooks
-            .iter()
-            .map(|sb| ListItem::new(sb.name.clone()).style(Style::new().fg(theme.fg)))
-            .chain(std::iter::once(
-                ListItem::new("Skip - just create spell").style(Style::new().fg(theme.muted)),
-            ))
-            .collect();
+        let mut dropdown_items: Vec<ListItem> =
+            vec![ListItem::new("None (unassigned)").style(Style::new().fg(theme.fg))];
+        dropdown_items.extend(
+            state
+                .codex
+                .spellbooks
+                .iter()
+                .map(|sb| ListItem::new(sb.name.clone()).style(Style::new().fg(theme.fg))),
+        );
 
         let dropdown_list = List::new(dropdown_items)
             .block(
@@ -502,12 +502,14 @@ pub fn render_in_area(
     frame.render_widget(confirm_line, form_chunks[7]);
 
     let spellbook_is_active = ui.add_spell.field == AddSpellField::Spellbook;
-    let selected_spellbook = ui
-        .add_spell
-        .spellbook_index
-        .map(|i| state.codex.spellbooks.get(i).map(|sb| sb.name.clone()))
-        .flatten();
-    let spellbook_value = selected_spellbook.unwrap_or_else(|| "...".to_string());
+    let spellbook_value = if ui.add_spell.spellbook_index.is_none() {
+        "None (unassigned)".to_string()
+    } else {
+        ui.add_spell
+            .spellbook_index
+            .and_then(|i| state.codex.spellbooks.get(i).map(|sb| sb.name.clone()))
+            .unwrap_or_else(|| "None (unassigned)".to_string())
+    };
     let spellbook_indicator = if spellbook_is_active && ui.add_spell.dropdown_open {
         "▼"
     } else {
@@ -527,15 +529,15 @@ pub fn render_in_area(
     frame.render_widget(spellbook_line, form_chunks[8]);
 
     if spellbook_is_active && ui.add_spell.dropdown_open {
-        let dropdown_items: Vec<ListItem> = state
-            .codex
-            .spellbooks
-            .iter()
-            .map(|sb| ListItem::new(sb.name.clone()).style(Style::new().fg(theme.fg)))
-            .chain(std::iter::once(
-                ListItem::new("Skip - just create spell").style(Style::new().fg(theme.muted)),
-            ))
-            .collect();
+        let mut dropdown_items: Vec<ListItem> =
+            vec![ListItem::new("None (unassigned)").style(Style::new().fg(theme.fg))];
+        dropdown_items.extend(
+            state
+                .codex
+                .spellbooks
+                .iter()
+                .map(|sb| ListItem::new(sb.name.clone()).style(Style::new().fg(theme.fg))),
+        );
 
         let dropdown_list = List::new(dropdown_items)
             .block(

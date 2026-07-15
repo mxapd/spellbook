@@ -5,7 +5,7 @@
 use crate::log_info;
 use crate::models::{RecentAction, RunMode, Spell};
 use crate::state::State;
-use crate::ui::search_overlay::{get_spellbook_item, SpellbookItem};
+use crate::ui::search_overlay::{get_spell_at_index, get_spell_by_index, get_spell_count_for_spellbook};
 use crate::ui::{events, streaming_modal, Overlay, UiState};
 use crossterm::event::{KeyCode, KeyModifiers};
 
@@ -301,75 +301,6 @@ pub fn handle_browse_spells(
     }
 
     false
-}
-
-/// Get the count of spells in a spellbook
-fn get_spell_count_for_spellbook(state: &State, spellbook_index: usize) -> usize {
-    if let Some(item) = get_spellbook_item(state, spellbook_index) {
-        match item {
-            SpellbookItem::VirtualFavorite { .. } => {
-                state.codex.spells.iter().filter(|s| s.favorite).count()
-            }
-            SpellbookItem::VirtualRecent { .. } => state.recents.len(),
-            SpellbookItem::VirtualAll { .. } => state.codex.spells.len(),
-            SpellbookItem::VirtualUnassigned { .. } => unassigned_spells(state).len(),
-            SpellbookItem::Real { spellbook } => spellbook.spell_ids.len(),
-        }
-    } else {
-        0
-    }
-}
-
-/// Get a spell by index from a spellbook
-fn get_spell_by_index(state: &State, spellbook_index: usize, spell_index: usize) -> Option<Spell> {
-    let item = get_spellbook_item(state, spellbook_index)?;
-
-    match item {
-        SpellbookItem::VirtualFavorite { .. } => {
-            let favorites: Vec<_> = state.codex.spells.iter().filter(|s| s.favorite).collect();
-            favorites.get(spell_index).map(|s| (*s).clone())
-        }
-        SpellbookItem::VirtualRecent { .. } => state.recents.get(spell_index).and_then(|recent| {
-            state
-                .codex
-                .spells
-                .iter()
-                .find(|s| s.id == recent.spell_id)
-                .cloned()
-        }),
-        SpellbookItem::VirtualAll { .. } => state.codex.spells.get(spell_index).cloned(),
-        SpellbookItem::VirtualUnassigned { .. } => {
-            unassigned_spells(state).get(spell_index).map(|s| (*s).clone())
-        }
-        SpellbookItem::Real { spellbook } => spellbook
-            .spell_ids
-            .get(spell_index)
-            .and_then(|id| state.codex.spells.iter().find(|s| &s.id == id).cloned()),
-    }
-}
-
-fn unassigned_spells(state: &State) -> Vec<&crate::models::Spell> {
-    state
-        .codex
-        .spells
-        .iter()
-        .filter(|spell| {
-            !state
-                .codex
-                .spellbooks
-                .iter()
-                .any(|sb| sb.spell_ids.contains(&spell.id))
-        })
-        .collect()
-}
-
-/// Get spell ID and name at index
-fn get_spell_at_index(
-    state: &State,
-    spellbook_index: usize,
-    spell_index: usize,
-) -> Option<(String, String)> {
-    get_spell_by_index(state, spellbook_index, spell_index).map(|spell| (spell.id, spell.name))
 }
 
 /// Copy spell at index to clipboard
