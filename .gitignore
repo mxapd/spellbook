@@ -2,3 +2,4 @@ target/
 spellbook.log
 codex.toml.backup
 theme.toml
+codex.toml
