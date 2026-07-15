@@ -174,10 +174,6 @@ pub fn render(frame: &mut Frame, state: &crate::state::State, ui: &mut UiState) 
         theme,
     );
 
-    if show_dropdown {
-        render_spellbook_dropdown(frame, chunks[4], state, form, theme);
-    }
-
     // Message
     if let Some((message, is_error)) = &form.message {
         let msg_style = if *is_error {
@@ -201,6 +197,11 @@ pub fn render(frame: &mut Frame, state: &crate::state::State, ui: &mut UiState) 
         .style(Style::new().fg(theme.muted))
         .alignment(Alignment::Center);
     frame.render_widget(footer, chunks[6]);
+
+    // Render dropdown last so it draws on top of the footer/hints bar.
+    if show_dropdown {
+        render_spellbook_dropdown(frame, chunks[4], state, form, theme);
+    }
 }
 
 fn render_text_field(
