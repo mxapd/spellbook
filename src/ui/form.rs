@@ -470,6 +470,9 @@ fn save_spell(state: &mut State, ui: &mut UiState) {
             ui.add_spell.has_unsaved = false;
             log_info!("Spell saved: {}", spell.name);
 
+            // Reload codex from disk so browse views reflect the new spell immediately
+            state.reload_codex();
+
             // Clear form and return to browse
             ui.clear_add_spell_form();
         }
@@ -482,7 +485,7 @@ fn save_spell(state: &mut State, ui: &mut UiState) {
 }
 
 /// Saves the current spellbook and returns to the spellbook list.
-fn save_spellbook(_state: &mut State, ui: &mut UiState) {
+fn save_spellbook(state: &mut State, ui: &mut UiState) {
     if ui.add_spellbook.name.trim().is_empty() {
         ui.add_spellbook.message = Some(("Name is required".to_string(), true));
         return;
@@ -508,6 +511,10 @@ fn save_spellbook(_state: &mut State, ui: &mut UiState) {
             ui.add_spellbook.message = Some(("Spellbook saved!".to_string(), false));
             ui.add_spellbook.has_unsaved = false;
             log_info!("Spellbook saved");
+
+            // Reload codex from disk so the new spellbook appears immediately
+            state.reload_codex();
+
             ui.add_spellbook.clear();
             ui.mode = Mode::BrowseSpellbooks(BrowseState::default());
         }
