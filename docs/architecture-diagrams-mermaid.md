@@ -346,7 +346,7 @@ sequenceDiagram
     alt missing / invalid
         arch-->>main: create empty codex
     end
-    main->>arch: load theme.toml
+    main->>arch: load config.toml
     main->>arch: load user settings
     main->>arch: load recents.toml
     main->>state: State::new(codex)
@@ -368,7 +368,7 @@ sequenceDiagram
 flowchart LR
     subgraph LocalDir["Working directory"]
         codex[codex.toml]
-        theme[theme.toml]
+        theme[config.toml]
     end
 
     subgraph SpellbookDir["~/.spellbook/"]

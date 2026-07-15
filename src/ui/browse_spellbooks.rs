@@ -18,8 +18,6 @@ pub fn handle_browse_spellbooks(
     ui: &mut UiState,
     modifiers: KeyModifiers,
 ) -> bool {
-    ui.copy_feedback = None;
-
     // Handle Escape - exit search if active
     if key == KeyCode::Esc {
         if ui.is_searching() {
@@ -168,7 +166,7 @@ pub fn handle_browse_spellbooks(
                     if let Some(item) = get_spellbook_item(state, idx) {
                         // Don't allow deleting virtual spellbooks
                         if item.is_virtual() {
-                            ui.copy_feedback = Some("Cannot delete virtual spellbooks".to_string());
+                            ui.show_error("Cannot delete virtual spellbooks".to_string());
                             return false;
                         }
                         let name = item.name();
@@ -270,7 +268,8 @@ pub fn handle_browse_spellbooks(
                     log_error!("Failed to save codex: {}", e);
                 }
                 let status = if new_favorite { "added to" } else { "removed from" };
-                ui.copy_feedback = Some(format!("Spell {} favorites", status));
+                ui.show_success(format!("Spell {} favorites", status));
+                ui.flash(crate::ui::FlashAction::SearchResult { index: selected }, None);
             }
             return false;
         }
@@ -311,14 +310,15 @@ fn handle_search_navigation(key: KeyCode, modifiers: KeyModifiers, state: &mut S
                 let spell_idx = indices[selected];
                 if let Some(spell) = state.codex.spells.get(spell_idx) {
                     if crate::clipboard::copy_to_clipboard(&spell.incantation) {
-                        ui.copy_feedback = Some(format!("Copied: {}", spell.name));
+                        ui.show_success(format!("Copied: {}", spell.name));
+                        ui.flash(crate::ui::FlashAction::SearchResult { index: selected }, None);
                         state.add_recent(
                             spell.id.clone(),
                             spell.name.clone(),
                             crate::models::RecentAction::Copy,
                         );
                     } else {
-                        ui.copy_feedback = Some("Failed to copy to clipboard".to_string());
+                        ui.show_error("Failed to copy to clipboard".to_string());
                     }
                 }
             }
@@ -398,7 +398,8 @@ fn handle_search_navigation(key: KeyCode, modifiers: KeyModifiers, state: &mut S
                     log_error!("Failed to save codex: {}", e);
                 }
                 let status = if new_favorite { "added to" } else { "removed from" };
-                ui.copy_feedback = Some(format!("Spell {} favorites", status));
+                ui.show_success(format!("Spell {} favorites", status));
+                ui.flash(crate::ui::FlashAction::SearchResult { index: selected }, None);
             }
             return false;
         }
@@ -458,7 +459,7 @@ fn handle_search_navigation(key: KeyCode, modifiers: KeyModifiers, state: &mut S
                         working_dir,
                         state.launch_dir.clone(),
                     ) {
-                        ui.copy_feedback = Some(format!("Failed to start TUI mode: {}", e));
+                        ui.show_error(format!("Failed to start TUI mode: {}", e));
                     }
                 }
             }
@@ -497,12 +498,12 @@ fn handle_search_navigation(key: KeyCode, modifiers: KeyModifiers, state: &mut S
                         },
                     ) {
                         Ok(job_id) => {
-                            ui.copy_feedback = Some(format!("Job {} started: {}", job_id, spell.name));
+                            ui.show_success(format!("Job {} started: {}", job_id, spell.name));
                             ui.open_jobs_sidebar();
                             state.add_recent(spell_id, spell_name, crate::models::RecentAction::Run);
                         }
                         Err(e) => {
-                            ui.copy_feedback = Some(format!("Failed to start background job: {}", e));
+                            ui.show_error(format!("Failed to start background job: {}", e));
                         }
                     }
                 }
@@ -589,7 +590,7 @@ fn execute_command(state: &mut State, ui: &mut UiState) {
         execute_command_by_index(*cmd_idx, state, ui);
     } else {
         // No matching command found
-        ui.copy_feedback = Some(format!("Unknown command: {}", query_after_colon));
+        ui.show_error(format!("Unknown command: {}", query_after_colon));
         log_info!("Unknown command: {}", query_after_colon);
     }
     ui.exit_typing_mode();

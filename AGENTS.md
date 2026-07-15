@@ -114,8 +114,8 @@ pub enum FocusTarget {
 | File | Purpose |
 |------|---------|
 | `codex.toml` | Spells and spellbooks |
-| `theme.toml` | User settings (view mode, theme) |
-| `theme.toml` | Theme selection |
+| `config.toml` | User settings (view mode, theme) |
+| `config.toml` | Theme selection |
 | `~/.spellbook/jobs.toml` | Job registry |
 | `~/.spellbook/recents.toml` | Recently used spells |
 | `~/.spellbook/spellbook.log` | Application logs |

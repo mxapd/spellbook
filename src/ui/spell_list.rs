@@ -25,11 +25,26 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
 
     let spellbook = &state.codex.spellbooks[spellbook_index];
 
+    let flash = ui.flash_action.as_ref().and_then(|(action, _)| match action {
+        crate::ui::FlashAction::Spell { spellbook_index: sb, spell_index: si } if *sb == spellbook_index => Some(*si),
+        _ => None,
+    });
+
     let spells: Vec<ListItem> = spellbook
         .spell_ids
         .iter()
-        .filter_map(|spell_id| state.codex.spells.iter().find(|s| s.id == *spell_id))
-        .map(|spell| ListItem::new(spell.name.clone()).style(Style::new().fg(theme.fg)))
+        .enumerate()
+        .filter_map(|(idx, spell_id)| {
+            state.codex.spells.iter().find(|s| s.id == *spell_id).map(|spell| (idx, spell))
+        })
+        .map(|(idx, spell)| {
+            let style = if flash == Some(idx) {
+                Style::new().fg(theme.bg).bg(theme.accent).add_modifier(ratatui::style::Modifier::BOLD)
+            } else {
+                Style::new().fg(theme.fg)
+            };
+            ListItem::new(spell.name.clone()).style(style)
+        })
         .collect();
 
     let list_block = Block::bordered()
@@ -106,17 +121,16 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
 
     frame.render_widget(details_block, chunks[1]);
 
-    let footer = if let Some(ref msg) = ui.copy_feedback {
-        let single_line = msg.lines().next().unwrap_or(msg).to_string();
-        Paragraph::new(single_line)
-            .style(Style::new().fg(ratatui::style::Color::Green).bg(theme.bg))
-            .alignment(ratatui::layout::Alignment::Center)
-    } else {
-        Paragraph::new(format!(
-            "arrows/jk navigate  enter copy  s simple  Ctrl+r tui  Ctrl+b bg  esc/q back",
-        ))
-        .style(Style::new().fg(theme.muted).bg(theme.bg))
-    };
+    let footer = ui
+        .feedback
+        .as_ref()
+        .map(|f| f.paragraph(theme))
+        .unwrap_or_else(|| {
+            Paragraph::new(format!(
+                "arrows/jk navigate  enter copy  s simple  Ctrl+r tui  Ctrl+b bg  esc/q back",
+            ))
+            .style(Style::new().fg(theme.muted).bg(theme.bg))
+        });
     frame.render_widget(footer, chunks[2]);
 }
 
@@ -144,11 +158,26 @@ pub fn render_in_area(
 
     let spellbook = &state.codex.spellbooks[spellbook_index];
 
+    let flash = ui.flash_action.as_ref().and_then(|(action, _)| match action {
+        crate::ui::FlashAction::Spell { spellbook_index: sb, spell_index: si } if *sb == spellbook_index => Some(*si),
+        _ => None,
+    });
+
     let spells: Vec<ListItem> = spellbook
         .spell_ids
         .iter()
-        .filter_map(|spell_id| state.codex.spells.iter().find(|s| s.id == *spell_id))
-        .map(|spell| ListItem::new(spell.name.clone()).style(Style::new().fg(theme.fg)))
+        .enumerate()
+        .filter_map(|(idx, spell_id)| {
+            state.codex.spells.iter().find(|s| s.id == *spell_id).map(|spell| (idx, spell))
+        })
+        .map(|(idx, spell)| {
+            let style = if flash == Some(idx) {
+                Style::new().fg(theme.bg).bg(theme.accent).add_modifier(ratatui::style::Modifier::BOLD)
+            } else {
+                Style::new().fg(theme.fg)
+            };
+            ListItem::new(spell.name.clone()).style(style)
+        })
         .collect();
 
     let list_block = Block::bordered()
@@ -224,16 +253,15 @@ pub fn render_in_area(
 
     frame.render_widget(details_block, chunks[1]);
 
-    let footer = if let Some(ref msg) = ui.copy_feedback {
-        let single_line = msg.lines().next().unwrap_or(msg).to_string();
-        Paragraph::new(single_line)
-            .style(Style::new().fg(ratatui::style::Color::Green).bg(theme.bg))
-            .alignment(ratatui::layout::Alignment::Center)
-    } else {
-        Paragraph::new(
-            "arrows/jk navigate  enter copy  s simple  Ctrl+r tui  Ctrl+b bg  h/esc back",
-        )
-        .style(Style::new().fg(theme.muted).bg(theme.bg))
-    };
+    let footer = ui
+        .feedback
+        .as_ref()
+        .map(|f| f.paragraph(theme))
+        .unwrap_or_else(|| {
+            Paragraph::new(
+                "arrows/jk navigate  enter copy  s simple  Ctrl+r tui  Ctrl+b bg  h/esc back",
+            )
+            .style(Style::new().fg(theme.muted).bg(theme.bg))
+        });
     frame.render_widget(footer, chunks[2]);
 }

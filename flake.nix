@@ -7,7 +7,34 @@
     let
       systems = [ "x86_64-linux" "aarch64-linux" ];
       forAllSystems = nixpkgs.lib.genAttrs systems;
-    in {
+
+      spellbookModule = moduleType: { config, lib, pkgs, ... }:
+        let
+          cfg = config.programs.spellbook;
+          spellbookPkg = self.packages.${pkgs.stdenv.hostPlatform.system}.default;
+        in
+        {
+          options.programs.spellbook = {
+            enable = lib.mkEnableOption "spellbook TUI command manager";
+
+            package = lib.mkOption {
+              type = lib.types.package;
+              default = spellbookPkg;
+              defaultText = lib.literalExpression "spellbook.packages.\${pkgs.stdenv.hostPlatform.system}.default";
+              description = "The spellbook package to use.";
+            };
+          };
+
+          config = lib.mkIf cfg.enable (
+            if moduleType == "nixos" then {
+              environment.systemPackages = [ cfg.package ];
+            } else {
+              home.packages = [ cfg.package ];
+            }
+          );
+        };
+    in
+    {
       packages = forAllSystems (system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
@@ -28,5 +55,8 @@
             ];
           };
         });
+
+      nixosModules.default = spellbookModule "nixos";
+      homeManagerModules.default = spellbookModule "home-manager";
     };
 }

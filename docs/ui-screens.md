@@ -617,4 +617,4 @@ BrowseSpellbooks supports three view modes:
 - Compact, works on narrow terminals
 
 **Toggle**: `v` key or commands (`:c`, `:p`, `:l`)
-**Persistence**: Saved in `theme.toml`
+**Persistence**: Saved in `config.toml`

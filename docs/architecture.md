@@ -161,8 +161,8 @@ src/
 1. **Parse CLI args** → Determine initial mode (`--add` opens AddSpell)
 2. **Initialize logging** → `~/.spellbook/spellbook.log`
 3. **Load codex** → `archivist::codex_store::load("codex.toml")`
-4. **Load settings** → `Archivist::load_user_settings("theme.toml")`
-5. **Load theme** → `Archivist::load_theme("theme.toml")`
+4. **Load settings** → `Archivist::load_user_settings("config.toml")`
+5. **Load theme** → `Archivist::load_theme("config.toml")`
 6. **Load jobs** → `archivist::job_store::load()` from `~/.spellbook/jobs.toml`
 7. **Load recents** → `archivist::recent_store::load()` from `~/.spellbook/recents.toml`
 8. **Validate codex** → Check references, duplicates, required fields
@@ -330,7 +330,7 @@ pub struct RatatuiColors {
 }
 ```
 
-Theme preference persisted in `theme.toml`.
+Theme preference persisted in `config.toml`.
 
 ---
 
@@ -416,7 +416,7 @@ Prevents corruption if process dies mid-write.
 | File | Purpose |
 |------|---------|
 | `codex.toml` | Spells and spellbooks |
-| `theme.toml` | Theme selection and user settings (view mode) |
+| `config.toml` | Theme selection and user settings (view mode) |
 | `~/.spellbook/jobs.toml` | Job registry |
 | `~/.spellbook/job_<id>.out` | Job stdout |
 | `~/.spellbook/job_<id>.err` | Job stderr |
@@ -447,7 +447,7 @@ On load, validate codex:
 ## Error Handling
 
 - Missing `codex.toml` → create default empty one
-- Missing `theme.toml` → create with default theme and settings
+- Missing `config.toml` → create with default theme and settings
 - Missing `~/.spellbook/` → create directory
 - Invalid TOML → show error message in TUI, don't crash
 - Clipboard tool not found → show error in footer

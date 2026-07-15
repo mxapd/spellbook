@@ -71,12 +71,27 @@ Targets:
 ## Phase 5 — Test infrastructure
 
 - [ ] Extend or add shared test helpers in `src/test_utils.rs`
-- [ ] Helper: isolated temporary codex/theme/settings/recents files
+- [ ] Helper: isolated temporary codex/config/settings/recents files
 - [ ] Helper: deterministic State for archivist tests (no ~/.spellbook)
 - [ ] Document test helper usage in AGENTS.md
+
+## Completed feedback/flash tests
+
+- [x] `UiState::feedback` defaults to `None`
+- [x] `show_success` / `show_error` / `show_info` set correct `FeedbackLevel`
+- [x] `show_feedback` accepts custom duration
+- [x] `tick_feedback` clears expired feedback and flash actions
+- [x] `tick_feedback` keeps active feedback
+- [x] `flash` sets `FlashAction` with expiration
+- [x] Footer renders `Feedback` with color-coded level (green/red/accent)
+- [x] Spell list highlights flashed row with inverted accent style
+- [x] `search_overlay::render_in_area` renders feedback in the footer
+- [x] `search_overlay::render_spellbook_spells` applies flash style to the target row
+- [x] Search results render `FlashAction::SearchResult` highlight
 
 ## Notes
 
 - Default view mode is now Cards (verified in theme tests).
 - Use `State::new_test()` for isolated unit tests; keep `State::new()` for production + integration tests.
 - All new tests must run with `nix develop --command cargo test`.
+- Config file path is `src/state.rs::CONFIG_PATH` (currently `config.toml`).

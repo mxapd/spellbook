@@ -286,7 +286,7 @@ action = "copy"
 
 ## Config
 
-User configuration settings are persisted in `theme.toml`:
+User configuration settings are persisted in `config.toml`:
 
 ```toml
 selected_theme = "DarkDefault"
@@ -309,7 +309,7 @@ pub enum ViewMode {
 
 ## Theme
 
-Theme selection stored in `theme.toml`:
+Theme selection stored in `config.toml`:
 
 ```toml
 selected_theme = "dracula"

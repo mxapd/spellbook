@@ -16,8 +16,6 @@ pub fn handle_browse_spells(
     ui: &mut UiState,
     modifiers: KeyModifiers,
 ) -> bool {
-    ui.copy_feedback = None;
-
     // Get the current spellbook
     let spellbook_index = match ui.selected_spellbook() {
         Some(index) => index,
@@ -159,7 +157,11 @@ pub fn handle_browse_spells(
                         } else {
                             "removed from"
                         };
-                        ui.copy_feedback = Some(format!("Spell {} favorites", status));
+                        ui.show_success(format!("Spell {} favorites", status));
+                        ui.flash(crate::ui::FlashAction::Spell {
+                            spellbook_index,
+                            spell_index: ui.spell_list_state.selected().unwrap_or(0),
+                        }, None);
                     }
                 }
                 return false;
@@ -216,7 +218,7 @@ pub fn handle_browse_spells(
                         working_dir,
                         state.launch_dir.clone(),
                     ) {
-                        ui.copy_feedback = Some(format!("Failed to start TUI mode: {}", e));
+                        ui.show_error(format!("Failed to start TUI mode: {}", e));
                     }
                 }
                 return false;
@@ -248,8 +250,11 @@ pub fn handle_browse_spells(
                         },
                     ) {
                         Ok(job_id) => {
-                            ui.copy_feedback =
-                                Some(format!("Job {} started: {}", job_id, spell.name));
+                            ui.show_success(format!("Job {} started: {}", job_id, spell.name));
+                            ui.flash(crate::ui::FlashAction::Spell {
+                                spellbook_index,
+                                spell_index: ui.spell_list_state.selected().unwrap_or(0),
+                            }, None);
                             ui.open_jobs_sidebar(); // Auto-open sidebar when job starts
                             state.add_recent(
                                 spell.id.clone(),
@@ -258,7 +263,7 @@ pub fn handle_browse_spells(
                             );
                         }
                         Err(e) => {
-                            ui.copy_feedback = Some(format!("Failed to start: {}", e));
+                            ui.show_error(format!("Failed to start: {}", e));
                         }
                     }
                 }
@@ -312,10 +317,14 @@ fn copy_spell_at_index(
 ) {
     if let Some(spell) = get_spell_by_index(state, spellbook_index, spell_index) {
         if crate::clipboard::copy_to_clipboard(&spell.incantation) {
-            ui.copy_feedback = Some(format!("Copied: {}", spell.name));
+            ui.show_success(format!("Copied: {}", spell.name));
+            ui.flash(crate::ui::FlashAction::Spell {
+                spellbook_index,
+                spell_index,
+            }, None);
             state.add_recent(spell.id, spell.name, RecentAction::Copy);
         } else {
-            ui.copy_feedback = Some("Failed to copy to clipboard".to_string());
+            ui.show_error("Failed to copy to clipboard".to_string());
         }
     }
 }
@@ -420,16 +429,15 @@ fn start_spell_execution(state: &mut State, ui: &mut UiState, spell: &Spell) {
         Ok(exec_result) => {
             log_info!("Spell '{}' executed successfully", spell.name);
             if !exec_result.stdout.is_empty() {
-                ui.copy_feedback =
-                    Some(exec_result.stdout.lines().next().unwrap_or("").to_string());
+                ui.show_info(exec_result.stdout.lines().next().unwrap_or("").to_string());
             } else {
-                ui.copy_feedback = Some(format!("Executed: {}", spell.name));
+                ui.show_success(format!("Executed: {}", spell.name));
             }
             ui.show_output_popup(exec_result);
         }
         Err(e) => {
             log_info!("Failed to execute spell '{}': {}", spell.name, e);
-            ui.copy_feedback = Some(format!("Failed: {}", e));
+            ui.show_error(format!("Failed: {}", e));
         }
     }
 }
@@ -482,7 +490,7 @@ fn execute_command(state: &mut State, ui: &mut UiState) {
     if let Some((cmd_idx, _, _)) = filtered.get(selected) {
         events::execute_command_by_index(*cmd_idx, state, ui);
     } else {
-        ui.copy_feedback = Some(format!("Unknown command: {}", query_after_colon));
+        ui.show_error(format!("Unknown command: {}", query_after_colon));
         log_info!("Unknown command: {}", query_after_colon);
     }
     ui.exit_typing_mode();

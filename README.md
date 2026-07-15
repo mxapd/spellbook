@@ -155,8 +155,8 @@ Each spell has a default mode, but you can override it at execution time.
 | File | Purpose |
 |------|---------|
 | `codex.toml` | Your spells and spellbooks |
-| `theme.toml` | User preferences (view mode, theme) |
-| `theme.toml` | Selected theme |
+| `config.toml` | User preferences (view mode, theme) |
+| `config.toml` | Selected theme |
 | `~/.spellbook/jobs.toml` | Background job registry |
 | `~/.spellbook/recents.toml` | Recently used spells |
 

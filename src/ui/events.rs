@@ -1,6 +1,6 @@
 use crate::archivist::Archivist;
 use crate::models::{FocusTarget, RunMode};
-use crate::state::State;
+use crate::state::{State, CONFIG_PATH};
 use crate::ui::search_overlay::real_spellbook_index;
 use crate::ui::{streaming_modal, Mode, Overlay, QuickAddSpellState, UiState, ViewMode};
 use crate::{log_debug, log_error, log_info};
@@ -172,7 +172,7 @@ fn start_quick_add_spell(state: &mut State, ui: &mut UiState) {
         }
         Err(e) => {
             log_error!("Failed to open editor: {}", e);
-            ui.copy_feedback = Some(format!("Editor error: {}", e));
+            ui.show_error(format!("Editor error: {}", e));
         }
     }
 }
@@ -198,22 +198,22 @@ fn execute_command_by_action(action: &CommandAction, state: &mut State, ui: &mut
                 ui.enter_browse_spells(idx);
                 log_info!("Command: browse spells");
             } else {
-                ui.copy_feedback = Some("Select a spellbook first".to_string());
+                ui.show_info("Select a spellbook first".to_string());
             }
         }
         CommandAction::CardsView => {
             state.user_settings.view_mode = ViewMode::Cards;
-            let _ = Archivist::save_user_settings("theme.toml", &state.user_settings);
+            let _ = Archivist::save_user_settings(CONFIG_PATH, &state.user_settings);
             log_info!("Command: cards view");
         }
         CommandAction::SpinesView => {
             state.user_settings.view_mode = ViewMode::Spines;
-            let _ = Archivist::save_user_settings("theme.toml", &state.user_settings);
+            let _ = Archivist::save_user_settings(CONFIG_PATH, &state.user_settings);
             log_info!("Command: spines view");
         }
         CommandAction::ListView => {
             state.user_settings.view_mode = ViewMode::List;
-            let _ = Archivist::save_user_settings("theme.toml", &state.user_settings);
+            let _ = Archivist::save_user_settings(CONFIG_PATH, &state.user_settings);
             log_info!("Command: list view");
         }
         CommandAction::CycleTheme => {
@@ -230,11 +230,11 @@ fn execute_command_by_action(action: &CommandAction, state: &mut State, ui: &mut
         }
         CommandAction::Export => {
             log_info!("Command: export (needs arguments)");
-            ui.copy_feedback = Some("Usage: :export [filename]".to_string());
+            ui.show_info("Usage: :export [filename]".to_string());
         }
         CommandAction::Import => {
             log_info!("Command: import (needs arguments)");
-            ui.copy_feedback = Some("Usage: :import <filename>".to_string());
+            ui.show_info("Usage: :import <filename>".to_string());
         }
         CommandAction::SetColor(_) => {
             // Parse color from search query (format: ":setcolor r,g,b" or ":setcolor #RRGGBB")
@@ -248,20 +248,20 @@ fn execute_command_by_action(action: &CommandAction, state: &mut State, ui: &mut
                     if let Some(spellbook_idx) = ui.search_spellbook_index() {
                         if spellbook_idx < state.codex.spellbooks.len() {
                             state.codex.spellbooks[spellbook_idx].color = Some((r, g, b));
-                            ui.copy_feedback = Some(format!("Set spellbook color to rgb({},{},{})", r, g, b));
+                            ui.show_success(format!("Set spellbook color to rgb({},{},{})", r, g, b));
                             log_info!("Set spellbook {} color to rgb({},{},{})", 
                                      state.codex.spellbooks[spellbook_idx].name, r, g, b);
                         } else {
-                            ui.copy_feedback = Some("Error: Invalid spellbook selection".to_string());
+                            ui.show_error("Error: Invalid spellbook selection".to_string());
                         }
                     } else {
-                        ui.copy_feedback = Some("Error: No spellbook selected".to_string());
+                        ui.show_error("Error: No spellbook selected".to_string());
                     }
                 } else {
-                    ui.copy_feedback = Some("Usage: :setcolor r,g,b or :setcolor #RRGGBB".to_string());
+                    ui.show_info("Usage: :setcolor r,g,b or :setcolor #RRGGBB".to_string());
                 }
             } else {
-                ui.copy_feedback = Some("Usage: :setcolor r,g,b or :setcolor #RRGGBB".to_string());
+                ui.show_info("Usage: :setcolor r,g,b or :setcolor #RRGGBB".to_string());
             }
         }
         CommandAction::Quit => {
@@ -366,8 +366,7 @@ fn handle_global_keys(
     if key == KeyCode::Char('r') && modifiers.contains(KeyModifiers::ALT) {
         log_info!("Alt+R detected - reloading codex");
         state.reload_codex();
-        ui.copy_feedback = Some("Codex refreshed".to_string());
-        ui.request_redraw();
+        ui.show_success("Codex refreshed".to_string());
         return Some(false);
     }
 
@@ -570,11 +569,11 @@ fn handle_confirm_dialog(key: KeyCode, state: &mut State, ui: &mut UiState) -> b
                         log_info!("Confirmed: delete spell {:?}", spell_id);
                         match state.delete_spell(&spell_id) {
                             Ok(_) => {
-                                ui.copy_feedback = Some("Spell deleted".to_string());
+                                ui.show_success("Spell deleted".to_string());
                             }
                             Err(e) => {
                                 log_error!("Failed to delete spell: {}", e);
-                                ui.copy_feedback = Some(format!("Delete failed: {}", e));
+                                ui.show_error(format!("Delete failed: {}", e));
                             }
                         }
                     }
@@ -582,11 +581,11 @@ fn handle_confirm_dialog(key: KeyCode, state: &mut State, ui: &mut UiState) -> b
                         log_info!("Confirmed: delete spellbook {}", spellbook_name);
                         match state.delete_spellbook(&spellbook_name) {
                             Ok(_) => {
-                                ui.copy_feedback = Some("Spellbook deleted".to_string());
+                                ui.show_success("Spellbook deleted".to_string());
                             }
                             Err(e) => {
                                 log_error!("Failed to delete spellbook: {}", e);
-                                ui.copy_feedback = Some(format!("Delete failed: {}", e));
+                                ui.show_error(format!("Delete failed: {}", e));
                             }
                         }
                     }
@@ -620,7 +619,7 @@ fn handle_confirm_dialog(key: KeyCode, state: &mut State, ui: &mut UiState) -> b
                                     }
                                     Err(e) => {
                                         log_error!("TUI execution failed: {}", e);
-                                        ui.copy_feedback = Some(format!("Failed to start TUI mode: {}", e));
+                                        ui.show_error(format!("Failed to start TUI mode: {}", e));
                                     }
                                 }
                             }
@@ -641,12 +640,12 @@ fn handle_confirm_dialog(key: KeyCode, state: &mut State, ui: &mut UiState) -> b
                                     },
                                 ) {
                                     Ok(job_id) => {
-                                        ui.copy_feedback = Some(format!("Job {} started: {}", job_id, spell.name));
+                                        ui.show_success(format!("Job {} started: {}", job_id, spell.name));
                                         ui.open_jobs_sidebar();
                                         state.add_recent(spell_id, spell_name, crate::models::RecentAction::Run);
                                     }
                                     Err(e) => {
-                                        ui.copy_feedback = Some(format!("Failed to start background job: {}", e));
+                                        ui.show_error(format!("Failed to start background job: {}", e));
                                     }
                                 }
                             }

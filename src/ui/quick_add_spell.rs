@@ -616,7 +616,7 @@ fn save(state: &mut State, ui: &mut UiState) {
             } else {
                 format!("Spell '{}' saved as unassigned", spell_name)
             };
-            ui.copy_feedback = Some(feedback);
+            ui.show_success(feedback);
             ui.quick_add_spell = None;
             ui.pop_overlay();
         }

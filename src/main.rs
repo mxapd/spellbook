@@ -123,14 +123,16 @@ fn run(terminal: &mut DefaultTerminal) -> io::Result<()> {
                 }
             }
             Ok(false) => {
-                // Timeout elapsed - poll for streaming output, update spinner and cursor, and redraw
+                // Timeout elapsed - poll for streaming output, update spinner, cursor, and feedback, then redraw
                 ui::streaming_modal::poll_stream_output(&mut ui_state);
                 ui_state.tick_spinner();
                 ui_state.tick_search_cursor();
-                if ui_state.is_loading() {
+                ui_state.tick_feedback();
+                if ui_state.needs_redraw || ui_state.is_loading() {
                     terminal.draw(|frame| {
                         ui::render(frame, &state, &mut ui_state);
                     })?;
+                    let _ = ui_state.clear_redraw_flag();
                 }
             }
             Err(e) => {

@@ -200,25 +200,25 @@ pub fn handle_jobs_key(
                         crossterm::event::KeyCode::Char('k')
                         | crossterm::event::KeyCode::Char('K') => {
                             if let Err(e) = invoker::kill_job(job_id) {
-                                ui.copy_feedback = Some(format!("Kill failed: {}", e));
+                                ui.show_error(format!("Kill failed: {}", e));
                             } else {
-                                ui.copy_feedback = Some(format!("Job {} killed", job_id));
+                                ui.show_success(format!("Job {} killed", job_id));
                             }
                         }
                         crossterm::event::KeyCode::Char('c')
                         | crossterm::event::KeyCode::Char('C') => {
                             if let Err(e) = invoker::cancel_job(job_id) {
-                                ui.copy_feedback = Some(format!("Cancel failed: {}", e));
+                                ui.show_error(format!("Cancel failed: {}", e));
                             } else {
-                                ui.copy_feedback = Some(format!("Job {} cancelled", job_id));
+                                ui.show_success(format!("Job {} cancelled", job_id));
                             }
                         }
                         crossterm::event::KeyCode::Char('d')
                         | crossterm::event::KeyCode::Char('D') => {
                             if let Err(e) = invoker::dismiss_job(job_id) {
-                                ui.copy_feedback = Some(format!("Dismiss failed: {}", e));
+                                ui.show_error(format!("Dismiss failed: {}", e));
                             } else {
-                                ui.copy_feedback = Some(format!("Job {} dismissed", job_id));
+                                ui.show_success(format!("Job {} dismissed", job_id));
                                 if jobs.len() > 1 {
                                     ui.jobs_panel_state.selected_index =
                                         Some(idx.min(jobs.len() - 2));

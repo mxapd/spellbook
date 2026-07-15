@@ -19,7 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Virtual spellbooks: Favorites and Recent.
 - Full CRUD operations for spells and spellbooks.
 - Spell metadata: UUID-based IDs, name, incantation, lore, school, glyphs, run mode, confirmation, working directory, and favorite flag.
-- 10 built-in color themes with persistence in `theme.toml`.
+- 10 built-in color themes with persistence in `config.toml`.
 - Import/export of the codex as TOML.
 - Background jobs sidebar with status tracking.
 - D-Bus desktop notifications on job completion.

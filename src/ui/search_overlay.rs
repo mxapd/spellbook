@@ -502,11 +502,8 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
         frame.render_widget(details_block, chunks[2]);
     }
 
-    let hint = if let Some(ref msg) = ui.copy_feedback {
-        let single_line = msg.lines().next().unwrap_or(msg).to_string();
-        Paragraph::new(single_line)
-            .style(Style::new().fg(ratatui::style::Color::Green).bg(theme.bg))
-            .alignment(ratatui::layout::Alignment::Center)
+    let hint = if let Some(ref feedback) = ui.feedback {
+        feedback.paragraph(theme)
     } else {
         let hint_text = match &ui.mode {
             Mode::BrowseSpellbooks(_)
@@ -680,7 +677,9 @@ pub fn render_in_area(
         frame.render_widget(details_block, chunks[2]);
     }
 
-    let hint = if ui.search_query().starts_with(':') && !ui.search_query().ends_with(' ') {
+    let hint = if let Some(ref feedback) = ui.feedback {
+        feedback.paragraph(theme)
+    } else if ui.search_query().starts_with(':') && !ui.search_query().ends_with(' ') {
         Paragraph::new("type command and press enter")
             .style(Style::new().fg(theme.muted).bg(theme.bg))
             .alignment(ratatui::layout::Alignment::Center)
@@ -1365,13 +1364,24 @@ fn render_search_results(
 
     let theme = &state.theme;
 
+    let flash = ui.flash_action.as_ref().and_then(|(action, _)| match action {
+        crate::ui::FlashAction::SearchResult { index } => Some(*index),
+        _ => None,
+    });
+
     let results: Vec<ListItem> = ui
         .filtered_indices()
         .iter()
-        .filter_map(|&idx| state.codex.spells.get(idx))
-        .map(|spell| {
+        .enumerate()
+        .filter_map(|(result_idx, &spell_idx)| state.codex.spells.get(spell_idx).map(|spell| (result_idx, spell)))
+        .map(|(result_idx, spell)| {
             let line = format!("{}  [{}]", spell.name, spell.school);
-            ListItem::new(line).style(Style::new().fg(theme.fg))
+            let style = if flash == Some(result_idx) {
+                Style::new().fg(theme.bg).bg(theme.accent).add_modifier(Modifier::BOLD)
+            } else {
+                Style::new().fg(theme.fg)
+            };
+            ListItem::new(line).style(style)
         })
         .collect();
 
@@ -1642,9 +1652,15 @@ fn render_spellbook_spells(
         }
     };
 
+    let flash = ui.flash_action.as_ref().and_then(|(action, _)| match action {
+        crate::ui::FlashAction::Spell { spellbook_index: sb, spell_index: si } if *sb == spellbook_index => Some(*si),
+        _ => None,
+    });
+
     let items: Vec<ListItem> = spells
         .iter()
-        .map(|spell| {
+        .enumerate()
+        .map(|(idx, spell)| {
             let display_text = if is_virtual {
                 // For virtual spellbooks, show spellbook name alongside spell name
                 if let Some(spellbook_name) = find_spellbook_name_for_spell(state, &spell.id) {
@@ -1655,7 +1671,12 @@ fn render_spellbook_spells(
             } else {
                 spell.name.clone()
             };
-            ListItem::new(display_text).style(Style::new().fg(theme.fg))
+            let style = if flash == Some(idx) {
+                Style::new().fg(theme.bg).bg(theme.accent).add_modifier(Modifier::BOLD)
+            } else {
+                Style::new().fg(theme.fg)
+            };
+            ListItem::new(display_text).style(style)
         })
         .collect();
 
@@ -2073,5 +2094,102 @@ mod tests {
     fn test_find_nearest_card_empty() {
         let result = find_nearest_card(0, CardDirection::Right, 0, 3, 10, 5, 2, 0);
         assert_eq!(result, 0);
+    }
+
+    #[test]
+    fn test_render_in_area_shows_feedback() {
+        use ratatui::backend::TestBackend;
+        use ratatui::Terminal;
+
+        let mut ui = UiState::new(false);
+        ui.show_success("copied!");
+        let state = State::new_test(Codex {
+            spells: vec![],
+            spellbooks: vec![],
+        });
+
+        let backend = TestBackend::new(80, 24);
+        let mut terminal = Terminal::new(backend).unwrap();
+        terminal
+            .draw(|frame| render_in_area(frame, &state, &mut ui, frame.area()))
+            .unwrap();
+
+        let buffer = terminal.backend().buffer();
+        let content: String = buffer
+            .content
+            .iter()
+            .map(|cell| cell.symbol())
+            .collect();
+        assert!(
+            content.contains("copied!"),
+            "feedback message should appear in rendered output"
+        );
+    }
+
+    #[test]
+    fn test_render_spellbook_spells_flashes_row() {
+        use ratatui::backend::TestBackend;
+        use ratatui::Terminal;
+        use crate::models::Spell;
+
+        let spell_id = uuid::Uuid::new_v4().to_string();
+        let codex = Codex {
+            spells: vec![Spell {
+                id: spell_id.clone(),
+                name: "FlashMe".to_string(),
+                incantation: "echo flash".to_string(),
+                lore: String::new(),
+                school: String::new(),
+                glyphs: vec![],
+                confirm: false,
+                run_mode: crate::models::RunMode::Simple,
+                working_dir: String::new(),
+                favorite: false,
+            }],
+            spellbooks: vec![crate::models::Spellbook {
+                name: "Book".to_string(),
+                cover: String::new(),
+                sigil: "*".to_string(),
+                spell_ids: vec![spell_id],
+                spells: vec![],
+                style: None,
+                color: None,
+            }],
+        };
+        let state = State::new_test(codex);
+        let mut ui = UiState::new(false);
+        ui.enter_browse_spells(0); // real spellbook at index 0
+        ui.spell_list_state.select(Some(0));
+        ui.flash(crate::ui::FlashAction::Spell { spellbook_index: 0, spell_index: 0 }, None);
+
+        let backend = TestBackend::new(80, 24);
+        let mut terminal = Terminal::new(backend).unwrap();
+        terminal
+            .draw(|frame| render_in_area(frame, &state, &mut ui, frame.area()))
+            .unwrap();
+
+        let buffer = terminal.backend().buffer();
+        let content: String = buffer
+            .content
+            .iter()
+            .map(|cell| cell.symbol())
+            .collect();
+        assert!(
+            content.contains("FlashMe"),
+            "spell name should appear in rendered output; got: {}",
+            content
+        );
+
+        // Count cells with the accent background color in the rendered area.
+        let accent_cells = buffer
+            .content
+            .iter()
+            .filter(|cell| cell.style().bg == Some(state.theme.accent))
+            .count();
+        assert!(
+            accent_cells > 0,
+            "flashed spell row should use accent background color; found {} accent cells",
+            accent_cells
+        );
     }
 }
