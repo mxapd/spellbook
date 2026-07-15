@@ -1,6 +1,7 @@
 pub mod archivist;
 pub mod cli;
 pub mod clipboard;
+pub mod editor;
 pub mod invoker;
 pub mod logging;
 pub mod models;

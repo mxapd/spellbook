@@ -1,6 +1,7 @@
 mod archivist;
 mod cli;
 mod clipboard;
+mod editor;
 mod invoker;
 mod logging;
 mod models;

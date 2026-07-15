@@ -1,6 +1,6 @@
 use crate::state::State;
 use crate::ui::{
-    add_spell, add_spellbook_form, confirm, help, jobs, search_overlay, spell_list,
+    add_spell, add_spellbook_form, confirm, help, jobs, quick_add_spell, search_overlay,
     streaming_modal, Mode, Overlay, UiState,
 };
 use crate::ui::search_overlay::format_full_spell_details;
@@ -128,6 +128,9 @@ fn render_overlay(overlay: Overlay, frame: &mut Frame, state: &State, ui: &mut U
             if ui.spell_details_spell_id.is_some() {
                 render_spell_details_overlay(frame, state, ui);
             }
+        }
+        Overlay::QuickAddSpell => {
+            quick_add_spell::render(frame, state, ui);
         }
     }
 }

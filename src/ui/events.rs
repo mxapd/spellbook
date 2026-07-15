@@ -1,7 +1,8 @@
 use crate::archivist::Archivist;
 use crate::models::{FocusTarget, RunMode};
 use crate::state::State;
-use crate::ui::{streaming_modal, Mode, Overlay, UiState, ViewMode};
+use crate::ui::search_overlay::real_spellbook_index;
+use crate::ui::{streaming_modal, Mode, Overlay, QuickAddSpellState, UiState, ViewMode};
 use crate::{log_debug, log_error, log_info};
 use crossterm::event::{KeyCode, KeyModifiers};
 
@@ -142,11 +143,45 @@ pub fn execute_command_by_index(idx: usize, state: &mut State, ui: &mut UiState)
     }
 }
 
+/// Read the system clipboard, returning an empty string if unavailable.
+fn read_clipboard() -> String {
+    match arboard::Clipboard::new() {
+        Ok(mut clipboard) => clipboard.get_text().unwrap_or_default(),
+        Err(e) => {
+            log_info!("Clipboard unavailable: {}", e);
+            String::new()
+        }
+    }
+}
+
+/// Start the quick-add-spell flow: editor for command, then compact overlay.
+fn start_quick_add_spell(state: &mut State, ui: &mut UiState) {
+    let clipboard = read_clipboard();
+
+    match crate::editor::edit_command(&clipboard) {
+        Ok(Some(command)) => {
+            let spellbook_index = ui
+                .selected_spellbook()
+                .and_then(|visible_idx| real_spellbook_index(state, visible_idx));
+
+            ui.quick_add_spell = Some(QuickAddSpellState::new(command, spellbook_index));
+            ui.push_overlay(Overlay::QuickAddSpell);
+        }
+        Ok(None) => {
+            log_info!("Quick add spell cancelled in editor");
+        }
+        Err(e) => {
+            log_error!("Failed to open editor: {}", e);
+            ui.copy_feedback = Some(format!("Editor error: {}", e));
+        }
+    }
+}
+
 /// Execute a command by its action
 fn execute_command_by_action(action: &CommandAction, state: &mut State, ui: &mut UiState) {
     match action {
         CommandAction::NewSpell => {
-            ui.enter_add_spell();
+            start_quick_add_spell(state, ui);
             log_info!("Command: new spell");
         }
         CommandAction::NewSpellbook => {
@@ -416,6 +451,10 @@ fn handle_overlay(
             } else if key == KeyCode::Char('c') && modifiers.contains(KeyModifiers::CONTROL) {
                 return false; // Let Ctrl+C pass through to global handler
             }
+            true
+        }
+        Overlay::QuickAddSpell => {
+            crate::ui::quick_add_spell::handle_key(key, modifiers, state, ui);
             true
         }
     }

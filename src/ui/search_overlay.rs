@@ -123,6 +123,21 @@ pub fn get_spellbook_item<'a>(state: &'a State, index: usize) -> Option<Spellboo
         .map(|sb| SpellbookItem::Real { spellbook: sb })
 }
 
+/// Convert a visible spellbook index (including virtual spellbooks) to a real spellbook index.
+/// Returns `None` if the visible index points to a virtual spellbook (Favorites, Recent, All).
+pub fn real_spellbook_index(state: &State, visible_index: usize) -> Option<usize> {
+    let has_favorites = state.codex.spells.iter().any(|s| s.favorite);
+    let has_recent = !state.recents.is_empty();
+    let offset = (if has_favorites { 1 } else { 0 }) + (if has_recent { 1 } else { 0 });
+    let real_count = state.codex.spellbooks.len();
+
+    if visible_index < offset || visible_index >= offset + real_count {
+        return None;
+    }
+
+    Some(visible_index - offset)
+}
+
 pub fn total_spellbook_count(state: &State) -> usize {
     let favorites = state.codex.spells.iter().filter(|s| s.favorite).count();
     let recent = if state.recents.is_empty() { 0 } else { 1 };

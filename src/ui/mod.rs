@@ -15,6 +15,7 @@ pub mod form;
 pub mod help;
 pub mod input;
 pub mod jobs;
+pub mod quick_add_spell;
 pub mod render;
 pub mod search_overlay;
 pub mod spell_list;
@@ -28,6 +29,7 @@ pub use events::filter_commands;
 pub use events::handle_event;
 pub use input::{InputPhase, InputPopupState};
 pub use jobs::JobsPanelState;
+pub use quick_add_spell::QuickAddSpellState;
 pub use render::render;
 pub use spellbook_browser::SpellbookBrowserState;
 pub use streaming_modal::StreamingModalState;
@@ -105,6 +107,7 @@ pub enum Overlay {
     Help,
     InputPopup,
     SpellDetails,
+    QuickAddSpell,
 }
 
 pub struct UiState {
@@ -128,6 +131,9 @@ pub struct UiState {
     pub input_popup: Option<InputPopupState>,
     pub focus: FocusTarget,
     pub jobs_sidebar_open: bool,
+
+    // Quick-add spell overlay state
+    pub quick_add_spell: Option<QuickAddSpellState>,
 
     // Streaming output modal state
     pub streaming_modal: StreamingModalState,
@@ -166,6 +172,8 @@ impl UiState {
             input_popup: None,
             focus: FocusTarget::Main,
             jobs_sidebar_open: false,
+
+            quick_add_spell: None,
 
             streaming_modal: StreamingModalState::default(),
             spell_details_spell_id: None,
