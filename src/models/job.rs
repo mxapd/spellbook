@@ -1,9 +1,14 @@
-use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+
+#[cfg(feature = "background-jobs")]
+use chrono::{DateTime, Utc};
+#[cfg(feature = "background-jobs")]
 use std::path::PathBuf;
 
+#[cfg(feature = "background-jobs")]
 pub type JobId = u64;
 
+#[cfg(feature = "background-jobs")]
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum JobStatus {
@@ -14,6 +19,7 @@ pub enum JobStatus {
     Cancelled,
 }
 
+#[cfg(feature = "background-jobs")]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Job {
     pub id: JobId,
@@ -28,6 +34,7 @@ pub struct Job {
     pub error_file: PathBuf,
 }
 
+#[cfg(feature = "background-jobs")]
 impl Job {
     pub fn new(id: JobId, spell_name: String, command: String, output_dir: &PathBuf) -> Self {
         let timestamp = Utc::now();
@@ -46,6 +53,7 @@ impl Job {
     }
 }
 
+#[cfg(feature = "recents")]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RecentEntry {
     pub spell_id: String,
@@ -54,6 +62,7 @@ pub struct RecentEntry {
     pub action: RecentAction,
 }
 
+#[cfg(feature = "recents")]
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum RecentAction {
@@ -61,6 +70,7 @@ pub enum RecentAction {
     Copy,
 }
 
+#[cfg(feature = "recents")]
 impl RecentEntry {
     pub fn new(spell_id: String, spell_name: String, action: RecentAction) -> Self {
         Self {
@@ -72,12 +82,14 @@ impl RecentEntry {
     }
 }
 
+#[cfg(feature = "background-jobs")]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct JobsData {
     pub jobs: Vec<Job>,
     pub next_id: JobId,
 }
 
+#[cfg(feature = "background-jobs")]
 impl Default for JobsData {
     fn default() -> Self {
         Self {
@@ -87,6 +99,7 @@ impl Default for JobsData {
     }
 }
 
+#[cfg(feature = "background-jobs")]
 #[derive(Debug, Clone)]
 pub struct JobManager {
     pub jobs: Vec<Job>,
@@ -95,6 +108,7 @@ pub struct JobManager {
     pub max_stored: usize,
 }
 
+#[cfg(feature = "background-jobs")]
 impl Default for JobManager {
     fn default() -> Self {
         Self {
@@ -106,6 +120,7 @@ impl Default for JobManager {
     }
 }
 
+#[cfg(feature = "background-jobs")]
 impl JobManager {
     pub fn new() -> Self {
         Self::default()
@@ -141,8 +156,8 @@ impl JobManager {
     }
 }
 
-#[cfg(test)]
-mod tests {
+#[cfg(all(test, feature = "background-jobs"))]
+mod job_tests {
     use super::*;
 
     #[test]
@@ -155,6 +170,19 @@ mod tests {
     }
 
     #[test]
+    fn test_job_manager_next_id() {
+        let mut manager = JobManager::new();
+        assert_eq!(manager.get_next_id(), 1);
+        assert_eq!(manager.get_next_id(), 2);
+        assert_eq!(manager.get_next_id(), 3);
+    }
+}
+
+#[cfg(all(test, feature = "recents"))]
+mod recents_tests {
+    use super::*;
+
+    #[test]
     fn test_recent_entry_creation() {
         let entry = RecentEntry::new(
             "test-id".to_string(),
@@ -164,13 +192,5 @@ mod tests {
         assert_eq!(entry.spell_id, "test-id");
         assert_eq!(entry.spell_name, "Test Spell");
         assert!(matches!(entry.action, RecentAction::Run));
-    }
-
-    #[test]
-    fn test_job_manager_next_id() {
-        let mut manager = JobManager::new();
-        assert_eq!(manager.get_next_id(), 1);
-        assert_eq!(manager.get_next_id(), 2);
-        assert_eq!(manager.get_next_id(), 3);
     }
 }

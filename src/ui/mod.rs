@@ -4,35 +4,53 @@ use std::time::{Duration, Instant};
 pub use crate::clipboard::ExecutionResult;
 pub use crate::models::{FocusTarget, ViewMode};
 
+#[cfg(any(feature = "add-spell", feature = "edit-spell"))]
 pub mod add_spell;
+#[cfg(any(feature = "add-spell", feature = "edit-spell"))]
 pub mod add_spell_form;
+#[cfg(feature = "add-spellbook")]
 pub mod add_spellbook_form;
 pub mod browse_spellbooks;
 pub mod browse_spells;
+#[cfg(any(feature = "delete-spell", feature = "confirmations"))]
 pub mod confirm;
 pub mod events;
 
+#[cfg(any(feature = "add-spell", feature = "edit-spell", feature = "add-spellbook"))]
 pub mod form;
+#[cfg(feature = "help")]
 pub mod help;
+#[cfg(feature = "placeholders")]
 pub mod input;
+#[cfg(feature = "background-jobs")]
 pub mod jobs;
+#[cfg(feature = "quick-add")]
 pub mod quick_add_spell;
 pub mod render;
 pub mod search_overlay;
 pub mod spell_list;
 pub mod spellbook_browser;
+#[cfg(feature = "tui-exec")]
 pub mod streaming_modal;
 
+#[cfg(any(feature = "add-spell", feature = "edit-spell"))]
 pub use add_spell_form::{AddSpellField, AddSpellForm};
+#[cfg(feature = "add-spellbook")]
 pub use add_spellbook_form::{AddSpellbookField, AddSpellbookForm};
+#[cfg(any(feature = "delete-spell", feature = "confirmations"))]
 pub use confirm::ConfirmDialogState;
+#[cfg(feature = "command-palette")]
 pub use events::filter_commands;
 pub use events::handle_event;
+#[cfg(feature = "placeholders")]
 pub use input::{InputPhase, InputPopupState};
+#[cfg(feature = "background-jobs")]
 pub use jobs::JobsPanelState;
+#[cfg(feature = "quick-add")]
 pub use quick_add_spell::QuickAddSpellState;
 pub use render::render;
 pub use spellbook_browser::SpellbookBrowserState;
+#[cfg(feature = "tui-exec")]
 pub use streaming_modal::StreamingModalState;
 
 /// Application modes - represents the main view state (Elm "Model")
@@ -173,31 +191,42 @@ pub struct UiState {
     pub feedback: Option<Feedback>,
     pub flash_action: Option<(FlashAction, Instant)>,
     pub spellbook_browser: SpellbookBrowserState,
+    #[cfg(any(feature = "add-spell", feature = "edit-spell"))]
     pub add_spell: AddSpellForm,
+    #[cfg(feature = "add-spellbook")]
     pub add_spellbook: AddSpellbookForm,
     pub output_popup: Option<ExecutionResult>,
     pub needs_redraw: bool,
+    #[cfg(feature = "background-jobs")]
     pub jobs_panel_state: JobsPanelState,
 
     // Loading state for long-running operations
     pub loading_message: Option<String>,
     pub loading_spinner: u8,
+    #[cfg(any(feature = "delete-spell", feature = "confirmations"))]
     pub confirm_dialog: Option<ConfirmDialogState>,
+    #[cfg(feature = "placeholders")]
     pub input_popup: Option<InputPopupState>,
     pub focus: FocusTarget,
+    #[cfg(feature = "background-jobs")]
     pub jobs_sidebar_open: bool,
 
     // Quick-add spell overlay state
+    #[cfg(feature = "quick-add")]
     pub quick_add_spell: Option<QuickAddSpellState>,
 
     // Streaming output modal state
+    #[cfg(feature = "tui-exec")]
     pub streaming_modal: StreamingModalState,
 
     // Spell details popup state
+    #[cfg(feature = "spell-details")]
     pub spell_details_spell_id: Option<String>,
 
     // Search cursor state for blinking effect
+    #[cfg(feature = "search")]
     pub search_cursor_visible: bool,
+    #[cfg(feature = "search")]
     pub search_cursor_tick: u64,
 
     // Quit flag
@@ -219,25 +248,36 @@ impl UiState {
             feedback: None,
             flash_action: None,
             spellbook_browser: SpellbookBrowserState::default(),
+            #[cfg(any(feature = "add-spell", feature = "edit-spell"))]
             add_spell: AddSpellForm::default(),
+            #[cfg(feature = "add-spellbook")]
             add_spellbook: AddSpellbookForm::default(),
             output_popup: None,
             needs_redraw: false,
+            #[cfg(feature = "background-jobs")]
             jobs_panel_state: JobsPanelState::default(),
+            #[cfg(any(feature = "delete-spell", feature = "confirmations"))]
             confirm_dialog: None,
+            #[cfg(feature = "placeholders")]
             input_popup: None,
             focus: FocusTarget::Main,
+            #[cfg(feature = "background-jobs")]
             jobs_sidebar_open: false,
 
+            #[cfg(feature = "quick-add")]
             quick_add_spell: None,
 
+            #[cfg(feature = "tui-exec")]
             streaming_modal: StreamingModalState::default(),
+            #[cfg(feature = "spell-details")]
             spell_details_spell_id: None,
 
             loading_message: None,
             loading_spinner: 0,
 
+            #[cfg(feature = "search")]
             search_cursor_visible: true,
+            #[cfg(feature = "search")]
             search_cursor_tick: 0,
 
             should_quit: false,
@@ -245,12 +285,14 @@ impl UiState {
     }
 
     /// Show spell details popup
+    #[cfg(feature = "spell-details")]
     pub fn show_spell_details(&mut self, spell_id: String) {
         self.spell_details_spell_id = Some(spell_id);
         self.push_overlay(Overlay::SpellDetails);
     }
 
     /// Hide spell details popup
+    #[cfg(feature = "spell-details")]
     pub fn hide_spell_details(&mut self) {
         self.pop_overlay();
         self.spell_details_spell_id = None;
@@ -350,6 +392,7 @@ impl UiState {
     }
 
     /// Tick the search cursor (call periodically, e.g., every 50ms)
+    #[cfg(feature = "search")]
     pub fn tick_search_cursor(&mut self) {
         self.search_cursor_tick += 1;
         // Medium blink: toggle every 5 ticks (~250ms at 50ms tick rate)
@@ -410,6 +453,7 @@ impl UiState {
         self.stop_search();
     }
 
+    #[cfg(any(feature = "add-spell", feature = "edit-spell"))]
     pub fn clear_add_spell_form(&mut self) {
         self.add_spell.clear();
         self.mode = Mode::BrowseSpellbooks(BrowseState::default());
@@ -419,6 +463,7 @@ impl UiState {
     /// Check if user is in typing mode (derived from Mode)
     pub fn is_typing(&self) -> bool {
         match &self.mode {
+            #[cfg(any(feature = "add-spell", feature = "edit-spell"))]
             Mode::AddSpell(_) | Mode::EditSpell(_) => self.add_spell.is_typing(),
             Mode::BrowseSpellbooks(BrowseState::Searching { .. }) => true,
             Mode::BrowseSpells(BrowseState::Searching { .. }) => true,
@@ -706,6 +751,7 @@ impl UiState {
         needs
     }
 
+    #[cfg(feature = "background-jobs")]
     pub fn toggle_jobs_sidebar(&mut self) {
         self.jobs_sidebar_open = !self.jobs_sidebar_open;
         if self.jobs_sidebar_open {
@@ -716,6 +762,7 @@ impl UiState {
         }
     }
 
+    #[cfg(feature = "background-jobs")]
     pub fn open_jobs_sidebar(&mut self) {
         if !self.jobs_sidebar_open {
             self.jobs_sidebar_open = true;
@@ -723,6 +770,7 @@ impl UiState {
         }
     }
 
+    #[cfg(feature = "background-jobs")]
     pub fn cycle_focus(&mut self) {
         if !self.jobs_sidebar_open {
             return;
@@ -754,11 +802,13 @@ impl UiState {
         self.mode = Mode::BrowseSpellbooks(BrowseState::default());
     }
 
+    #[cfg(feature = "add-spell")]
     pub fn enter_add_spell(&mut self) {
         self.mode = Mode::AddSpell(FormState::default());
         self.add_spell.clear();
     }
 
+    #[cfg(feature = "edit-spell")]
     pub fn enter_edit_spell(&mut self, _spellbook_index: usize, spell_index: usize) {
         self.mode = Mode::EditSpell(FormState::default());
         self.spell_list_state.select(Some(spell_index));

@@ -1,6 +1,8 @@
 use crate::archivist::Archivist;
 use crate::log_info;
-use crate::models::{Codex, RatatuiColors, RecentAction, RecentEntry, Theme, UserSettings};
+use crate::models::{Codex, RatatuiColors, Theme, UserSettings};
+#[cfg(feature = "recents")]
+use crate::models::{RecentAction, RecentEntry};
 
 pub(crate) const CONFIG_PATH: &str = "config.toml";
 
@@ -10,6 +12,7 @@ pub struct State {
     pub theme: RatatuiColors,
     pub current_theme: Theme,
     pub user_settings: UserSettings,
+    #[cfg(feature = "recents")]
     pub recents: Vec<RecentEntry>,
     pub launch_dir: String,
 }
@@ -47,6 +50,7 @@ impl State {
 
         let _ = Archivist::save_user_settings(CONFIG_PATH, &user_settings);
 
+        #[cfg(feature = "recents")]
         let recents = Archivist::load_recents().unwrap_or_default();
 
         let launch_dir = std::env::current_dir()
@@ -58,6 +62,7 @@ impl State {
             theme,
             current_theme,
             user_settings,
+            #[cfg(feature = "recents")]
             recents,
             launch_dir,
         }
@@ -78,11 +83,13 @@ impl State {
             theme,
             current_theme,
             user_settings,
+            #[cfg(feature = "recents")]
             recents: Vec::new(),
             launch_dir,
         }
     }
 
+    #[cfg(feature = "recents")]
     pub fn add_recent(&mut self, spell_id: String, spell_name: String, action: RecentAction) {
         self.recents.retain(|r| r.spell_id != spell_id);
         self.recents
@@ -95,12 +102,14 @@ impl State {
         }
     }
 
+    #[cfg(feature = "recents")]
     pub fn save_recents(&self) {
         if let Err(e) = Archivist::save_recents(&self.recents) {
             log_info!("Failed to save recents: {}", e);
         }
     }
 
+    #[cfg(feature = "themes")]
     pub fn cycle_theme(&mut self) {
         self.current_theme = self.current_theme.next();
         self.theme = self.current_theme.colors();
@@ -110,6 +119,7 @@ impl State {
         let _ = Archivist::save_theme(CONFIG_PATH, self.current_theme);
     }
 
+    #[cfg(feature = "view-modes")]
     pub fn cycle_view_mode(&mut self) {
         self.user_settings.view_mode = self.user_settings.view_mode.next();
         let mode_str = self.user_settings.view_mode.as_str();
@@ -184,6 +194,8 @@ impl State {
 mod tests {
     use super::*;
     use crate::models::{RunMode, Spell, Theme, UserSettings, ViewMode};
+    #[cfg(feature = "recents")]
+    use crate::models::RecentAction;
     use serial_test::serial;
     use std::fs;
     use std::path::PathBuf;

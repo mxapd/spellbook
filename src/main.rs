@@ -78,8 +78,11 @@ fn run(terminal: &mut DefaultTerminal) -> io::Result<()> {
     let _ = execute!(io::stdout(), EnterAlternateScreen);
 
     // Initialize job manager (starts background polling thread)
-    let _ = invoker::init_job_manager(state.launch_dir.clone());
-    log_info!("Job manager initialized");
+    #[cfg(feature = "background-jobs")]
+    {
+        let _ = invoker::init_job_manager(state.launch_dir.clone());
+        log_info!("Job manager initialized");
+    }
 
     let _ = execute!(
         io::stdout(),
@@ -124,6 +127,7 @@ fn run(terminal: &mut DefaultTerminal) -> io::Result<()> {
             }
             Ok(false) => {
                 // Timeout elapsed - poll for streaming output, update spinner, cursor, and feedback, then redraw
+                #[cfg(feature = "tui-exec")]
                 ui::streaming_modal::poll_stream_output(&mut ui_state);
                 ui_state.tick_spinner();
                 ui_state.tick_search_cursor();

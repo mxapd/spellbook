@@ -5,7 +5,10 @@ mod spellbook;
 mod theme;
 
 pub use codex::Codex;
-pub use job::{JobManager, JobsData, RecentAction, RecentEntry};
+#[cfg(feature = "background-jobs")]
+pub use job::{JobManager, JobsData};
+#[cfg(feature = "recents")]
+pub use job::{RecentAction, RecentEntry};
 pub use spell::{RunMode, Spell};
 pub use spellbook::{Spellbook, SpineStyle};
 pub use spellbook_ref::FocusTarget;

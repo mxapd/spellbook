@@ -3,16 +3,61 @@ name = "spellbook"
 version = "1.0.0"
 edition = "2024"
 
+[features]
+default = ["core"]
+
+# Core feature: always required. Provides browse + copy-to-clipboard.
+core = ["copy", "browse", "dep:arboard"]
+
+# Core sub-features (always implied by core, exposed for granular control)
+copy = ["dep:arboard"]
+browse = []
+
+# Search and command palette
+search = []
+command-palette = ["search"]
+
+# Spell execution modes
+simple-exec = ["dep:exec"]
+tui-exec = ["simple-exec"]
+background-jobs = ["simple-exec", "dep:chrono"]
+confirmations = ["simple-exec"]
+
+# Spell management
+add-spell = []
+edit-spell = []
+delete-spell = []
+add-spellbook = []
+quick-add = ["editor"]
+editor = []
+
+# Virtual spellbooks
+favorites = []
+recents = ["dep:chrono"]
+all-spells = []
+unassigned = []
+
+# Presentation
+themes = []
+view-modes = []
+spellbook-colors = []
+spell-details = []
+help = []
+
+# Utilities
+import-export = []
+placeholders = ["dep:regex"]
+
 [dependencies]
-arboard = "3.4"
-chrono = { version = "0.4", features = ["serde"] }
+arboard = { version = "3.4", optional = true }
+chrono = { version = "0.4", features = ["serde"], optional = true }
 color-eyre = "0.6.5"
 crossterm = "0.29.0"
 dirs = "6"
-exec = "0.3"
+exec = { version = "0.3", optional = true }
 ratatui = "0.30.0"
-regex = "1"
-serde = { version = "1.0.228", features = ["derive"]}  
+regex = { version = "1", optional = true }
+serde = { version = "1.0.228", features = ["derive"] }
 toml = "0.8"
 uuid = { version = "1.0", features = ["v4", "serde"] }
 
