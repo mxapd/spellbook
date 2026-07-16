@@ -1,8 +1,8 @@
 use crate::archivist::Archivist;
 use crate::models::{FocusTarget, RunMode};
-use crate::state::{State, CONFIG_PATH};
+use crate::state::{CONFIG_PATH, State};
 use crate::ui::search_overlay::real_spellbook_index;
-use crate::ui::{streaming_modal, Mode, Overlay, QuickAddSpellState, UiState, ViewMode};
+use crate::ui::{Mode, Overlay, QuickAddSpellState, UiState, ViewMode, streaming_modal};
 use crate::{log_debug, log_error, log_info};
 use crossterm::event::{KeyCode, KeyModifiers};
 
@@ -240,7 +240,7 @@ fn execute_command_by_action(action: &CommandAction, state: &mut State, ui: &mut
             // Parse color from search query (format: ":setcolor r,g,b" or ":setcolor #RRGGBB")
             let query = ui.search_query();
             let color_str = query.trim_start_matches(':').trim();
-            
+
             // Find the color argument after the command
             if let Some(color_arg) = color_str.split_whitespace().nth(1) {
                 if let Some((r, g, b)) = parse_color(color_arg) {
@@ -248,9 +248,17 @@ fn execute_command_by_action(action: &CommandAction, state: &mut State, ui: &mut
                     if let Some(spellbook_idx) = ui.search_spellbook_index() {
                         if spellbook_idx < state.codex.spellbooks.len() {
                             state.codex.spellbooks[spellbook_idx].color = Some((r, g, b));
-                            ui.show_success(format!("Set spellbook color to rgb({},{},{})", r, g, b));
-                            log_info!("Set spellbook {} color to rgb({},{},{})", 
-                                     state.codex.spellbooks[spellbook_idx].name, r, g, b);
+                            ui.show_success(format!(
+                                "Set spellbook color to rgb({},{},{})",
+                                r, g, b
+                            ));
+                            log_info!(
+                                "Set spellbook {} color to rgb({},{},{})",
+                                state.codex.spellbooks[spellbook_idx].name,
+                                r,
+                                g,
+                                b
+                            );
                         } else {
                             ui.show_error("Error: Invalid spellbook selection".to_string());
                         }
@@ -274,7 +282,7 @@ fn execute_command_by_action(action: &CommandAction, state: &mut State, ui: &mut
 /// Parse color from string (r,g,b or #RRGGBB format)
 fn parse_color(s: &str) -> Option<(u8, u8, u8)> {
     let s = s.trim();
-    
+
     // Try hex format: #RRGGBB
     if s.starts_with('#') && s.len() == 7 {
         let r = u8::from_str_radix(&s[1..3], 16).ok()?;
@@ -282,7 +290,7 @@ fn parse_color(s: &str) -> Option<(u8, u8, u8)> {
         let b = u8::from_str_radix(&s[5..7], 16).ok()?;
         return Some((r, g, b));
     }
-    
+
     // Try rgb format: r,g,b
     let parts: Vec<&str> = s.split(',').map(|p| p.trim()).collect();
     if parts.len() == 3 {
@@ -291,7 +299,7 @@ fn parse_color(s: &str) -> Option<(u8, u8, u8)> {
         let b = parts[2].parse::<u8>().ok()?;
         return Some((r, g, b));
     }
-    
+
     None
 }
 
@@ -423,7 +431,9 @@ fn handle_overlay(
             false
         }
         Overlay::Help => {
-            if key == KeyCode::Esc || (key == KeyCode::Char('c') && modifiers.contains(KeyModifiers::CONTROL)) {
+            if key == KeyCode::Esc
+                || (key == KeyCode::Char('c') && modifiers.contains(KeyModifiers::CONTROL))
+            {
                 ui.pop_overlay();
             }
             true
@@ -590,13 +600,21 @@ fn handle_confirm_dialog(key: KeyCode, state: &mut State, ui: &mut UiState) -> b
                         }
                     }
                     ConfirmAction::ExecuteSpell(spell) => {
-                        log_info!("Confirmed: execute spell {} in {:?} mode", spell.name, dialog.execution_mode);
+                        log_info!(
+                            "Confirmed: execute spell {} in {:?} mode",
+                            spell.name,
+                            dialog.execution_mode
+                        );
                         match dialog.execution_mode {
                             Some(RunMode::Simple) | None => {
                                 execute_simple_mode(&spell, state, ui);
                             }
                             Some(RunMode::Tui) => {
-                                state.add_recent(spell.id.clone(), spell.name.clone(), crate::models::RecentAction::Run);
+                                state.add_recent(
+                                    spell.id.clone(),
+                                    spell.name.clone(),
+                                    crate::models::RecentAction::Run,
+                                );
                                 let working_dir = if spell.working_dir.is_empty() {
                                     if state.launch_dir.is_empty() {
                                         None
@@ -615,7 +633,10 @@ fn handle_confirm_dialog(key: KeyCode, state: &mut State, ui: &mut UiState) -> b
                                     state.launch_dir.clone(),
                                 ) {
                                     Ok(pid) => {
-                                        log_info!("TUI execution started successfully with pid: {}", pid);
+                                        log_info!(
+                                            "TUI execution started successfully with pid: {}",
+                                            pid
+                                        );
                                     }
                                     Err(e) => {
                                         log_error!("TUI execution failed: {}", e);
@@ -640,12 +661,22 @@ fn handle_confirm_dialog(key: KeyCode, state: &mut State, ui: &mut UiState) -> b
                                     },
                                 ) {
                                     Ok(job_id) => {
-                                        ui.show_success(format!("Job {} started: {}", job_id, spell.name));
+                                        ui.show_success(format!(
+                                            "Job {} started: {}",
+                                            job_id, spell.name
+                                        ));
                                         ui.open_jobs_sidebar();
-                                        state.add_recent(spell_id, spell_name, crate::models::RecentAction::Run);
+                                        state.add_recent(
+                                            spell_id,
+                                            spell_name,
+                                            crate::models::RecentAction::Run,
+                                        );
                                     }
                                     Err(e) => {
-                                        ui.show_error(format!("Failed to start background job: {}", e));
+                                        ui.show_error(format!(
+                                            "Failed to start background job: {}",
+                                            e
+                                        ));
                                     }
                                 }
                             }

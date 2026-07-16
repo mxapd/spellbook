@@ -5,8 +5,10 @@
 use crate::log_info;
 use crate::models::{RecentAction, RunMode, Spell};
 use crate::state::State;
-use crate::ui::search_overlay::{get_spell_at_index, get_spell_by_index, get_spell_count_for_spellbook};
-use crate::ui::{events, streaming_modal, Overlay, UiState};
+use crate::ui::search_overlay::{
+    get_spell_at_index, get_spell_by_index, get_spell_count_for_spellbook,
+};
+use crate::ui::{Overlay, UiState, events, streaming_modal};
 use crossterm::event::{KeyCode, KeyModifiers};
 
 /// Handle key events in BrowseSpells mode (inside a spellbook)
@@ -116,7 +118,9 @@ pub fn handle_browse_spells(
             }
 
             // 'e' key - edit the selected spell (works with Ctrl in search mode too)
-            KeyCode::Char('e') if !ui.is_searching() || modifiers.contains(KeyModifiers::CONTROL) => {
+            KeyCode::Char('e')
+                if !ui.is_searching() || modifiers.contains(KeyModifiers::CONTROL) =>
+            {
                 let spell_idx = ui.spell_list_state.selected().unwrap_or(0);
                 if let Some((spell_id, _)) = get_spell_at_index(state, spellbook_index, spell_idx) {
                     if let Some(spell) = state.get_spell(&spell_id) {
@@ -129,7 +133,9 @@ pub fn handle_browse_spells(
             }
 
             // 'd' key - delete the selected spell (with confirmation)
-            KeyCode::Char('d') if !ui.is_searching() || modifiers.contains(KeyModifiers::CONTROL) => {
+            KeyCode::Char('d')
+                if !ui.is_searching() || modifiers.contains(KeyModifiers::CONTROL) =>
+            {
                 let spell_idx = ui.spell_list_state.selected().unwrap_or(0);
                 if let Some((spell_id, _spell_name)) =
                     get_spell_at_index(state, spellbook_index, spell_idx)
@@ -146,7 +152,9 @@ pub fn handle_browse_spells(
             }
 
             // 'f' key - toggle favorite
-            KeyCode::Char('f') if !ui.is_searching() || modifiers.contains(KeyModifiers::CONTROL) => {
+            KeyCode::Char('f')
+                if !ui.is_searching() || modifiers.contains(KeyModifiers::CONTROL) =>
+            {
                 let spell_index = ui.spell_list_state.selected().unwrap_or(0);
                 if let Some((spell_id, _)) = get_spell_at_index(state, spellbook_index, spell_index)
                 {
@@ -158,24 +166,31 @@ pub fn handle_browse_spells(
                             "removed from"
                         };
                         ui.show_success(format!("Spell {} favorites", status));
-                        ui.flash(crate::ui::FlashAction::Spell {
-                            spellbook_index,
-                            spell_index: ui.spell_list_state.selected().unwrap_or(0),
-                        }, None);
+                        ui.flash(
+                            crate::ui::FlashAction::Spell {
+                                spellbook_index,
+                                spell_index: ui.spell_list_state.selected().unwrap_or(0),
+                            },
+                            None,
+                        );
                     }
                 }
                 return false;
             }
 
             // 's' - simple execution (exit TUI and run via exec)
-            KeyCode::Char('s') if !ui.is_searching() || modifiers.contains(KeyModifiers::CONTROL) => {
+            KeyCode::Char('s')
+                if !ui.is_searching() || modifiers.contains(KeyModifiers::CONTROL) =>
+            {
                 let spell_idx = ui.spell_list_state.selected().unwrap_or(0);
                 if let Some(spell) = get_spell_by_index(state, spellbook_index, spell_idx) {
                     if spell.confirm {
                         // Show confirmation dialog first
-                        ui.confirm_dialog = Some(
-                            crate::ui::confirm::ConfirmDialogState::execute_spell(spell.clone(), RunMode::Simple),
-                        );
+                        ui.confirm_dialog =
+                            Some(crate::ui::confirm::ConfirmDialogState::execute_spell(
+                                spell.clone(),
+                                RunMode::Simple,
+                            ));
                         ui.push_overlay(Overlay::ConfirmDialog);
                         return false;
                     }
@@ -191,9 +206,11 @@ pub fn handle_browse_spells(
                 let spell_idx = ui.spell_list_state.selected().unwrap_or(0);
                 if let Some(spell) = get_spell_by_index(state, spellbook_index, spell_idx) {
                     if spell.confirm {
-                        ui.confirm_dialog = Some(
-                            crate::ui::confirm::ConfirmDialogState::execute_spell(spell.clone(), RunMode::Tui),
-                        );
+                        ui.confirm_dialog =
+                            Some(crate::ui::confirm::ConfirmDialogState::execute_spell(
+                                spell.clone(),
+                                RunMode::Tui,
+                            ));
                         ui.push_overlay(Overlay::ConfirmDialog);
                         return false;
                     }
@@ -229,9 +246,11 @@ pub fn handle_browse_spells(
                 let spell_idx = ui.spell_list_state.selected().unwrap_or(0);
                 if let Some(spell) = get_spell_by_index(state, spellbook_index, spell_idx) {
                     if spell.confirm {
-                        ui.confirm_dialog = Some(
-                            crate::ui::confirm::ConfirmDialogState::execute_spell(spell.clone(), RunMode::Background),
-                        );
+                        ui.confirm_dialog =
+                            Some(crate::ui::confirm::ConfirmDialogState::execute_spell(
+                                spell.clone(),
+                                RunMode::Background,
+                            ));
                         ui.push_overlay(Overlay::ConfirmDialog);
                         return false;
                     }
@@ -251,10 +270,13 @@ pub fn handle_browse_spells(
                     ) {
                         Ok(job_id) => {
                             ui.show_success(format!("Job {} started: {}", job_id, spell.name));
-                            ui.flash(crate::ui::FlashAction::Spell {
-                                spellbook_index,
-                                spell_index: ui.spell_list_state.selected().unwrap_or(0),
-                            }, None);
+                            ui.flash(
+                                crate::ui::FlashAction::Spell {
+                                    spellbook_index,
+                                    spell_index: ui.spell_list_state.selected().unwrap_or(0),
+                                },
+                                None,
+                            );
                             ui.open_jobs_sidebar(); // Auto-open sidebar when job starts
                             state.add_recent(
                                 spell.id.clone(),
@@ -318,10 +340,13 @@ fn copy_spell_at_index(
     if let Some(spell) = get_spell_by_index(state, spellbook_index, spell_index) {
         if crate::clipboard::copy_to_clipboard(&spell.incantation) {
             ui.show_success(format!("Copied: {}", spell.name));
-            ui.flash(crate::ui::FlashAction::Spell {
-                spellbook_index,
-                spell_index,
-            }, None);
+            ui.flash(
+                crate::ui::FlashAction::Spell {
+                    spellbook_index,
+                    spell_index,
+                },
+                None,
+            );
             state.add_recent(spell.id, spell.name, RecentAction::Copy);
         } else {
             ui.show_error("Failed to copy to clipboard".to_string());
@@ -345,7 +370,9 @@ fn execute_spell_at_index(
 
         if spell.confirm {
             let run_mode = spell.run_mode;
-            ui.confirm_dialog = Some(crate::ui::confirm::ConfirmDialogState::execute_spell(spell, run_mode));
+            ui.confirm_dialog = Some(crate::ui::confirm::ConfirmDialogState::execute_spell(
+                spell, run_mode,
+            ));
             ui.push_overlay(Overlay::ConfirmDialog);
         } else {
             start_spell_execution(state, ui, &spell);

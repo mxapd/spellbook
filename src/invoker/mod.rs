@@ -133,51 +133,54 @@ impl JobManager {
         let registry = Arc::clone(&self.registry);
         let spool_dir = self.spool_dir.clone();
 
-        thread::spawn(move || loop {
-            thread::sleep(POLL_INTERVAL);
+        thread::spawn(move || {
+            loop {
+                thread::sleep(POLL_INTERVAL);
 
-            let jobs_to_check: Vec<(u64, Option<u32>)> = {
-                let reg = registry.lock().unwrap();
-                reg.job_list
-                    .iter()
-                    .filter(|j| j.status == JobStatus::Running)
-                    .map(|j| (j.id, j.pid))
-                    .collect()
-            };
+                let jobs_to_check: Vec<(u64, Option<u32>)> = {
+                    let reg = registry.lock().unwrap();
+                    reg.job_list
+                        .iter()
+                        .filter(|j| j.status == JobStatus::Running)
+                        .map(|j| (j.id, j.pid))
+                        .collect()
+                };
 
-            let mut changed = false;
-            let spool_clone = spool_dir.clone();
+                let mut changed = false;
+                let spool_clone = spool_dir.clone();
 
-            for (job_id, pid) in jobs_to_check {
-                if let Some(pid) = pid {
-                    let running = match Command::new("ps").arg("-p").arg(pid.to_string()).output() {
-                        Ok(output) => {
-                            let output_str = String::from_utf8_lossy(&output.stdout);
-                            output_str.lines().count() > 1
-                        }
-                        Err(_) => false,
-                    };
+                for (job_id, pid) in jobs_to_check {
+                    if let Some(pid) = pid {
+                        let running =
+                            match Command::new("ps").arg("-p").arg(pid.to_string()).output() {
+                                Ok(output) => {
+                                    let output_str = String::from_utf8_lossy(&output.stdout);
+                                    output_str.lines().count() > 1
+                                }
+                                Err(_) => false,
+                            };
 
-                    if !running {
-                        let mut reg = registry.lock().unwrap();
-                        if let Some(j) = reg.job_list.iter_mut().find(|j| j.id == job_id) {
-                            j.status = JobStatus::Completed;
-                            j.exit_code = Some(0);
-                            j.completed_at = Some(Utc::now());
-                            changed = true;
-                            let job_clone = j.clone();
-                            drop(reg);
-                            Self::send_notification_internal(&job_clone, &spool_clone);
+                        if !running {
+                            let mut reg = registry.lock().unwrap();
+                            if let Some(j) = reg.job_list.iter_mut().find(|j| j.id == job_id) {
+                                j.status = JobStatus::Completed;
+                                j.exit_code = Some(0);
+                                j.completed_at = Some(Utc::now());
+                                changed = true;
+                                let job_clone = j.clone();
+                                drop(reg);
+                                Self::send_notification_internal(&job_clone, &spool_clone);
+                            }
                         }
                     }
                 }
-            }
 
-            if changed {
-                let reg = registry.lock().unwrap();
-                let jobs_path = spool_dir.join(JOBS_FILE);
-                if let Ok(contents) = toml::to_string_pretty(&*reg) {
-                    let _ = fs::write(&jobs_path, contents);
+                if changed {
+                    let reg = registry.lock().unwrap();
+                    let jobs_path = spool_dir.join(JOBS_FILE);
+                    if let Ok(contents) = toml::to_string_pretty(&*reg) {
+                        let _ = fs::write(&jobs_path, contents);
+                    }
                 }
             }
         });

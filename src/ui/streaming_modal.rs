@@ -40,11 +40,11 @@ use crate::invoker::StreamOutput;
 use crate::state::OutputModalState;
 use crate::ui::UiState;
 use ratatui::{
+    Frame,
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span, Text},
     widgets::{Block, Borders, Clear, Paragraph, Wrap},
-    Frame,
 };
 
 /// Streaming state for real-time output
@@ -545,18 +545,25 @@ mod tests {
     #[test]
     fn test_stop_streaming() {
         let mut state = StreamingModalState::default();
-        state.streaming = Some(StreamingState::new("echo test".to_string(), None, None, None));
+        state.streaming = Some(StreamingState::new(
+            "echo test".to_string(),
+            None,
+            None,
+            None,
+        ));
         state.output.is_streaming = true;
 
         state.stop_streaming(Some(0));
 
         assert!(!state.output.is_streaming);
         assert_eq!(state.output.exit_code, Some(0));
-        assert!(state
-            .streaming
-            .as_ref()
-            .map(|s| !s.is_running)
-            .unwrap_or(false));
+        assert!(
+            state
+                .streaming
+                .as_ref()
+                .map(|s| !s.is_running)
+                .unwrap_or(false)
+        );
     }
 
     #[test]
@@ -598,7 +605,12 @@ mod tests {
     #[test]
     fn test_kill_sets_exit_code() {
         let mut state = StreamingModalState::default();
-        state.streaming = Some(StreamingState::new("sleep 10".to_string(), None, None, None));
+        state.streaming = Some(StreamingState::new(
+            "sleep 10".to_string(),
+            None,
+            None,
+            None,
+        ));
         state.output.is_streaming = true;
 
         // Since we can't actually test process killing in unit tests,

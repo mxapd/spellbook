@@ -1,11 +1,11 @@
 use crate::state::State;
 use crate::ui::{AddSpellField, UiState};
+use ratatui::Frame;
 use ratatui::layout::{Alignment, Constraint, Direction, Layout};
 use ratatui::style::Style;
 use ratatui::text::{Line, Span};
 use ratatui::widgets::ListState;
 use ratatui::widgets::{Block, Borders, List, ListItem, Paragraph};
-use ratatui::Frame;
 
 pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
     let theme = &state.theme;
@@ -286,9 +286,7 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
     }
 
     let footer_text = if ui.is_typing() {
-        format!(
-            "tab/arrows navigate  Enter edit/exit  Ctrl+S save  Esc cancel",
-        )
+        format!("tab/arrows navigate  Enter edit/exit  Ctrl+S save  Esc cancel",)
     } else {
         format!(
             "tab/arrows/jk navigate  Enter next  Ctrl+S save  Esc cancel  t {}",

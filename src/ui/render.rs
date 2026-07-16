@@ -1,15 +1,15 @@
 use crate::state::State;
-use crate::ui::{
-    add_spell, add_spellbook_form, confirm, help, jobs, quick_add_spell, search_overlay,
-    streaming_modal, Mode, Overlay, UiState,
-};
 use crate::ui::search_overlay::format_full_spell_details;
+use crate::ui::{
+    Mode, Overlay, UiState, add_spell, add_spellbook_form, confirm, help, jobs, quick_add_spell,
+    search_overlay, streaming_modal,
+};
 use ratatui::{
+    Frame,
     layout::{Alignment, Constraint, Direction, Layout},
     style::{Modifier, Style},
     text::{Line, Span, Text},
     widgets::{Block, Borders, Clear, Paragraph, Wrap},
-    Frame,
 };
 
 /// Main render dispatcher - renders current mode, then overlays on top
@@ -167,7 +167,7 @@ fn render_spell_details_overlay(frame: &mut Frame, state: &State, ui: &UiState) 
     if let Some(spell_id) = &ui.spell_details_spell_id {
         if let Some(spell) = state.codex.spells.iter().find(|s| s.id == *spell_id) {
             let details = format_full_spell_details(spell, theme);
-            
+
             let details_block = Paragraph::new(details)
                 .block(
                     Block::default()

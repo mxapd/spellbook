@@ -1,9 +1,9 @@
 use ratatui::{
+    Frame,
     layout::Rect,
     style::{Modifier, Style},
     text::{Line, Span},
     widgets::{Block, List, ListItem, Paragraph},
-    Frame,
 };
 
 use crate::invoker::{self, Job, JobStatus};
@@ -31,8 +31,7 @@ pub fn render_jobs_panel(f: &mut Frame, state: &State, ui: &mut crate::ui::UiSta
     let jobs = invoker::list_jobs();
 
     if jobs.is_empty() {
-        let empty_msg = Paragraph::new("No jobs yet")
-            .style(Style::new().fg(theme.muted));
+        let empty_msg = Paragraph::new("No jobs yet").style(Style::new().fg(theme.muted));
         f.render_widget(empty_msg, area);
         return;
     }
@@ -133,7 +132,12 @@ pub fn render_jobs_panel(f: &mut Frame, state: &State, ui: &mut crate::ui::UiSta
     let help_para = Paragraph::new(help_text)
         .alignment(ratatui::layout::Alignment::Center)
         .style(Style::new().fg(theme.muted));
-    let help_area = Rect::new(area.x, area.y + area.height.saturating_sub(2), area.width, 1);
+    let help_area = Rect::new(
+        area.x,
+        area.y + area.height.saturating_sub(2),
+        area.width,
+        1,
+    );
     f.render_widget(help_para, help_area);
 }
 
@@ -334,7 +338,11 @@ mod tests {
         ui.jobs_sidebar_open = true;
         ui.focus = crate::models::FocusTarget::JobsSidebar;
 
-        handle_jobs_key(KeyCode::Esc, crossterm::event::KeyModifiers::empty(), &mut ui);
+        handle_jobs_key(
+            KeyCode::Esc,
+            crossterm::event::KeyModifiers::empty(),
+            &mut ui,
+        );
 
         assert!(!ui.jobs_sidebar_open);
         assert_eq!(ui.focus, crate::models::FocusTarget::Main);
@@ -345,7 +353,11 @@ mod tests {
         let mut ui = UiState::new(false);
         ui.jobs_sidebar_open = false;
 
-        handle_jobs_key(KeyCode::Esc, crossterm::event::KeyModifiers::empty(), &mut ui);
+        handle_jobs_key(
+            KeyCode::Esc,
+            crossterm::event::KeyModifiers::empty(),
+            &mut ui,
+        );
 
         assert!(!ui.jobs_sidebar_open);
     }

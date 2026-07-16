@@ -5,11 +5,11 @@ use crate::ui::UiState;
 use crate::{log_error, log_info, log_warn};
 use crossterm::event::{KeyCode, KeyModifiers};
 use ratatui::{
+    Frame,
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Modifier, Style},
     text::{Line, Span},
     widgets::{Block, Borders, Clear, List, ListItem, Paragraph},
-    Frame,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -61,7 +61,6 @@ impl QuickAddSpellState {
             message: None,
         }
     }
-
 }
 
 pub fn render(frame: &mut Frame, state: &crate::state::State, ui: &mut UiState) {
@@ -76,7 +75,10 @@ pub fn render(frame: &mut Frame, state: &crate::state::State, ui: &mut UiState) 
     frame.render_widget(Clear, popup_area);
 
     let theme = &state.theme;
-    let form = ui.quick_add_spell.as_ref().expect("quick_add_spell overlay without state");
+    let form = ui
+        .quick_add_spell
+        .as_ref()
+        .expect("quick_add_spell overlay without state");
 
     let block = Block::default()
         .title(" Add Spell ")
@@ -298,7 +300,8 @@ fn render_spellbook_dropdown(
     form: &QuickAddSpellState,
     theme: &crate::models::RatatuiColors,
 ) {
-    let mut items: Vec<ListItem> = vec![ListItem::new("None (unassigned)").style(Style::new().fg(theme.fg))];
+    let mut items: Vec<ListItem> =
+        vec![ListItem::new("None (unassigned)").style(Style::new().fg(theme.fg))];
     items.extend(
         state
             .codex
@@ -424,7 +427,10 @@ pub fn handle_key(
 }
 
 fn handle_edit_mode(key: KeyCode, ui: &mut UiState) -> bool {
-    let form = ui.quick_add_spell.as_mut().expect("quick_add_spell state missing");
+    let form = ui
+        .quick_add_spell
+        .as_mut()
+        .expect("quick_add_spell state missing");
 
     match key {
         KeyCode::Esc => {
@@ -466,7 +472,10 @@ fn handle_edit_mode(key: KeyCode, ui: &mut UiState) -> bool {
 }
 
 fn handle_dropdown_navigation(key: KeyCode, state: &State, ui: &mut UiState) -> bool {
-    let form = ui.quick_add_spell.as_mut().expect("quick_add_spell state missing");
+    let form = ui
+        .quick_add_spell
+        .as_mut()
+        .expect("quick_add_spell state missing");
     let option_count = state.codex.spellbooks.len() + 1; // +1 for "None"
 
     match key {
@@ -540,8 +549,7 @@ fn save(state: &mut State, ui: &mut UiState) {
     };
 
     if form.name.trim().is_empty() {
-        ui.quick_add_spell.as_mut().unwrap().message =
-            Some(("Name is required".to_string(), true));
+        ui.quick_add_spell.as_mut().unwrap().message = Some(("Name is required".to_string(), true));
         return;
     }
 

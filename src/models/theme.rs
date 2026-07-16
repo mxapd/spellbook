@@ -215,7 +215,7 @@ impl RatatuiColors {
 pub enum ViewMode {
     List, // Simple vertical list
     #[default]
-    Cards,  // Card view
+    Cards, // Card view
     Spines, // Compact spine view
 }
 

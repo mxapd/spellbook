@@ -2,12 +2,12 @@
 //!
 //! This module handles key events when browsing the list of spellbooks.
 
-use crate::log_info;
-use crate::log_error;
 use crate::archivist::Archivist;
+use crate::log_error;
+use crate::log_info;
 use crate::state::State;
 use crate::ui::browse_spells::update_search_filter;
-use crate::ui::search_overlay::{find_nearest_card, total_spellbook_count, CardDirection};
+use crate::ui::search_overlay::{CardDirection, find_nearest_card, total_spellbook_count};
 use crate::ui::{Overlay, UiState};
 use crossterm::event::{KeyCode, KeyModifiers};
 
@@ -200,7 +200,7 @@ pub fn handle_browse_spellbooks(
         if key == KeyCode::Char('v') && modifiers.contains(KeyModifiers::CONTROL) {
             let selected = ui.search_results_state().selected().unwrap_or(0);
             let indices = ui.filtered_indices();
-            
+
             if selected < indices.len() {
                 let spell_idx = indices[selected];
                 if let Some(spell) = state.codex.spells.get(spell_idx) {
@@ -214,7 +214,7 @@ pub fn handle_browse_spellbooks(
         if key == KeyCode::Char('e') && modifiers.contains(KeyModifiers::CONTROL) {
             let selected = ui.search_results_state().selected().unwrap_or(0);
             let indices = ui.filtered_indices();
-            
+
             if selected < indices.len() {
                 let spell_idx = indices[selected];
                 if let Some(spell) = state.codex.spells.get(spell_idx) {
@@ -238,13 +238,13 @@ pub fn handle_browse_spellbooks(
         if key == KeyCode::Char('d') && modifiers.contains(KeyModifiers::CONTROL) {
             let selected = ui.search_results_state().selected().unwrap_or(0);
             let indices = ui.filtered_indices();
-            
+
             if selected < indices.len() {
                 let spell_idx = indices[selected];
                 if let Some(spell) = state.codex.spells.get(spell_idx) {
-                    ui.confirm_dialog = Some(
-                        crate::ui::confirm::ConfirmDialogState::delete_spell(spell.clone()),
-                    );
+                    ui.confirm_dialog = Some(crate::ui::confirm::ConfirmDialogState::delete_spell(
+                        spell.clone(),
+                    ));
                     ui.push_overlay(Overlay::ConfirmDialog);
                 }
             }
@@ -255,7 +255,7 @@ pub fn handle_browse_spellbooks(
         if key == KeyCode::Char('f') && modifiers.contains(KeyModifiers::CONTROL) {
             let selected = ui.search_results_state().selected().unwrap_or(0);
             let indices = ui.filtered_indices();
-            
+
             if selected < indices.len() {
                 let spell_idx = indices[selected];
                 let new_favorite = if let Some(spell) = state.codex.spells.get_mut(spell_idx) {
@@ -267,9 +267,16 @@ pub fn handle_browse_spellbooks(
                 if let Err(e) = Archivist::save(&state.codex, "codex.toml") {
                     log_error!("Failed to save codex: {}", e);
                 }
-                let status = if new_favorite { "added to" } else { "removed from" };
+                let status = if new_favorite {
+                    "added to"
+                } else {
+                    "removed from"
+                };
                 ui.show_success(format!("Spell {} favorites", status));
-                ui.flash(crate::ui::FlashAction::SearchResult { index: selected }, None);
+                ui.flash(
+                    crate::ui::FlashAction::SearchResult { index: selected },
+                    None,
+                );
             }
             return false;
         }
@@ -294,7 +301,12 @@ pub fn handle_browse_spellbooks(
 }
 
 /// Handle navigation when in search mode
-fn handle_search_navigation(key: KeyCode, modifiers: KeyModifiers, state: &mut State, ui: &mut UiState) -> bool {
+fn handle_search_navigation(
+    key: KeyCode,
+    modifiers: KeyModifiers,
+    state: &mut State,
+    ui: &mut UiState,
+) -> bool {
     let is_command_mode = ui.search_query().starts_with(':');
 
     // Enter - execute command if in command mode, otherwise copy selected spell
@@ -311,7 +323,10 @@ fn handle_search_navigation(key: KeyCode, modifiers: KeyModifiers, state: &mut S
                 if let Some(spell) = state.codex.spells.get(spell_idx) {
                     if crate::clipboard::copy_to_clipboard(&spell.incantation) {
                         ui.show_success(format!("Copied: {}", spell.name));
-                        ui.flash(crate::ui::FlashAction::SearchResult { index: selected }, None);
+                        ui.flash(
+                            crate::ui::FlashAction::SearchResult { index: selected },
+                            None,
+                        );
                         state.add_recent(
                             spell.id.clone(),
                             spell.name.clone(),
@@ -373,9 +388,9 @@ fn handle_search_navigation(key: KeyCode, modifiers: KeyModifiers, state: &mut S
             if selected < indices.len() {
                 let spell_idx = indices[selected];
                 if let Some(spell) = state.codex.spells.get(spell_idx) {
-                    ui.confirm_dialog = Some(
-                        crate::ui::confirm::ConfirmDialogState::delete_spell(spell.clone()),
-                    );
+                    ui.confirm_dialog = Some(crate::ui::confirm::ConfirmDialogState::delete_spell(
+                        spell.clone(),
+                    ));
                     ui.push_overlay(Overlay::ConfirmDialog);
                 }
             }
@@ -397,9 +412,16 @@ fn handle_search_navigation(key: KeyCode, modifiers: KeyModifiers, state: &mut S
                 if let Err(e) = Archivist::save(&state.codex, "codex.toml") {
                     log_error!("Failed to save codex: {}", e);
                 }
-                let status = if new_favorite { "added to" } else { "removed from" };
+                let status = if new_favorite {
+                    "added to"
+                } else {
+                    "removed from"
+                };
                 ui.show_success(format!("Spell {} favorites", status));
-                ui.flash(crate::ui::FlashAction::SearchResult { index: selected }, None);
+                ui.flash(
+                    crate::ui::FlashAction::SearchResult { index: selected },
+                    None,
+                );
             }
             return false;
         }
@@ -412,9 +434,11 @@ fn handle_search_navigation(key: KeyCode, modifiers: KeyModifiers, state: &mut S
                 let spell_idx = indices[selected];
                 if let Some(spell) = state.codex.spells.get(spell_idx).cloned() {
                     if spell.confirm {
-                        ui.confirm_dialog = Some(
-                            crate::ui::confirm::ConfirmDialogState::execute_spell(spell, crate::models::RunMode::Simple),
-                        );
+                        ui.confirm_dialog =
+                            Some(crate::ui::confirm::ConfirmDialogState::execute_spell(
+                                spell,
+                                crate::models::RunMode::Simple,
+                            ));
                         ui.push_overlay(Overlay::ConfirmDialog);
                         return false;
                     }
@@ -433,9 +457,11 @@ fn handle_search_navigation(key: KeyCode, modifiers: KeyModifiers, state: &mut S
                 let spell_opt = state.codex.spells.get(spell_idx).cloned();
                 if let Some(spell) = spell_opt {
                     if spell.confirm {
-                        ui.confirm_dialog = Some(
-                            crate::ui::confirm::ConfirmDialogState::execute_spell(spell, crate::models::RunMode::Tui),
-                        );
+                        ui.confirm_dialog =
+                            Some(crate::ui::confirm::ConfirmDialogState::execute_spell(
+                                spell,
+                                crate::models::RunMode::Tui,
+                            ));
                         ui.push_overlay(Overlay::ConfirmDialog);
                         return false;
                     }
@@ -475,9 +501,11 @@ fn handle_search_navigation(key: KeyCode, modifiers: KeyModifiers, state: &mut S
                 let spell_opt = state.codex.spells.get(spell_idx).cloned();
                 if let Some(spell) = spell_opt {
                     if spell.confirm {
-                        ui.confirm_dialog = Some(
-                            crate::ui::confirm::ConfirmDialogState::execute_spell(spell, crate::models::RunMode::Background),
-                        );
+                        ui.confirm_dialog =
+                            Some(crate::ui::confirm::ConfirmDialogState::execute_spell(
+                                spell,
+                                crate::models::RunMode::Background,
+                            ));
                         ui.push_overlay(Overlay::ConfirmDialog);
                         return false;
                     }
@@ -500,7 +528,11 @@ fn handle_search_navigation(key: KeyCode, modifiers: KeyModifiers, state: &mut S
                         Ok(job_id) => {
                             ui.show_success(format!("Job {} started: {}", job_id, spell.name));
                             ui.open_jobs_sidebar();
-                            state.add_recent(spell_id, spell_name, crate::models::RecentAction::Run);
+                            state.add_recent(
+                                spell_id,
+                                spell_name,
+                                crate::models::RecentAction::Run,
+                            );
                         }
                         Err(e) => {
                             ui.show_error(format!("Failed to start background job: {}", e));
@@ -513,7 +545,9 @@ fn handle_search_navigation(key: KeyCode, modifiers: KeyModifiers, state: &mut S
     }
 
     // Handle character input - only type in search mode when NOT holding Ctrl
-    if let KeyCode::Char(c) = key && !modifiers.contains(KeyModifiers::CONTROL) {
+    if let KeyCode::Char(c) = key
+        && !modifiers.contains(KeyModifiers::CONTROL)
+    {
         if let Some(query) = ui.search_query_mut() {
             query.push(c);
         }
@@ -552,7 +586,7 @@ fn handle_search_navigation(key: KeyCode, modifiers: KeyModifiers, state: &mut S
     // Handle backspace
     if key == KeyCode::Backspace {
         let was_empty = ui.search_query().is_empty();
-        
+
         if was_empty {
             // Query was already empty, exit search mode
             ui.exit_typing_mode();
@@ -563,7 +597,7 @@ fn handle_search_navigation(key: KeyCode, modifiers: KeyModifiers, state: &mut S
             if let Some(query) = ui.search_query_mut() {
                 query.pop();
             }
-            
+
             // Update filter (even if now empty, stay in search mode)
             if ui.search_in_command_mode() {
                 crate::ui::events::update_command_filter(ui);
@@ -608,17 +642,9 @@ fn navigate_command_results(ui: &mut UiState, direction: i32) {
     if count > 0 {
         let current = ui.search_results_state().selected().unwrap_or(0);
         let next = if direction > 0 {
-            if current >= count - 1 {
-                0
-            } else {
-                current + 1
-            }
+            if current >= count - 1 { 0 } else { current + 1 }
         } else {
-            if current == 0 {
-                count - 1
-            } else {
-                current - 1
-            }
+            if current == 0 { count - 1 } else { current - 1 }
         };
         ui.search_results_state().select(Some(next));
     }
@@ -631,17 +657,9 @@ fn navigate_search_results(ui: &mut UiState, direction: i32) {
     if count > 0 {
         let current = ui.search_results_state().selected().unwrap_or(0);
         let next = if direction > 0 {
-            if current >= count - 1 {
-                0
-            } else {
-                current + 1
-            }
+            if current >= count - 1 { 0 } else { current + 1 }
         } else {
-            if current == 0 {
-                count - 1
-            } else {
-                current - 1
-            }
+            if current == 0 { count - 1 } else { current - 1 }
         };
         ui.search_results_state().select(Some(next));
     }

@@ -55,11 +55,11 @@ impl AddSpellbookForm {
 }
 
 use ratatui::{
+    Frame,
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
     widgets::{Block, Borders, Paragraph},
-    Frame,
 };
 
 pub fn render(frame: &mut Frame, state: &crate::state::State, ui: &mut crate::ui::UiState) {
@@ -180,9 +180,16 @@ fn render_field(
         } else {
             Style::new().fg(theme.muted)
         })
-        .title(format!("{} {}{}", icon, label, if is_editing { " [EDIT]" } else { "" }))
+        .title(format!(
+            "{} {}{}",
+            icon,
+            label,
+            if is_editing { " [EDIT]" } else { "" }
+        ))
         .title_style(if is_editing {
-            Style::new().fg(theme.selection).add_modifier(Modifier::BOLD)
+            Style::new()
+                .fg(theme.selection)
+                .add_modifier(Modifier::BOLD)
         } else if is_active {
             Style::new().fg(theme.accent).add_modifier(Modifier::BOLD)
         } else {

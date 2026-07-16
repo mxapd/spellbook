@@ -2,11 +2,11 @@ use crate::log_debug;
 use crate::models::{FocusTarget, SpineStyle, ViewMode};
 use crate::state::State;
 use crate::ui::{Mode, UiState};
+use ratatui::Frame;
 use ratatui::layout::{Alignment, Constraint, Direction, Layout};
 use ratatui::style::{Modifier, Style};
 use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Block, Borders, List, ListItem, Paragraph, Wrap};
-use ratatui::Frame;
 
 pub enum SpellbookItem<'a> {
     VirtualFavorite {
@@ -122,9 +122,7 @@ pub fn get_spellbook_item<'a>(state: &'a State, index: usize) -> Option<Spellboo
     let all_index = offset + real_spellbook_count;
 
     if index == all_index {
-        return Some(SpellbookItem::VirtualAll {
-            count: all_count,
-        });
+        return Some(SpellbookItem::VirtualAll { count: all_count });
     }
 
     if has_unassigned && index == all_index + 1 {
@@ -206,19 +204,14 @@ pub fn get_spell_ref_by_index(
             let favorites: Vec<_> = state.codex.spells.iter().filter(|s| s.favorite).collect();
             favorites.get(spell_index).copied()
         }
-        SpellbookItem::VirtualRecent { .. } => state.recents.get(spell_index).and_then(|recent| {
-            state
-                .codex
-                .spells
-                .iter()
-                .find(|s| s.id == recent.spell_id)
-        }),
-        SpellbookItem::VirtualAll { .. } => state.codex.spells.get(spell_index),
-        SpellbookItem::VirtualUnassigned { .. } => state
-            .codex
-            .unassigned_spells()
+        SpellbookItem::VirtualRecent { .. } => state
+            .recents
             .get(spell_index)
-            .copied(),
+            .and_then(|recent| state.codex.spells.iter().find(|s| s.id == recent.spell_id)),
+        SpellbookItem::VirtualAll { .. } => state.codex.spells.get(spell_index),
+        SpellbookItem::VirtualUnassigned { .. } => {
+            state.codex.unassigned_spells().get(spell_index).copied()
+        }
         SpellbookItem::Real { spellbook } => spellbook
             .spell_ids
             .get(spell_index)
@@ -355,9 +348,7 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
     // Calculate early whether to show details panel
     let should_show_details = match &ui.mode {
         Mode::BrowseSpells(_) => true,
-        Mode::BrowseSpellbooks(_) => {
-            !ui.search_query().is_empty() || !ui.showing_spellbooks()
-        }
+        Mode::BrowseSpellbooks(_) => !ui.search_query().is_empty() || !ui.showing_spellbooks(),
         _ => false,
     };
 
@@ -369,23 +360,33 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
     let total_spellbooks = total_spellbook_count(state);
     let num_rows = ((total_spellbooks + cards_per_row - 1) / cards_per_row) as u16;
     let spellbook_content_height = (num_rows * card_height)
-        .saturating_add(if num_rows > 1 { (num_rows - 1) * card_gap } else { 0 })
+        .saturating_add(if num_rows > 1 {
+            (num_rows - 1) * card_gap
+        } else {
+            0
+        })
         .saturating_add(2); // +2 for Block borders
-    
+
     // Debug logging
-    log_debug!("Layout debug: area.height={}, spellbook_content_height={}, cards_per_row={}, num_rows={}, total_spellbooks={}", 
-               area.height, spellbook_content_height, cards_per_row, num_rows, total_spellbooks);
-    
+    log_debug!(
+        "Layout debug: area.height={}, spellbook_content_height={}, cards_per_row={}, num_rows={}, total_spellbooks={}",
+        area.height,
+        spellbook_content_height,
+        cards_per_row,
+        num_rows,
+        total_spellbooks
+    );
+
     // Create layout based on whether details panel is shown
     let chunks = if should_show_details {
         // Layout with details panel: search | main | details | footer
         Layout::default()
             .direction(Direction::Vertical)
             .constraints([
-                Constraint::Length(3),   // Search input
-                Constraint::Min(8),      // Main content
-                Constraint::Length(4),   // Details panel
-                Constraint::Length(1),   // Footer
+                Constraint::Length(3), // Search input
+                Constraint::Min(8),    // Main content
+                Constraint::Length(4), // Details panel
+                Constraint::Length(1), // Footer
             ])
             .split(area)
     } else {
@@ -393,14 +394,18 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
         let chunks = Layout::default()
             .direction(Direction::Vertical)
             .constraints([
-                Constraint::Length(3),                      // Search input
-                Constraint::Min(spellbook_content_height),  // Main content (min height, expands to fill)
-                Constraint::Length(1),                      // Footer
+                Constraint::Length(3),                     // Search input
+                Constraint::Min(spellbook_content_height), // Main content (min height, expands to fill)
+                Constraint::Length(1),                     // Footer
             ])
             .split(area);
-        
-        log_debug!("Spellbook layout: chunks[1].height={}, chunks[2].y={}", chunks[1].height, chunks[2].y);
-        
+
+        log_debug!(
+            "Spellbook layout: chunks[1].height={}, chunks[2].y={}",
+            chunks[1].height,
+            chunks[2].y
+        );
+
         chunks
     };
 
@@ -411,11 +416,7 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
     // Only show "/" when searching or has query
     let input_text = if is_searching || has_query {
         let cursor = if is_searching && ui.focus != FocusTarget::JobsSidebar {
-            if ui.search_cursor_visible {
-                "_"
-            } else {
-                ""
-            }
+            if ui.search_cursor_visible { "_" } else { "" }
         } else {
             ""
         };
@@ -536,7 +537,7 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
         // Calculate if there's space between chunks[1] and chunks[2]
         let block_bottom = chunks[1].y + chunks[1].height;
         let footer_top = chunks[2].y;
-        
+
         if footer_top > block_bottom {
             // There's a gap - fill it with background color
             let gap_height = footer_top - block_bottom;
@@ -549,7 +550,7 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
             let fill = Paragraph::new("").style(Style::new().bg(theme.bg));
             frame.render_widget(fill, gap_area);
         }
-        
+
         // Footer is in chunks[2]
         frame.render_widget(hint, chunks[2]);
     }
@@ -580,11 +581,7 @@ pub fn render_in_area(
     // Only show "/" when searching or has query
     let input_text = if is_searching || has_query {
         let cursor = if is_searching && ui.focus != FocusTarget::JobsSidebar {
-            if ui.search_cursor_visible {
-                "_"
-            } else {
-                ""
-            }
+            if ui.search_cursor_visible { "_" } else { "" }
         } else {
             ""
         };
@@ -954,9 +951,10 @@ fn render_spellbook_cards(
             let icon = item.icon();
             let name = item.name();
             let cover = item.cover();
-            
+
             // Get custom color or use theme default
-            let accent_color = item.color()
+            let accent_color = item
+                .color()
                 .map(|(r, g, b)| ratatui::style::Color::Rgb(r, g, b))
                 .unwrap_or(theme.accent);
 
@@ -986,13 +984,14 @@ fn render_spellbook_cards(
             let card_text = Text::from(card_lines);
 
             // Use custom color for border if not selected
-            let border_color = if is_selected && !ui.is_searching() && ui.focus != FocusTarget::JobsSidebar {
-                theme.selection
-            } else {
-                item.color()
-                    .map(|(r, g, b)| ratatui::style::Color::Rgb(r, g, b))
-                    .unwrap_or(theme.border)
-            };
+            let border_color =
+                if is_selected && !ui.is_searching() && ui.focus != FocusTarget::JobsSidebar {
+                    theme.selection
+                } else {
+                    item.color()
+                        .map(|(r, g, b)| ratatui::style::Color::Rgb(r, g, b))
+                        .unwrap_or(theme.border)
+                };
 
             let card_block = Block::default()
                 .borders(Borders::ALL)
@@ -1090,13 +1089,16 @@ fn render_spellbook_spines(
             let is_virtual = item.is_virtual();
 
             let name_style = if is_selected {
-                Style::new().fg(theme.selection).add_modifier(Modifier::BOLD)
+                Style::new()
+                    .fg(theme.selection)
+                    .add_modifier(Modifier::BOLD)
             } else {
                 Style::new().fg(theme.fg)
             };
 
             // Get custom color or use theme accent
-            let accent_color = item.color()
+            let accent_color = item
+                .color()
                 .map(|(r, g, b)| ratatui::style::Color::Rgb(r, g, b))
                 .unwrap_or(theme.accent);
             let decor_style = Style::new().fg(accent_color);
@@ -1125,13 +1127,14 @@ fn render_spellbook_spines(
             );
 
             // Use custom color for border if not selected
-            let border_color = if is_selected && !ui.is_searching() && ui.focus != FocusTarget::JobsSidebar {
-                theme.selection
-            } else {
-                item.color()
-                    .map(|(r, g, b)| ratatui::style::Color::Rgb(r, g, b))
-                    .unwrap_or(theme.border)
-            };
+            let border_color =
+                if is_selected && !ui.is_searching() && ui.focus != FocusTarget::JobsSidebar {
+                    theme.selection
+                } else {
+                    item.color()
+                        .map(|(r, g, b)| ratatui::style::Color::Rgb(r, g, b))
+                        .unwrap_or(theme.border)
+                };
 
             let spine_block = Block::default()
                 .borders(Borders::ALL)
@@ -1151,11 +1154,7 @@ fn render_spellbook_spines(
         let total_in_view = display_end_idx - start_idx;
         let items_in_last_row = if total_in_view > 0 {
             let items = total_in_view % spines_per_row;
-            if items == 0 {
-                spines_per_row
-            } else {
-                items
-            }
+            if items == 0 { spines_per_row } else { items }
         } else {
             0
         };
@@ -1220,12 +1219,13 @@ fn render_spellbook_list(
             let name = item.name();
             let is_selected = i == selected;
             let prefix = if is_selected { "> " } else { "  " };
-            
+
             // Get custom color for icon
-            let accent_color = item.color()
+            let accent_color = item
+                .color()
                 .map(|(r, g, b)| ratatui::style::Color::Rgb(r, g, b))
                 .unwrap_or(theme.accent);
-            
+
             let display_name = if icon.is_empty() {
                 name.to_string()
             } else {
@@ -1240,14 +1240,11 @@ fn render_spellbook_list(
             } else {
                 Style::new().fg(theme.fg)
             };
-            Some(
-                ListItem::new(format!("{}{}", prefix, display_name)).style(style),
-            )
+            Some(ListItem::new(format!("{}{}", prefix, display_name)).style(style))
         })
         .collect();
 
-    let list = List::new(items)
-        .style(Style::new().bg(theme.bg).fg(theme.fg));
+    let list = List::new(items).style(Style::new().bg(theme.bg).fg(theme.fg));
 
     // Only use stateful widget when in search mode
     if ui.is_searching() {
@@ -1364,20 +1361,32 @@ fn render_search_results(
 
     let theme = &state.theme;
 
-    let flash = ui.flash_action.as_ref().and_then(|(action, _)| match action {
-        crate::ui::FlashAction::SearchResult { index } => Some(*index),
-        _ => None,
-    });
+    let flash = ui
+        .flash_action
+        .as_ref()
+        .and_then(|(action, _)| match action {
+            crate::ui::FlashAction::SearchResult { index } => Some(*index),
+            _ => None,
+        });
 
     let results: Vec<ListItem> = ui
         .filtered_indices()
         .iter()
         .enumerate()
-        .filter_map(|(result_idx, &spell_idx)| state.codex.spells.get(spell_idx).map(|spell| (result_idx, spell)))
+        .filter_map(|(result_idx, &spell_idx)| {
+            state
+                .codex
+                .spells
+                .get(spell_idx)
+                .map(|spell| (result_idx, spell))
+        })
         .map(|(result_idx, spell)| {
             let line = format!("{}  [{}]", spell.name, spell.school);
             let style = if flash == Some(result_idx) {
-                Style::new().fg(theme.bg).bg(theme.accent).add_modifier(Modifier::BOLD)
+                Style::new()
+                    .fg(theme.bg)
+                    .bg(theme.accent)
+                    .add_modifier(Modifier::BOLD)
             } else {
                 Style::new().fg(theme.fg)
             };
@@ -1467,25 +1476,29 @@ fn render_spellbook_details<'a>(state: &'a State, ui: &mut UiState) -> Vec<Line<
 }
 
 /// Format spell details for popup (full info)
-pub fn format_full_spell_details<'a>(spell: &'a crate::models::Spell, theme: &crate::models::RatatuiColors) -> Vec<Line<'a>> {
+pub fn format_full_spell_details<'a>(
+    spell: &'a crate::models::Spell,
+    theme: &crate::models::RatatuiColors,
+) -> Vec<Line<'a>> {
     let muted = Style::new().fg(theme.muted);
     let accent = Style::new().fg(theme.accent);
     let fg = Style::new().fg(theme.fg);
-    
+
     let mut lines = Vec::new();
-    
+
     // Spell name
-    lines.push(Line::from(vec![
-        Span::styled(&spell.name, accent.add_modifier(Modifier::BOLD)),
-    ]));
-    
+    lines.push(Line::from(vec![Span::styled(
+        &spell.name,
+        accent.add_modifier(Modifier::BOLD),
+    )]));
+
     // Command
     lines.push(Line::from(vec![
         Span::raw("$ "),
         Span::styled(&spell.incantation, accent),
     ]));
     lines.push(Line::from(""));
-    
+
     // Metadata line with glyphs
     let glyphs_joined = spell.glyphs.join(", ");
     let mut meta_parts: Vec<Span> = vec![
@@ -1497,7 +1510,7 @@ pub fn format_full_spell_details<'a>(spell: &'a crate::models::Spell, theme: &cr
         meta_parts.push(Span::styled(glyphs_joined, fg));
     }
     lines.push(Line::from(meta_parts));
-    
+
     // Run mode and working dir
     let mut mode_parts: Vec<Span> = vec![
         Span::styled("Mode: ", muted),
@@ -1508,11 +1521,14 @@ pub fn format_full_spell_details<'a>(spell: &'a crate::models::Spell, theme: &cr
         mode_parts.push(Span::styled(&spell.working_dir, fg));
     }
     lines.push(Line::from(mode_parts));
-    
+
     // Flags (confirm, favorite)
     let mut flags: Vec<Span> = Vec::new();
     if spell.confirm {
-        flags.push(Span::styled("⚠ Confirm required", Style::new().fg(theme.selection)));
+        flags.push(Span::styled(
+            "⚠ Confirm required",
+            Style::new().fg(theme.selection),
+        ));
     }
     if spell.favorite {
         if !flags.is_empty() {
@@ -1523,26 +1539,27 @@ pub fn format_full_spell_details<'a>(spell: &'a crate::models::Spell, theme: &cr
     if !flags.is_empty() {
         lines.push(Line::from(flags));
     }
-    
+
     // Lore
     if !spell.lore.is_empty() {
         lines.push(Line::from(""));
         lines.push(Line::from(vec![Span::styled(&spell.lore, fg)]));
     }
-    
+
     lines
 }
 
 /// Format compact spell details (just command) for details panel
-fn format_compact_spell_details<'a>(spell: &'a crate::models::Spell, theme: &crate::models::RatatuiColors) -> Vec<Line<'a>> {
+fn format_compact_spell_details<'a>(
+    spell: &'a crate::models::Spell,
+    theme: &crate::models::RatatuiColors,
+) -> Vec<Line<'a>> {
     let accent = Style::new().fg(theme.accent);
-    
-    vec![
-        Line::from(vec![
-            Span::raw("$ "),
-            Span::styled(&spell.incantation, accent),
-        ]),
-    ]
+
+    vec![Line::from(vec![
+        Span::raw("$ "),
+        Span::styled(&spell.incantation, accent),
+    ])]
 }
 
 fn render_spell_details<'a>(state: &'a State, ui: &mut UiState) -> Vec<Line<'a>> {
@@ -1606,7 +1623,11 @@ fn render_spellbook_spells(
     } else if unassigned_index == Some(spellbook_index) {
         let unassigned_spells: Vec<_> = state.codex.unassigned_spells();
         let count = unassigned_spells.len();
-        (unassigned_spells, format!("\u{2205} Unassigned ({})", count), true)
+        (
+            unassigned_spells,
+            format!("\u{2205} Unassigned ({})", count),
+            true,
+        )
     } else if has_recent {
         let recent_idx = if has_favorites { 1 } else { 0 };
         if spellbook_index == recent_idx {
@@ -1652,10 +1673,16 @@ fn render_spellbook_spells(
         }
     };
 
-    let flash = ui.flash_action.as_ref().and_then(|(action, _)| match action {
-        crate::ui::FlashAction::Spell { spellbook_index: sb, spell_index: si } if *sb == spellbook_index => Some(*si),
-        _ => None,
-    });
+    let flash = ui
+        .flash_action
+        .as_ref()
+        .and_then(|(action, _)| match action {
+            crate::ui::FlashAction::Spell {
+                spellbook_index: sb,
+                spell_index: si,
+            } if *sb == spellbook_index => Some(*si),
+            _ => None,
+        });
 
     let items: Vec<ListItem> = spells
         .iter()
@@ -1672,7 +1699,10 @@ fn render_spellbook_spells(
                 spell.name.clone()
             };
             let style = if flash == Some(idx) {
-                Style::new().fg(theme.bg).bg(theme.accent).add_modifier(Modifier::BOLD)
+                Style::new()
+                    .fg(theme.bg)
+                    .bg(theme.accent)
+                    .add_modifier(Modifier::BOLD)
             } else {
                 Style::new().fg(theme.fg)
             };
@@ -2044,10 +2074,7 @@ mod tests {
 
         // All is at the end, so with 0 spellbooks: index 0 should be VirtualAll
         let item = get_spellbook_item(&state, 0);
-        assert!(matches!(
-            item,
-            Some(SpellbookItem::VirtualAll { count: 2 })
-        ));
+        assert!(matches!(item, Some(SpellbookItem::VirtualAll { count: 2 })));
     }
 
     #[test]
@@ -2060,10 +2087,7 @@ mod tests {
 
         // With 0 spellbooks: index 0 = Favorites, index 1 = Recent, index 2 = All
         let item = get_spellbook_item(&state, 2);
-        assert!(matches!(
-            item,
-            Some(SpellbookItem::VirtualAll { count: 2 })
-        ));
+        assert!(matches!(item, Some(SpellbookItem::VirtualAll { count: 2 })));
     }
 
     #[test]
@@ -2098,8 +2122,8 @@ mod tests {
 
     #[test]
     fn test_render_in_area_shows_feedback() {
-        use ratatui::backend::TestBackend;
         use ratatui::Terminal;
+        use ratatui::backend::TestBackend;
 
         let mut ui = UiState::new(false);
         ui.show_success("copied!");
@@ -2115,11 +2139,7 @@ mod tests {
             .unwrap();
 
         let buffer = terminal.backend().buffer();
-        let content: String = buffer
-            .content
-            .iter()
-            .map(|cell| cell.symbol())
-            .collect();
+        let content: String = buffer.content.iter().map(|cell| cell.symbol()).collect();
         assert!(
             content.contains("copied!"),
             "feedback message should appear in rendered output"
@@ -2128,9 +2148,9 @@ mod tests {
 
     #[test]
     fn test_render_spellbook_spells_flashes_row() {
-        use ratatui::backend::TestBackend;
-        use ratatui::Terminal;
         use crate::models::Spell;
+        use ratatui::Terminal;
+        use ratatui::backend::TestBackend;
 
         let spell_id = uuid::Uuid::new_v4().to_string();
         let codex = Codex {
@@ -2160,7 +2180,13 @@ mod tests {
         let mut ui = UiState::new(false);
         ui.enter_browse_spells(0); // real spellbook at index 0
         ui.spell_list_state.select(Some(0));
-        ui.flash(crate::ui::FlashAction::Spell { spellbook_index: 0, spell_index: 0 }, None);
+        ui.flash(
+            crate::ui::FlashAction::Spell {
+                spellbook_index: 0,
+                spell_index: 0,
+            },
+            None,
+        );
 
         let backend = TestBackend::new(80, 24);
         let mut terminal = Terminal::new(backend).unwrap();
@@ -2169,11 +2195,7 @@ mod tests {
             .unwrap();
 
         let buffer = terminal.backend().buffer();
-        let content: String = buffer
-            .content
-            .iter()
-            .map(|cell| cell.symbol())
-            .collect();
+        let content: String = buffer.content.iter().map(|cell| cell.symbol()).collect();
         assert!(
             content.contains("FlashMe"),
             "spell name should appear in rendered output; got: {}",

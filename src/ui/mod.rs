@@ -128,13 +128,21 @@ pub struct Feedback {
 }
 
 impl Feedback {
-    pub fn paragraph<'a>(&self, theme: &crate::models::RatatuiColors) -> ratatui::widgets::Paragraph<'a> {
+    pub fn paragraph<'a>(
+        &self,
+        theme: &crate::models::RatatuiColors,
+    ) -> ratatui::widgets::Paragraph<'a> {
         let color = match self.level {
             FeedbackLevel::Success => ratatui::style::Color::Green,
             FeedbackLevel::Error => ratatui::style::Color::Red,
             FeedbackLevel::Info => theme.accent,
         };
-        let single_line = self.message.lines().next().unwrap_or(&self.message).to_string();
+        let single_line = self
+            .message
+            .lines()
+            .next()
+            .unwrap_or(&self.message)
+            .to_string();
         ratatui::widgets::Paragraph::new(single_line)
             .style(ratatui::style::Style::new().fg(color).bg(theme.bg))
             .alignment(ratatui::layout::Alignment::Center)
@@ -144,9 +152,16 @@ impl Feedback {
 /// A brief visual flash on a specific action target.
 #[derive(PartialEq, Clone, Copy, Debug)]
 pub enum FlashAction {
-    Spell { spellbook_index: usize, spell_index: usize },
-    Spellbook { spellbook_index: usize },
-    SearchResult { index: usize },
+    Spell {
+        spellbook_index: usize,
+        spell_index: usize,
+    },
+    Spellbook {
+        spellbook_index: usize,
+    },
+    SearchResult {
+        index: usize,
+    },
 }
 
 pub struct UiState {
@@ -312,7 +327,11 @@ impl UiState {
             self.feedback = None;
             changed = true;
         }
-        if self.flash_action.as_ref().is_some_and(|(_, until)| *until <= now) {
+        if self
+            .flash_action
+            .as_ref()
+            .is_some_and(|(_, until)| *until <= now)
+        {
             self.flash_action = None;
             changed = true;
         }
@@ -323,7 +342,10 @@ impl UiState {
 
     /// Flash a specific action target for the given duration (default 400ms).
     pub fn flash(&mut self, action: FlashAction, duration: Option<Duration>) {
-        self.flash_action = Some((action, Instant::now() + duration.unwrap_or(Duration::from_millis(400))));
+        self.flash_action = Some((
+            action,
+            Instant::now() + duration.unwrap_or(Duration::from_millis(400)),
+        ));
         self.request_redraw();
     }
 
@@ -787,7 +809,11 @@ mod tests {
     #[test]
     fn test_show_feedback_custom_duration() {
         let mut ui = UiState::new(false);
-        ui.show_feedback("short", FeedbackLevel::Info, Some(Duration::from_millis(10)));
+        ui.show_feedback(
+            "short",
+            FeedbackLevel::Info,
+            Some(Duration::from_millis(10)),
+        );
         let fb = ui.feedback.as_ref().expect("feedback should be set");
         assert!(fb.until <= Instant::now() + Duration::from_millis(20));
         assert!(fb.until > Instant::now());
@@ -796,7 +822,11 @@ mod tests {
     #[test]
     fn test_tick_feedback_clears_expired() {
         let mut ui = UiState::new(false);
-        ui.show_feedback("expired", FeedbackLevel::Info, Some(Duration::from_millis(1)));
+        ui.show_feedback(
+            "expired",
+            FeedbackLevel::Info,
+            Some(Duration::from_millis(1)),
+        );
         thread::sleep(Duration::from_millis(5));
         ui.tick_feedback();
         assert!(ui.feedback.is_none());
@@ -813,16 +843,31 @@ mod tests {
     #[test]
     fn test_flash_sets_flash_action() {
         let mut ui = UiState::new(false);
-        ui.flash(FlashAction::Spell { spellbook_index: 0, spell_index: 2 }, None);
+        ui.flash(
+            FlashAction::Spell {
+                spellbook_index: 0,
+                spell_index: 2,
+            },
+            None,
+        );
         let (action, until) = ui.flash_action.as_ref().expect("flash should be set");
-        assert_eq!(*action, FlashAction::Spell { spellbook_index: 0, spell_index: 2 });
+        assert_eq!(
+            *action,
+            FlashAction::Spell {
+                spellbook_index: 0,
+                spell_index: 2
+            }
+        );
         assert!(*until > Instant::now());
     }
 
     #[test]
     fn test_tick_feedback_clears_expired_flash() {
         let mut ui = UiState::new(false);
-        ui.flash(FlashAction::Spellbook { spellbook_index: 0 }, Some(Duration::from_millis(1)));
+        ui.flash(
+            FlashAction::Spellbook { spellbook_index: 0 },
+            Some(Duration::from_millis(1)),
+        );
         thread::sleep(Duration::from_millis(5));
         ui.tick_feedback();
         assert!(ui.flash_action.is_none());

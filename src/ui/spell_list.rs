@@ -1,10 +1,10 @@
 use crate::state::State;
 use crate::ui::UiState;
+use ratatui::Frame;
 use ratatui::layout::{Alignment, Constraint, Direction, Layout};
 use ratatui::style::Style;
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, List, ListItem, Paragraph};
-use ratatui::Frame;
 
 pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
     let chunks = Layout::default()
@@ -25,21 +25,35 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
 
     let spellbook = &state.codex.spellbooks[spellbook_index];
 
-    let flash = ui.flash_action.as_ref().and_then(|(action, _)| match action {
-        crate::ui::FlashAction::Spell { spellbook_index: sb, spell_index: si } if *sb == spellbook_index => Some(*si),
-        _ => None,
-    });
+    let flash = ui
+        .flash_action
+        .as_ref()
+        .and_then(|(action, _)| match action {
+            crate::ui::FlashAction::Spell {
+                spellbook_index: sb,
+                spell_index: si,
+            } if *sb == spellbook_index => Some(*si),
+            _ => None,
+        });
 
     let spells: Vec<ListItem> = spellbook
         .spell_ids
         .iter()
         .enumerate()
         .filter_map(|(idx, spell_id)| {
-            state.codex.spells.iter().find(|s| s.id == *spell_id).map(|spell| (idx, spell))
+            state
+                .codex
+                .spells
+                .iter()
+                .find(|s| s.id == *spell_id)
+                .map(|spell| (idx, spell))
         })
         .map(|(idx, spell)| {
             let style = if flash == Some(idx) {
-                Style::new().fg(theme.bg).bg(theme.accent).add_modifier(ratatui::style::Modifier::BOLD)
+                Style::new()
+                    .fg(theme.bg)
+                    .bg(theme.accent)
+                    .add_modifier(ratatui::style::Modifier::BOLD)
             } else {
                 Style::new().fg(theme.fg)
             };
@@ -158,21 +172,35 @@ pub fn render_in_area(
 
     let spellbook = &state.codex.spellbooks[spellbook_index];
 
-    let flash = ui.flash_action.as_ref().and_then(|(action, _)| match action {
-        crate::ui::FlashAction::Spell { spellbook_index: sb, spell_index: si } if *sb == spellbook_index => Some(*si),
-        _ => None,
-    });
+    let flash = ui
+        .flash_action
+        .as_ref()
+        .and_then(|(action, _)| match action {
+            crate::ui::FlashAction::Spell {
+                spellbook_index: sb,
+                spell_index: si,
+            } if *sb == spellbook_index => Some(*si),
+            _ => None,
+        });
 
     let spells: Vec<ListItem> = spellbook
         .spell_ids
         .iter()
         .enumerate()
         .filter_map(|(idx, spell_id)| {
-            state.codex.spells.iter().find(|s| s.id == *spell_id).map(|spell| (idx, spell))
+            state
+                .codex
+                .spells
+                .iter()
+                .find(|s| s.id == *spell_id)
+                .map(|spell| (idx, spell))
         })
         .map(|(idx, spell)| {
             let style = if flash == Some(idx) {
-                Style::new().fg(theme.bg).bg(theme.accent).add_modifier(ratatui::style::Modifier::BOLD)
+                Style::new()
+                    .fg(theme.bg)
+                    .bg(theme.accent)
+                    .add_modifier(ratatui::style::Modifier::BOLD)
             } else {
                 Style::new().fg(theme.fg)
             };

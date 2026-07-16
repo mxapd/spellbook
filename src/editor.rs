@@ -7,7 +7,9 @@ use std::process::Command;
 use crate::log_error;
 use crate::log_info;
 use crossterm::execute;
-use crossterm::terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen};
+use crossterm::terminal::{
+    EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode,
+};
 
 /// Open the user's preferred editor with the given initial content and return the saved text.
 ///
@@ -91,4 +93,3 @@ fn command_exists(cmd: &str) -> bool {
         })
         .is_some()
 }
-

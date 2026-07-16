@@ -1,10 +1,10 @@
 use crate::models::RatatuiColors;
 use ratatui::{
+    Frame,
     layout::{Constraint, Direction, Layout, Rect},
     style::{Modifier, Style},
     text::{Line, Span},
     widgets::{Block, Borders, Paragraph},
-    Frame,
 };
 
 pub fn render_help(frame: &mut Frame, area: Rect, theme: &RatatuiColors) {
