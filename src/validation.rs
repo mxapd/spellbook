@@ -1,3 +1,4 @@
+use crate::error::ValidationError;
 use crate::models::Codex;
 use std::collections::HashSet;
 
@@ -14,39 +15,42 @@ pub enum WarningSeverity {
     Error,
 }
 
-pub fn validate_codex(codex: &Codex) -> Result<(), Box<dyn std::error::Error>> {
+pub fn validate_codex(codex: &Codex) -> Result<(), ValidationError> {
     let spell_ids: HashSet<&String> = codex.spells.iter().map(|s| &s.id).collect();
 
+    // validate spells
     let mut seen_spell_names: HashSet<&String> = HashSet::new();
     for spell in &codex.spells {
         if seen_spell_names.contains(&spell.name) {
-            return Err(format!("Duplicate spell name: {}", spell.name).into());
+            return Err(ValidationError::DuplicateSpellName {
+                name: spell.name.clone(),
+            });
         }
         seen_spell_names.insert(&spell.name);
-
         if spell.name.trim().is_empty() {
-            return Err("Spell name cannot be empty".into());
+            return Err(ValidationError::EmptySpellName);
         }
     }
 
+    // validate spellbooks
     let mut seen_spellbook_names: HashSet<&String> = HashSet::new();
     for spellbook in &codex.spellbooks {
         if seen_spellbook_names.contains(&spellbook.name) {
-            return Err(format!("Duplicate spellbook name: {}", spellbook.name).into());
+            return Err(ValidationError::DuplicateSpellbookName {
+                name: spellbook.name.clone(),
+            });
         }
         seen_spellbook_names.insert(&spellbook.name);
-
         if spellbook.name.trim().is_empty() {
-            return Err("Spellbook name cannot be empty".into());
+            return Err(ValidationError::EmptySpellbookName);
         }
 
         for spell_id in &spellbook.spell_ids {
             if !spell_ids.contains(spell_id) {
-                return Err(format!(
-                    "Spellbook '{}' references non-existent spell id: {}",
-                    spellbook.name, spell_id
-                )
-                .into());
+                return Err(ValidationError::BrokenReference {
+                    spellbook: spellbook.name.clone(),
+                    spell: spell_id.clone(),
+                });
             }
         }
     }
@@ -129,21 +133,21 @@ pub fn validate_codex_warnings(codex: &Codex) -> Vec<ValidationWarning> {
         seen_ids.insert(&spell.id);
     }
 
-    // Check for spells not in any spellbook (orphan spells)
-    let spells_in_books: HashSet<&String> = codex
-        .spellbooks
-        .iter()
-        .flat_map(|sb| sb.spell_ids.iter())
-        .collect();
-    for spell in &codex.spells {
-        if !spells_in_books.contains(&spell.id) {
-            warnings.push(ValidationWarning {
-                message: format!("Spell '{}' is not in any spellbook", spell.name),
-                severity: WarningSeverity::Info,
-            });
-        }
-    }
-
+    //    // Check for spells not in any spellbook (orphan spells)
+    //    let spells_in_books: HashSet<&String> = codex
+    //        .spellbooks
+    //        .iter()
+    //        .flat_map(|sb| sb.spell_ids.iter())
+    //        .collect();
+    //    for spell in &codex.spells {
+    //        if !spells_in_books.contains(&spell.id) {
+    //            warnings.push(ValidationWarning {
+    //                message: format!("Spell '{}' is not in any spellbook", spell.name),
+    //                severity: WarningSeverity::Info,
+    //            });
+    //        }
+    //    }
+    //
     warnings
 }
 
