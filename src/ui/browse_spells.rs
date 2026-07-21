@@ -8,7 +8,7 @@ use crate::state::State;
 use crate::ui::search_overlay::{
     get_spell_at_index, get_spell_by_index, get_spell_count_for_spellbook,
 };
-use crate::ui::{Overlay, UiState, events, streaming_modal};
+use crate::ui::{Overlay, UiState, streaming_modal};
 use crossterm::event::{KeyCode, KeyModifiers};
 
 /// Handle key events in BrowseSpells mode (inside a spellbook)
@@ -54,7 +54,7 @@ pub fn handle_browse_spells(
         if let Some(query) = ui.search_query_mut() {
             query.push(':');
         }
-        crate::ui::events::update_command_filter(ui);
+        ui.update_command_filter();
         return false;
     }
 
@@ -196,7 +196,7 @@ pub fn handle_browse_spells(
                     }
 
                     // Execute in simple mode
-                    crate::ui::events::execute_simple_mode(&spell, state, ui);
+                    crate::ui::execute_simple_mode(&spell, state, ui);
                 }
                 return false;
             }
@@ -303,7 +303,7 @@ pub fn handle_browse_spells(
                 query.push(c);
             }
             if ui.search_in_command_mode() {
-                crate::ui::events::update_command_filter(ui);
+                ui.update_command_filter();
             } else {
                 update_search_filter(state, ui);
             }
@@ -320,7 +320,7 @@ pub fn handle_browse_spells(
             ui.exit_typing_mode();
             ui.enter_browse_spellbooks();
         } else if ui.search_in_command_mode() {
-            crate::ui::events::update_command_filter(ui);
+            ui.update_command_filter();
         } else {
             update_search_filter(state, ui);
         }
@@ -389,7 +389,7 @@ fn start_spell_execution(state: &mut State, ui: &mut UiState, spell: &Spell) {
         crate::models::RunMode::Simple => {
             log_info!("Using simple execution mode");
             // For simple mode, we need to save recents then exec
-            crate::ui::events::execute_simple_mode(spell, state, ui);
+            crate::ui::execute_simple_mode(spell, state, ui);
             return; // exec never returns
         }
         crate::models::RunMode::Tui => {
@@ -511,11 +511,11 @@ pub fn update_search_filter(state: &State, ui: &mut UiState) {
 fn execute_command(state: &mut State, ui: &mut UiState) {
     let query = ui.search_query().to_string();
     let query_after_colon = query.strip_prefix(':').unwrap_or("");
-    let filtered = events::filter_commands(query_after_colon);
+    let filtered = crate::ui::filter_commands(query_after_colon);
     let selected = ui.search_results_state().selected().unwrap_or(0);
 
     if let Some((cmd_idx, _, _)) = filtered.get(selected) {
-        events::execute_command_by_index(*cmd_idx, state, ui);
+        ui.execute_command_by_index(*cmd_idx, state);
     } else {
         ui.show_error(format!("Unknown command: {}", query_after_colon));
         log_info!("Unknown command: {}", query_after_colon);

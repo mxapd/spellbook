@@ -1304,7 +1304,7 @@ fn render_command_list(
     ui: &mut UiState,
     area: ratatui::layout::Rect,
 ) {
-    use crate::ui::events::filter_commands;
+    use crate::ui::filter_commands;
 
     let theme = &state.theme;
     let query = ui.search_query();

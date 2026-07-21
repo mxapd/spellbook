@@ -192,7 +192,7 @@ pub fn handle_browse_spellbooks(
             if let Some(query) = ui.search_query_mut() {
                 query.push(':');
             }
-            crate::ui::events::update_command_filter(ui);
+            ui.update_command_filter();
             return false;
         }
 
@@ -288,7 +288,7 @@ pub fn handle_browse_spellbooks(
                     query.push(c);
                 }
                 if ui.search_in_command_mode() {
-                    crate::ui::events::update_command_filter(ui);
+                    ui.update_command_filter();
                 } else {
                     update_search_filter(state, ui);
                 }
@@ -442,7 +442,7 @@ fn handle_search_navigation(
                         ui.push_overlay(Overlay::ConfirmDialog);
                         return false;
                     }
-                    crate::ui::events::execute_simple_mode(&spell, state, ui);
+                    crate::ui::execute_simple_mode(&spell, state, ui);
                 }
             }
             return false;
@@ -553,7 +553,7 @@ fn handle_search_navigation(
         }
 
         if ui.search_in_command_mode() {
-            crate::ui::events::update_command_filter(ui);
+            ui.update_command_filter();
         } else {
             update_search_filter(state, ui);
         }
@@ -600,7 +600,7 @@ fn handle_search_navigation(
 
             // Update filter (even if now empty, stay in search mode)
             if ui.search_in_command_mode() {
-                crate::ui::events::update_command_filter(ui);
+                ui.update_command_filter();
             } else {
                 update_search_filter(state, ui);
             }
@@ -613,7 +613,7 @@ fn handle_search_navigation(
 
 /// Execute the selected command
 fn execute_command(state: &mut State, ui: &mut UiState) {
-    use crate::ui::events::{execute_command_by_index, filter_commands};
+    use crate::ui::filter_commands;
 
     let query = ui.search_query().to_string();
     let query_after_colon = query.strip_prefix(':').unwrap_or("");
@@ -621,7 +621,7 @@ fn execute_command(state: &mut State, ui: &mut UiState) {
     let selected = ui.search_results_state().selected().unwrap_or(0);
 
     if let Some((cmd_idx, _, _)) = filtered.get(selected) {
-        execute_command_by_index(*cmd_idx, state, ui);
+        ui.execute_command_by_index(*cmd_idx, state);
     } else {
         // No matching command found
         ui.show_error(format!("Unknown command: {}", query_after_colon));
@@ -632,7 +632,7 @@ fn execute_command(state: &mut State, ui: &mut UiState) {
 
 /// Navigate command results
 fn navigate_command_results(ui: &mut UiState, direction: i32) {
-    use crate::ui::events::filter_commands;
+    use crate::ui::filter_commands;
 
     let query = ui.search_query();
     let query_after_colon = query.strip_prefix(':').unwrap_or("");

@@ -8,7 +8,6 @@ use ratatui::{
 
 use crate::invoker::{self, Job, JobStatus};
 use crate::state::State;
-use crate::ui::events;
 
 pub struct JobsPanelState {
     pub selected_index: Option<usize>,
@@ -268,7 +267,7 @@ pub fn handle_jobs_key(
             if let Some(query) = ui.search_query_mut() {
                 query.push(':');
             }
-            events::update_command_filter(ui);
+            ui.update_command_filter();
             false
         }
         _ => false,

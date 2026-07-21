@@ -18,17 +18,23 @@ use crossterm::{
 use ratatui::DefaultTerminal;
 use std::io;
 
+// TODO: go over and add specific errors for diffrent error conditions instead of just using generic errors, start with archivist
+
 fn main() -> io::Result<()> {
     ratatui::run(run)
 }
 
 fn run(terminal: &mut DefaultTerminal) -> io::Result<()> {
     let args = CliArgs::parse();
-    let mode = args.mode;
+    let mode = args.mode; //    mode is wether to open add or browse mode
 
+    // LOADING THE CODEX
+    // TODO: hardcoded file name
+    // TODO: look into crates to make error handling better, (would like to avoid Result<Codex, Box<dyn std::error::Error>>)
     let codex = match archivist::Archivist::load("codex.toml") {
         Ok(c) => {
             // Run validation and log warnings
+            // TODO: look into why we use validate codex warnings and not validate codex
             let warnings = validation::validate_codex_warnings(&c);
             for warning in &warnings {
                 match warning.severity {
@@ -43,11 +49,13 @@ fn run(terminal: &mut DefaultTerminal) -> io::Result<()> {
                     }
                 }
             }
+
             if !warnings.is_empty() {
                 log_info!("Found {} validation issue(s)", warnings.len());
             }
             c
         }
+
         Err(e) => {
             eprintln!("Error loading codex.toml: {}", e);
             eprintln!("Creating empty codex...");
@@ -81,6 +89,7 @@ fn run(terminal: &mut DefaultTerminal) -> io::Result<()> {
     let _ = invoker::init_job_manager(state.launch_dir.clone());
     log_info!("Job manager initialized");
 
+    // enable crossterms kitty keyboard protocol
     let _ = execute!(
         io::stdout(),
         PushKeyboardEnhancementFlags(
@@ -89,6 +98,7 @@ fn run(terminal: &mut DefaultTerminal) -> io::Result<()> {
         )
     );
 
+    // main tui event loop
     loop {
         terminal.draw(|frame| {
             ui::render(frame, &state, &mut ui_state);
@@ -107,7 +117,7 @@ fn run(terminal: &mut DefaultTerminal) -> io::Result<()> {
                         key.modifiers
                     );
                     let should_quit =
-                        ui::handle_event(key.code, &mut state, &mut ui_state, key.modifiers);
+                        ui_state.handle_key(key.code, key.modifiers, &mut state);
                     if should_quit || ui_state.should_quit {
                         log_info!("Spellbook exiting");
                         let _ = execute!(io::stdout(), LeaveAlternateScreen);

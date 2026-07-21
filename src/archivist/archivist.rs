@@ -500,6 +500,7 @@ impl Archivist {
     }
 }
 
+// for merging codexes
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum MergeStrategy {
     Skip,
