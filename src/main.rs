@@ -4,12 +4,14 @@ mod clipboard;
 mod editor;
 mod error;
 
-//mod invoker;
+mod invoker;
 
 mod logging;
 mod models;
-//mod state;
-//mod ui;
+mod state;
+mod test_utils;
+
+mod ui;
 mod validation;
 
 use crate::cli::{AppMode, CliArgs};
@@ -36,12 +38,11 @@ fn run(terminal: &mut DefaultTerminal) -> io::Result<()> {
 
     // LOADING THE CODEX
     // TODO: hardcoded file name
-    // TODO: look into crates to make error handling better, (would like to avoid Result<Codex, Box<dyn std::error::Error>>)
     let codex = match archivist::Archivist::load("codex.toml") {
         Ok(c) => {
             // Run validation and log warnings
-            // TODO: look into why we use validate codex warnings and not validate codex
-            let warnings = validation::validate_codex_warnings(&c);
+            // Non-blocking: collect additional diagnostics (empty commands, empty spellbooks, etc.)
+            let warnings = validation::collect_codex_warnings(&c);
             for warning in &warnings {
                 match warning.severity {
                     validation::WarningSeverity::Error => {
@@ -79,83 +80,88 @@ fn run(terminal: &mut DefaultTerminal) -> io::Result<()> {
         }
     };
 
-    Ok(())
+    let user_settings = archivist::Archivist::load_user_settings("config.toml");
+    let mut state = state::State::new(codex, user_settings);
 
-    //let mut state = state::State::new(codex);
-    //let mut ui_state = ui::UiState::new(mode == AppMode::AddSpell);
+    //// UI initialization (disabled — will be re-enabled later)
+    let mut ui_state = ui::UiState::new(mode == AppMode::AddSpell);
+    // Start on BrowseSpellbooks mode by default (unless --add is passed for AddSpell mode)
+    if mode != AppMode::Browse {
+        ui_state.set_mode(ui::Mode::AddSpell(ui::FormState::default()));
+    }
 
-    //// Start on BrowseSpellbooks mode by default (unless --add is passed for AddSpell mode)
-    //if mode != AppMode::Browse {
-    //    ui_state.set_mode(ui::Mode::AddSpell(ui::FormState::default()));
-    //}
+    log_info!("Spellbook started (mode: {:?})", mode);
 
-    //log_info!("Spellbook started (mode: {:?})", mode);
+    // Enable alternate screen for TUI
+    let _ = execute!(io::stdout(), EnterAlternateScreen);
 
-    //// Enable alternate screen for TUI
-    //let _ = execute!(io::stdout(), EnterAlternateScreen);
+    // Initialize job manager (starts background polling thread)
+    let launch_dir = std::env::current_dir()
+        .map(|p| p.to_string_lossy().to_string())
+        .unwrap_or_else(|_| "/".to_string());
+    let _ = invoker::init_job_manager(launch_dir);
+    log_info!("Job manager initialized");
 
-    //// Initialize job manager (starts background polling thread)
-    ////let _ = invoker::init_job_manager(state.launch_dir.clone());
-    ////log_info!("Job manager initialized");
-
-    //// enable crossterms kitty keyboard protocol
-    //let _ = execute!(
-    //    io::stdout(),
-    //    PushKeyboardEnhancementFlags(
-    //        KeyboardEnhancementFlags::DISAMBIGUATE_ESCAPE_CODES
-    //            | KeyboardEnhancementFlags::REPORT_ALL_KEYS_AS_ESCAPE_CODES
-    //    )
-    //);
+    // enable crossterms kitty keyboard protocol
+    let _ = execute!(
+        io::stdout(),
+        PushKeyboardEnhancementFlags(
+            KeyboardEnhancementFlags::DISAMBIGUATE_ESCAPE_CODES
+                | KeyboardEnhancementFlags::REPORT_ALL_KEYS_AS_ESCAPE_CODES
+        )
+    );
 
     // main tui event loop
-    //loop {
-    //    terminal.draw(|frame| {
-    //        ui::render(frame, &state, &mut ui_state);
-    //    })?;
+    loop {
+        terminal.draw(|frame| {
+            ui::render(frame, &state, &mut ui_state);
+        })?;
 
-    //    let poll_result = event::poll(std::time::Duration::from_millis(100));
-    //    match poll_result {
-    //        Ok(true) => {
-    //            if let Event::Key(key) = event::read()? {
-    //                if key.kind != KeyEventKind::Press {
-    //                    continue;
-    //                }
-    //                log_debug!(
-    //                    "KeyEvent: code={:?}, modifiers={:?}",
-    //                    key.code,
-    //                    key.modifiers
-    //                );
-    //                let should_quit = ui_state.handle_key(key.code, key.modifiers, &mut state);
-    //                if should_quit || ui_state.should_quit {
-    //                    log_info!("Spellbook exiting");
-    //                    let _ = execute!(io::stdout(), LeaveAlternateScreen);
-    //                    return Ok(());
-    //                }
+        let poll_result = event::poll(std::time::Duration::from_millis(100));
+        match poll_result {
+            Ok(true) => {
+                if let Event::Key(key) = event::read()? {
+                    if key.kind != KeyEventKind::Press {
+                        continue;
+                    }
+                    log_debug!(
+                        "KeyEvent: code={:?}, modifiers={:?}",
+                        key.code,
+                        key.modifiers
+                    );
+                    let should_quit = ui_state.handle_key(key.code, key.modifiers, &mut state);
+                    if should_quit || ui_state.should_quit {
+                        log_info!("Spellbook exiting");
+                        let _ = execute!(io::stdout(), LeaveAlternateScreen);
+                        return Ok(());
+                    }
 
-    //                if ui_state.needs_redraw {
-    //                    terminal.draw(|frame| {
-    //                        ui::render(frame, &state, &mut ui_state);
-    //                    })?;
-    //                    let _ = ui_state.clear_redraw_flag();
-    //                }
-    //            }
-    //        }
-    //        Ok(false) => {
-    //            // Timeout elapsed - poll for streaming output, update spinner, cursor, and feedback, then redraw
-    //            ui::streaming_modal::poll_stream_output(&mut ui_state);
-    //            ui_state.tick_spinner();
-    //            ui_state.tick_search_cursor();
-    //            ui_state.tick_feedback();
-    //            if ui_state.needs_redraw || ui_state.is_loading() {
-    //                terminal.draw(|frame| {
-    //                    ui::render(frame, &state, &mut ui_state);
-    //                })?;
-    //                let _ = ui_state.clear_redraw_flag();
-    //            }
-    //        }
-    //        Err(e) => {
-    //            log_debug!("Event poll error: {}", e);
-    //        }
-    //    }
-    //}
+                    if ui_state.needs_redraw {
+                        terminal.draw(|frame| {
+                            ui::render(frame, &state, &mut ui_state);
+                        })?;
+                        let _ = ui_state.clear_redraw_flag();
+                    }
+                }
+            }
+            Ok(false) => {
+                // Timeout elapsed - poll for streaming output, update spinner, cursor, and feedback, then redraw
+                ui::streaming_modal::poll_stream_output(&mut ui_state);
+                ui_state.tick_spinner();
+                ui_state.tick_search_cursor();
+                ui_state.tick_feedback();
+                if ui_state.needs_redraw || ui_state.is_loading() {
+                    terminal.draw(|frame| {
+                        ui::render(frame, &state, &mut ui_state);
+                    })?;
+                    let _ = ui_state.clear_redraw_flag();
+                }
+            }
+            Err(e) => {
+                log_debug!("Event poll error: {}", e);
+            }
+        }
+    }
+
+    Ok(())
 }

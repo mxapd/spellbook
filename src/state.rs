@@ -1,88 +1,125 @@
 use crate::archivist::Archivist;
 use crate::log_info;
-use crate::models::{Codex, RatatuiColors, RecentAction, RecentEntry, Theme, UserSettings};
+use crate::models::{Codex, RecentAction, RecentEntry, Spell, RatatuiColors, UserSettings};
 
 pub(crate) const CONFIG_PATH: &str = "config.toml";
 
 #[derive(Debug, Clone, Default)]
 pub struct State {
     pub codex: Codex,
-    pub theme: RatatuiColors,
-    pub current_theme: Theme,
     pub user_settings: UserSettings,
     pub recents: Vec<RecentEntry>,
-    pub launch_dir: String,
-}
-
-#[derive(Debug, Clone, Default)]
-pub struct OutputModalState {
-    pub content: Vec<String>,
-    pub scroll_offset: usize,
-    pub is_streaming: bool,
-    pub exit_code: Option<i32>,
-}
-
-impl OutputModalState {
-    pub const MAX_LINES: usize = 10000;
-
-    pub fn add_line(&mut self, line: String) {
-        if self.content.len() >= Self::MAX_LINES {
-            self.content.remove(0);
-        }
-        self.content.push(line);
-    }
-
-    pub fn is_truncated(&self) -> bool {
-        self.content.len() >= Self::MAX_LINES
-    }
 }
 
 impl State {
-    pub fn new(codex: Codex) -> Self {
-        let saved_theme = Archivist::load_theme(CONFIG_PATH);
-        let current_theme = saved_theme;
-        let theme = current_theme.colors();
-
-        let user_settings = Archivist::load_user_settings(CONFIG_PATH);
-
-        let _ = Archivist::save_user_settings(CONFIG_PATH, &user_settings);
-
-        let recents = Archivist::load_recents().unwrap_or_default();
-
-        let launch_dir = std::env::current_dir()
-            .map(|p| p.to_string_lossy().to_string())
-            .unwrap_or_else(|_| std::env::var("HOME").unwrap_or_else(|_| "/".to_string()));
-
+    /// Pure constructor — all loading happens in caller.
+    pub fn new(codex: Codex, user_settings: UserSettings) -> Self {
         Self {
             codex,
-            theme,
-            current_theme,
-            user_settings,
-            recents,
-            launch_dir,
-        }
-    }
-
-    #[cfg(test)]
-    pub fn new_test(codex: Codex) -> Self {
-        let current_theme = crate::models::Theme::default();
-        let theme = current_theme.colors();
-        let user_settings = crate::models::UserSettings::default();
-
-        let launch_dir = std::env::current_dir()
-            .map(|p| p.to_string_lossy().to_string())
-            .unwrap_or_else(|_| "/".to_string());
-
-        Self {
-            codex,
-            theme,
-            current_theme,
             user_settings,
             recents: Vec::new(),
-            launch_dir,
         }
     }
 
+    /// Derived color palette from current theme setting.
+    pub fn theme(&self) -> RatatuiColors {
+        self.user_settings.theme.colors()
+    }
+
+    // ── Settings ──────────────────────────────────────
+
+    pub fn cycle_theme(&mut self) {
+        self.user_settings.theme = self.user_settings.theme.next();
+        log_info!("Theme changed to: {}", self.user_settings.theme.name());
+        if let Err(e) = Archivist::save_user_settings(CONFIG_PATH, &self.user_settings) {
+            log_info!("Failed to save theme: {}", e);
+        }
+    }
+
+    pub fn cycle_view_mode(&mut self) {
+        self.user_settings.view_mode = self.user_settings.view_mode.next();
+        let mode_str = self.user_settings.view_mode.as_str();
+        log_info!("View mode changed to: {}", mode_str);
+        if let Err(e) = Archivist::save_user_settings(CONFIG_PATH, &self.user_settings) {
+            log_info!("Failed to save view mode: {}", e);
+        }
+    }
+
+    // ── Spell CRUD ────────────────────────────────────
+
+    /// Update an existing spell in the codex. Persists on success.
+    pub fn update_spell(&mut self, spell: Spell) -> Result<(), String> {
+        if let Some(existing) = self.codex.spells.iter_mut().find(|s| s.id == spell.id) {
+            *existing = spell;
+            Archivist::save(&self.codex, "codex.toml")
+                .map_err(|e| format!("Failed to save: {}", e))?;
+            log_info!("Spell updated successfully");
+            Ok(())
+        } else {
+            Err("Spell not found".to_string())
+        }
+    }
+
+    /// Delete a spell by id. Also removes it from all spellbooks. Persists on success.
+    pub fn delete_spell(&mut self, spell_id: &str) -> Result<(), String> {
+        let initial_len = self.codex.spells.len();
+        self.codex.spells.retain(|s| s.id != spell_id);
+
+        if self.codex.spells.len() < initial_len {
+            for spellbook in &mut self.codex.spellbooks {
+                spellbook.spell_ids.retain(|id| id != spell_id);
+            }
+            Archivist::save(&self.codex, "codex.toml")
+                .map_err(|e| format!("Failed to save: {}", e))?;
+            log_info!("Spell deleted successfully");
+            Ok(())
+        } else {
+            Err("Spell not found".to_string())
+        }
+    }
+
+    /// Delete a spellbook by name. Persists on success.
+    pub fn delete_spellbook(&mut self, spellbook_name: &str) -> Result<(), String> {
+        let initial_len = self.codex.spellbooks.len();
+        self.codex.spellbooks.retain(|sb| sb.name != spellbook_name);
+
+        if self.codex.spellbooks.len() < initial_len {
+            Archivist::save(&self.codex, "codex.toml")
+                .map_err(|e| format!("Failed to save: {}", e))?;
+            log_info!("Spellbook '{}' deleted successfully", spellbook_name);
+            Ok(())
+        } else {
+            Err("Spellbook not found".to_string())
+        }
+    }
+
+    /// Toggle favorite. Returns new state on success.
+    pub fn toggle_favorite(&mut self, id: &str) -> Result<bool, String> {
+        // Mutable borrow must end before the save below
+        let is_fav = {
+            let spell = self.codex.spells.iter_mut().find(|s| s.id == id);
+            match spell {
+                Some(s) => {
+                    s.favorite = !s.favorite;
+                    s.favorite
+                }
+                None => return Err("Spell not found".to_string()),
+            }
+        };
+
+        Archivist::save(&self.codex, "codex.toml")
+            .map_err(|e| format!("Failed to save: {}", e))?;
+        Ok(is_fav)
+    }
+
+    /// Read-only spell lookup by id.
+    pub fn get_spell(&self, spell_id: &str) -> Option<&Spell> {
+        self.codex.spells.iter().find(|s| s.id == spell_id)
+    }
+
+    // ── Recents ───────────────────────────────────────
+
+    /// Add a recent entry, deduplicate, evict beyond 100, then persist.
     pub fn add_recent(&mut self, spell_id: String, spell_name: String, action: RecentAction) {
         self.recents.retain(|r| r.spell_id != spell_id);
         self.recents
@@ -95,28 +132,9 @@ impl State {
         }
     }
 
-    pub fn save_recents(&self) {
-        if let Err(e) = Archivist::save_recents(&self.recents) {
-            log_info!("Failed to save recents: {}", e);
-        }
-    }
+    // ── Codex management ──────────────────────────────
 
-    pub fn cycle_theme(&mut self) {
-        self.current_theme = self.current_theme.next();
-        self.theme = self.current_theme.colors();
-
-        log_info!("Theme changed to: {}", self.current_theme.name());
-
-        let _ = Archivist::save_theme(CONFIG_PATH, self.current_theme);
-    }
-
-    pub fn cycle_view_mode(&mut self) {
-        self.user_settings.view_mode = self.user_settings.view_mode.next();
-        let mode_str = self.user_settings.view_mode.as_str();
-        log_info!("View mode changed to: {}", mode_str);
-        let _ = Archivist::save_user_settings(CONFIG_PATH, &self.user_settings);
-    }
-
+    /// Reload the codex from disk.
     pub fn reload_codex(&mut self) {
         match Archivist::load("codex.toml") {
             Ok(new_codex) => {
@@ -128,62 +146,12 @@ impl State {
             }
         }
     }
-
-    pub fn update_spell(&mut self, spell: crate::models::Spell) -> Result<(), String> {
-        if let Some(existing) = self.codex.spells.iter_mut().find(|s| s.id == spell.id) {
-            *existing = spell;
-            if let Err(e) = Archivist::save(&self.codex, "codex.toml") {
-                return Err(format!("Failed to save: {}", e));
-            }
-            log_info!("Spell updated successfully");
-            Ok(())
-        } else {
-            Err("Spell not found".to_string())
-        }
-    }
-
-    pub fn delete_spell(&mut self, spell_id: &str) -> Result<(), String> {
-        let initial_len = self.codex.spells.len();
-        self.codex.spells.retain(|s| s.id != spell_id);
-
-        if self.codex.spells.len() < initial_len {
-            for spellbook in &mut self.codex.spellbooks {
-                spellbook.spell_ids.retain(|id| id != spell_id);
-            }
-            if let Err(e) = Archivist::save(&self.codex, "codex.toml") {
-                return Err(format!("Failed to save: {}", e));
-            }
-            log_info!("Spell deleted successfully");
-            Ok(())
-        } else {
-            Err("Spell not found".to_string())
-        }
-    }
-
-    pub fn delete_spellbook(&mut self, spellbook_name: &str) -> Result<(), String> {
-        let initial_len = self.codex.spellbooks.len();
-        self.codex.spellbooks.retain(|sb| sb.name != spellbook_name);
-
-        if self.codex.spellbooks.len() < initial_len {
-            if let Err(e) = Archivist::save(&self.codex, "codex.toml") {
-                return Err(format!("Failed to save: {}", e));
-            }
-            log_info!("Spellbook '{}' deleted successfully", spellbook_name);
-            Ok(())
-        } else {
-            Err("Spellbook not found".to_string())
-        }
-    }
-
-    pub fn get_spell(&self, spell_id: &str) -> Option<&crate::models::Spell> {
-        self.codex.spells.iter().find(|s| s.id == spell_id)
-    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::{RunMode, Spell, Theme, UserSettings, ViewMode};
+    use crate::models::{RunMode, Spell, Spellbook, ViewMode};
     use serial_test::serial;
     use std::fs;
     use std::path::PathBuf;
@@ -205,7 +173,12 @@ mod tests {
         let original_cwd = std::env::current_dir().expect("Failed to get current dir");
         std::env::set_current_dir(temp_dir.path()).expect("Failed to set current dir");
 
-        let content = r#"[spellbook]"#;
+        // Write an empty codex so Archivist can load it
+        let empty = Codex {
+            spells: vec![],
+            spellbooks: vec![],
+        };
+        let content = toml::to_string_pretty(&empty).expect("Failed to serialize empty codex");
         fs::write("codex.toml", content).expect("Failed to write test codex");
 
         TestGuard {
@@ -215,33 +188,31 @@ mod tests {
     }
 
     fn make_test_state(codex: Codex) -> State {
-        let theme = Theme::default();
         let user_settings = UserSettings {
             view_mode: ViewMode::List,
             ..Default::default()
         };
         State {
             codex,
-            theme: theme.colors(),
-            current_theme: theme,
-            launch_dir: String::from("/home/xam/"),
             user_settings,
             recents: vec![],
         }
     }
 
+    // === update_spell ===
+
     #[test]
     #[serial]
-    fn test_update_spell_modifies_existing() {
+    fn update_spell_modifies_existing() {
         let _guard = setup_test_env();
         let spell_id = uuid::Uuid::new_v4().to_string();
         let original_spell = Spell {
             id: spell_id.clone(),
             name: "Original".to_string(),
-            incantation: "echo original".to_string(),
-            lore: String::new(),
-            school: String::new(),
-            glyphs: vec![],
+            command: "echo original".to_string(),
+            description: String::new(),
+            category: String::new(),
+            tags: vec![],
             confirm: false,
             run_mode: RunMode::Simple,
             working_dir: String::new(),
@@ -256,10 +227,10 @@ mod tests {
         let updated_spell = Spell {
             id: spell_id.clone(),
             name: "Updated".to_string(),
-            incantation: "echo updated".to_string(),
-            lore: "New lore".to_string(),
-            school: String::new(),
-            glyphs: vec![],
+            command: "echo updated".to_string(),
+            description: "New lore".to_string(),
+            category: String::new(),
+            tags: vec![],
             confirm: false,
             run_mode: RunMode::Tui,
             working_dir: String::new(),
@@ -272,12 +243,12 @@ mod tests {
         let retrieved = state.get_spell(&spell_id);
         assert!(retrieved.is_some());
         assert_eq!(retrieved.unwrap().name, "Updated");
-        assert_eq!(retrieved.unwrap().lore, "New lore");
+        assert_eq!(retrieved.unwrap().description, "New lore");
         assert_eq!(retrieved.unwrap().run_mode, RunMode::Tui);
     }
 
     #[test]
-    fn test_update_spell_not_found_error() {
+    fn update_spell_not_found_error() {
         let mut state = make_test_state(Codex {
             spells: vec![],
             spellbooks: vec![],
@@ -286,10 +257,10 @@ mod tests {
         let spell = Spell {
             id: "nonexistent-id".to_string(),
             name: "Ghost".to_string(),
-            incantation: "echo ghost".to_string(),
-            lore: String::new(),
-            school: String::new(),
-            glyphs: vec![],
+            command: "echo ghost".to_string(),
+            description: String::new(),
+            category: String::new(),
+            tags: vec![],
             confirm: false,
             run_mode: RunMode::Simple,
             working_dir: String::new(),
@@ -301,19 +272,21 @@ mod tests {
         assert!(result.unwrap_err().contains("not found"));
     }
 
+    // === delete_spell ===
+
     #[test]
     #[serial]
-    fn test_delete_spell_removes_from_codex() {
+    fn delete_spell_removes_from_codex() {
         let _guard = setup_test_env();
         let spell_id = uuid::Uuid::new_v4().to_string();
         let mut state = make_test_state(Codex {
             spells: vec![Spell {
                 id: spell_id.clone(),
                 name: "ToDelete".to_string(),
-                incantation: "echo delete".to_string(),
-                lore: String::new(),
-                school: String::new(),
-                glyphs: vec![],
+                command: "echo delete".to_string(),
+                description: String::new(),
+                category: String::new(),
+                tags: vec![],
                 confirm: false,
                 run_mode: RunMode::Simple,
                 working_dir: String::new(),
@@ -330,7 +303,7 @@ mod tests {
 
     #[test]
     #[serial]
-    fn test_delete_spell_removes_from_spellbooks() {
+    fn delete_spell_removes_from_spellbooks() {
         let _guard = setup_test_env();
         let spell_id = uuid::Uuid::new_v4().to_string();
 
@@ -338,19 +311,19 @@ mod tests {
             spells: vec![Spell {
                 id: spell_id.clone(),
                 name: "TestSpell".to_string(),
-                incantation: "echo test".to_string(),
-                lore: String::new(),
-                school: String::new(),
-                glyphs: vec![],
+                command: "echo test".to_string(),
+                description: String::new(),
+                category: String::new(),
+                tags: vec![],
                 confirm: false,
                 run_mode: RunMode::Simple,
                 working_dir: String::new(),
                 favorite: false,
             }],
-            spellbooks: vec![crate::models::Spellbook {
+            spellbooks: vec![Spellbook {
                 name: "TestSpellbook".to_string(),
                 cover: String::new(),
-                sigil: "*".to_string(),
+                decoration: "*".to_string(),
                 spell_ids: vec![spell_id.clone()],
                 spells: vec![],
                 style: None,
@@ -370,7 +343,7 @@ mod tests {
     }
 
     #[test]
-    fn test_delete_spell_not_found_error() {
+    fn delete_spell_not_found_error() {
         let mut state = make_test_state(Codex {
             spells: vec![],
             spellbooks: vec![],
@@ -381,17 +354,19 @@ mod tests {
         assert!(result.unwrap_err().contains("not found"));
     }
 
+    // === get_spell ===
+
     #[test]
-    fn test_get_spell_by_id_found() {
+    fn get_spell_found() {
         let spell_id = uuid::Uuid::new_v4().to_string();
         let state = make_test_state(Codex {
             spells: vec![Spell {
                 id: spell_id.clone(),
                 name: "FindMe".to_string(),
-                incantation: "echo findme".to_string(),
-                lore: String::new(),
-                school: String::new(),
-                glyphs: vec![],
+                command: "echo findme".to_string(),
+                description: String::new(),
+                category: String::new(),
+                tags: vec![],
                 confirm: false,
                 run_mode: RunMode::Simple,
                 working_dir: String::new(),
@@ -406,7 +381,7 @@ mod tests {
     }
 
     #[test]
-    fn test_get_spell_by_id_not_found() {
+    fn get_spell_not_found() {
         let state = make_test_state(Codex {
             spells: vec![],
             spellbooks: vec![],
@@ -416,8 +391,10 @@ mod tests {
         assert!(found.is_none());
     }
 
+    // === recents ===
+
     #[test]
-    fn test_add_recent_inserts_at_front() {
+    fn add_recent_inserts_at_front() {
         let mut state = make_test_state(Codex {
             spells: vec![],
             spellbooks: vec![],
@@ -432,7 +409,7 @@ mod tests {
     }
 
     #[test]
-    fn test_add_recent_deduplicates() {
+    fn add_recent_deduplicates() {
         let mut state = make_test_state(Codex {
             spells: vec![],
             spellbooks: vec![],
@@ -446,7 +423,7 @@ mod tests {
     }
 
     #[test]
-    fn test_add_recent_evicts_at_100() {
+    fn add_recent_evicts_at_100() {
         let mut state = make_test_state(Codex {
             spells: vec![],
             spellbooks: vec![],

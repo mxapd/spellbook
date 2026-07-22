@@ -67,8 +67,10 @@ impl<'de> Deserialize<'de> for SpineStyle {
 mod tests {
     use super::*;
 
+    // === SpineStyle ===
+
     #[test]
-    fn test_spine_style_from_index_cycles_correctly() {
+    fn spine_style_from_index_cycles_correctly() {
         assert_eq!(SpineStyle::from_index(0), SpineStyle::StarsAndDiamonds);
         assert_eq!(SpineStyle::from_index(1), SpineStyle::Celestial);
         assert_eq!(SpineStyle::from_index(2), SpineStyle::DotsAndTherefore);
@@ -78,7 +80,7 @@ mod tests {
     }
 
     #[test]
-    fn test_spine_style_from_index_wraps_at_6() {
+    fn spine_style_from_index_wraps_at_6() {
         assert_eq!(SpineStyle::from_index(6), SpineStyle::StarsAndDiamonds);
         assert_eq!(SpineStyle::from_index(7), SpineStyle::Celestial);
         assert_eq!(SpineStyle::from_index(11), SpineStyle::Minimal);
@@ -86,7 +88,7 @@ mod tests {
     }
 
     #[test]
-    fn test_spine_style_from_str_parses_correctly() {
+    fn spine_style_from_str_parses_correctly() {
         assert_eq!(
             SpineStyle::from_str("stars_and_diamonds"),
             SpineStyle::StarsAndDiamonds
@@ -102,7 +104,7 @@ mod tests {
     }
 
     #[test]
-    fn test_spine_style_from_str_case_sensitive() {
+    fn spine_style_from_str_case_sensitive() {
         assert_eq!(
             SpineStyle::from_str("CELESTIAL"),
             SpineStyle::StarsAndDiamonds
@@ -115,7 +117,7 @@ mod tests {
     }
 
     #[test]
-    fn test_spine_style_from_str_defaults_on_unknown() {
+    fn spine_style_from_str_defaults_on_unknown() {
         assert_eq!(
             SpineStyle::from_str("unknown_style"),
             SpineStyle::StarsAndDiamonds
@@ -125,7 +127,7 @@ mod tests {
     }
 
     #[test]
-    fn test_spine_style_to_str_produces_correct_strings() {
+    fn spine_style_to_str_produces_correct_strings() {
         assert_eq!(SpineStyle::StarsAndDiamonds.to_str(), "stars_and_diamonds");
         assert_eq!(SpineStyle::Celestial.to_str(), "celestial");
         assert_eq!(SpineStyle::DotsAndTherefore.to_str(), "dots_and_therefore");
@@ -135,7 +137,7 @@ mod tests {
     }
 
     #[test]
-    fn test_spine_style_roundtrip_from_str() {
+    fn spine_style_roundtrip_from_str() {
         for style in [
             SpineStyle::StarsAndDiamonds,
             SpineStyle::Celestial,
@@ -149,16 +151,16 @@ mod tests {
     }
 
     #[test]
-    fn test_spine_style_default_is_stars_and_diamonds() {
+    fn spine_style_default_is_stars_and_diamonds() {
         assert_eq!(SpineStyle::default(), SpineStyle::StarsAndDiamonds);
     }
 
     #[test]
-    fn test_spellbook_default() {
+    fn spellbook_default() {
         let sb = Spellbook::default();
         assert!(sb.name.is_empty());
         assert!(sb.cover.is_empty());
-        assert!(sb.sigil.is_empty());
+        assert!(sb.decoration.is_empty());
         assert!(sb.spell_ids.is_empty());
         assert!(sb.style.is_none());
         assert!(sb.color.is_none());
@@ -171,7 +173,8 @@ pub struct Spellbook {
     #[serde(default)]
     pub cover: String,
     #[serde(default)]
-    pub sigil: String,
+    #[serde(alias = "sigil")]
+    pub decoration: String,
     #[serde(default)]
     pub spell_ids: Vec<String>,
     #[serde(default)]
@@ -187,7 +190,7 @@ impl Default for Spellbook {
         Self {
             name: String::new(),
             cover: String::new(),
-            sigil: String::new(),
+            decoration: String::new(),
             spell_ids: Vec::new(),
             spells: Vec::new(),
             style: None,

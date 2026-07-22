@@ -24,10 +24,10 @@ pub enum LoadError {
 
 #[derive(Debug, Error)]
 pub enum ValidationError {
-    #[error("duplicate spell name `{name}` ")]
+    #[error("duplicate spell name `{name}`")]
     DuplicateSpellName { name: String },
 
-    #[error("duplicate spellbook name `{name}` ")]
+    #[error("duplicate spellbook name `{name}`")]
     DuplicateSpellbookName { name: String },
 
     #[error("spellbook name cannot be empty")]
@@ -36,6 +36,6 @@ pub enum ValidationError {
     #[error("spell name cannot be empty")]
     EmptySpellName,
 
-    #[error("Spellbook '{spellbook}' references non-existent spell id: {spell}")]
-    BrokenReference { spellbook: String, spell: String },
+    #[error("spellbook '{spellbook}' references non-existent spell id: {spell_id}")]
+    BrokenReference { spellbook: String, spell_id: String },
 }

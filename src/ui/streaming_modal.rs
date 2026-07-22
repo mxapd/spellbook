@@ -37,8 +37,31 @@
 //! A truncation warning appears in the footer when this happens.
 
 use crate::invoker::StreamOutput;
-use crate::state::OutputModalState;
 use crate::ui::UiState;
+
+/// Holds captured output for a completed or streaming process.
+#[derive(Debug, Clone, Default)]
+pub struct OutputModalState {
+    pub content: Vec<String>,
+    pub scroll_offset: usize,
+    pub is_streaming: bool,
+    pub exit_code: Option<i32>,
+}
+
+impl OutputModalState {
+    pub const MAX_LINES: usize = 10000;
+
+    pub fn add_line(&mut self, line: String) {
+        if self.content.len() >= Self::MAX_LINES {
+            self.content.remove(0);
+        }
+        self.content.push(line);
+    }
+
+    pub fn is_truncated(&self) -> bool {
+        self.content.len() >= Self::MAX_LINES
+    }
+}
 use ratatui::{
     Frame,
     layout::{Alignment, Constraint, Direction, Layout, Rect},

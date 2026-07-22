@@ -1,11 +1,10 @@
-use crate::models::Codex;
-//use crate::models::{Codex, JobManager, RecentEntry, SpineStyle, Theme, ThemeConfig, UserSettings};
-use crate::error::{LoadError, SaveError, ValidationError};
+use crate::models::{Codex, RecentEntry, ThemeConfig, UserSettings};
+use crate::error::{LoadError, SaveError};
 use crate::validation::validate_codex;
 use crate::{log_debug, log_info};
-//use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use std::fs;
-//use std::path::PathBuf;
+use std::path::PathBuf;
 //
 fn atomic_write(path: &str, content: &str) -> Result<(), Box<dyn std::error::Error>> {
     let tmp_path = format!("{}.tmp", path);
@@ -13,15 +12,14 @@ fn atomic_write(path: &str, content: &str) -> Result<(), Box<dyn std::error::Err
     fs::rename(&tmp_path, path)?;
     Ok(())
 }
-//
-//fn ensure_spellbook_dir() -> PathBuf {
-//    let home = dirs::home_dir().unwrap_or_else(|| PathBuf::from("."));
-//    let dir = home.join(".spellbook");
-//    if !dir.exists() {
-//        let _ = fs::create_dir_all(&dir);
-//    }
-//    dir
-//}
+fn ensure_spellbook_dir() -> PathBuf {
+    let home = dirs::home_dir().unwrap_or_else(|| PathBuf::from("."));
+    let dir = home.join(".spellbook");
+    if !dir.exists() {
+        let _ = fs::create_dir_all(&dir);
+    }
+    dir
+}
 //
 pub struct Archivist;
 //
@@ -72,81 +70,30 @@ impl Archivist {
         log_info!("Codex saved successfully");
         Ok(())
     }
-    //
-    //    pub fn load_theme(path: &str) -> Theme {
-    //        let contents = match fs::read_to_string(path) {
-    //            Ok(c) => c,
-    //            Err(_) => return Theme::default(),
-    //        };
-    //
-    //        let config: ThemeConfig = match toml::from_str(&contents) {
-    //            Ok(c) => c,
-    //            Err(_) => return Theme::default(),
-    //        };
-    //
-    //        config.selected_theme
-    //    }
-    //
-    //    pub fn save_theme(path: &str, theme: Theme) -> Result<(), Box<dyn std::error::Error>> {
-    //        let contents = match fs::read_to_string(path) {
-    //            Ok(c) => c,
-    //            Err(_) => {
-    //                let config = ThemeConfig {
-    //                    selected_theme: theme,
-    //                    ..Default::default()
-    //                };
-    //                let new_content = toml::to_string_pretty(&config)?;
-    //                fs::write(path, new_content)?;
-    //                return Ok(());
-    //            }
-    //        };
-    //
-    //        let mut config: ThemeConfig = toml::from_str(&contents).unwrap_or_default();
-    //        config.selected_theme = theme;
-    //
-    //        let new_content = toml::to_string_pretty(&config)?;
-    //        atomic_write(path, &new_content)?;
-    //        Ok(())
-    //    }
-    //
-    //    pub fn load_user_settings(path: &str) -> UserSettings {
-    //        let contents = match fs::read_to_string(path) {
-    //            Ok(c) => c,
-    //            Err(_) => return UserSettings::default(),
-    //        };
-    //
-    //        let config: ThemeConfig = match toml::from_str(&contents) {
-    //            Ok(c) => c,
-    //            Err(_) => return UserSettings::default(),
-    //        };
-    //
-    //        config.settings
-    //    }
-    //
-    //    pub fn save_user_settings(
-    //        path: &str,
-    //        settings: &UserSettings,
-    //    ) -> Result<(), Box<dyn std::error::Error>> {
-    //        let contents = match fs::read_to_string(path) {
-    //            Ok(c) => c,
-    //            Err(_) => {
-    //                let config = ThemeConfig {
-    //                    selected_theme: Theme::default(),
-    //                    settings: settings.clone(),
-    //                };
-    //                let new_content = toml::to_string_pretty(&config)?;
-    //                fs::write(path, new_content)?;
-    //                return Ok(());
-    //            }
-    //        };
-    //
-    //        let mut config: ThemeConfig = toml::from_str(&contents).unwrap_or_default();
-    //        config.settings = settings.clone();
-    //
-    //        let new_content = toml::to_string_pretty(&config)?;
-    //        atomic_write(path, &new_content)?;
-    //        Ok(())
-    //    }
+
+    pub fn load_user_settings(path: &str) -> UserSettings {
+        let contents = match fs::read_to_string(path) {
+            Ok(c) => c,
+            Err(_) => return UserSettings::default(),
+        };
+
+        let config: ThemeConfig = match toml::from_str(&contents) {
+            Ok(c) => c,
+            Err(_) => return UserSettings::default(),
+        };
+
+        config.user_settings()
+    }
+
+    pub fn save_user_settings(
+        path: &str,
+        settings: &UserSettings,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let config = ThemeConfig::from(settings.clone());
+        let new_content = toml::to_string_pretty(&config)?;
+        atomic_write(path, &new_content)?;
+        Ok(())
+    }
     //
     //    pub fn load_jobs() -> Result<JobManager, Box<dyn std::error::Error>> {
     //        let path = ensure_spellbook_dir().join("jobs.toml");
@@ -173,31 +120,31 @@ impl Archivist {
     //        Ok(())
     //    }
     //
-    //    pub fn load_recents() -> Result<Vec<RecentEntry>, Box<dyn std::error::Error>> {
-    //        let path = ensure_spellbook_dir().join("recents.toml");
-    //        if !path.exists() {
-    //            return Ok(Vec::new());
-    //        }
-    //        let contents = fs::read_to_string(&path)?;
-    //        #[derive(Deserialize)]
-    //        struct RecentsFile {
-    //            recents: Vec<RecentEntry>,
-    //        }
-    //        let data: RecentsFile = toml::from_str(&contents)?;
-    //        Ok(data.recents)
-    //    }
-    //
-    //    pub fn save_recents(recents: &[RecentEntry]) -> Result<(), Box<dyn std::error::Error>> {
-    //        let path = ensure_spellbook_dir().join("recents.toml");
-    //        #[derive(Serialize)]
-    //        struct RecentsFile<'a> {
-    //            recents: &'a [RecentEntry],
-    //        }
-    //        let data = RecentsFile { recents };
-    //        let content = toml::to_string_pretty(&data)?;
-    //        atomic_write(path.to_str().unwrap_or("recents.toml"), &content)?;
-    //        Ok(())
-    //    }
+    pub fn load_recents() -> Result<Vec<RecentEntry>, Box<dyn std::error::Error>> {
+        let path = ensure_spellbook_dir().join("recents.toml");
+        if !path.exists() {
+            return Ok(Vec::new());
+        }
+        let contents = fs::read_to_string(&path)?;
+        #[derive(Deserialize)]
+        struct RecentsFile {
+            recents: Vec<RecentEntry>,
+        }
+        let data: RecentsFile = toml::from_str(&contents)?;
+        Ok(data.recents)
+    }
+
+    pub fn save_recents(recents: &[RecentEntry]) -> Result<(), Box<dyn std::error::Error>> {
+        let path = ensure_spellbook_dir().join("recents.toml");
+        #[derive(Serialize)]
+        struct RecentsFile<'a> {
+            recents: &'a [RecentEntry],
+        }
+        let data = RecentsFile { recents };
+        let content = toml::to_string_pretty(&data)?;
+        atomic_write(path.to_str().unwrap_or("recents.toml"), &content)?;
+        Ok(())
+    }
     //
     //    pub fn append_spell(
     //        path: &str,
@@ -210,11 +157,11 @@ impl Archivist {
     //
     //        contents.push_str("\n[[spells]]\n");
     //        contents.push_str(&format!("name = \"{}\"\n", spell.name));
-    //        contents.push_str(&format!("incantation = \"{}\"\n", spell.incantation));
-    //        contents.push_str(&format!("lore = \"{}\"\n", spell.lore));
-    //        contents.push_str(&format!("school = \"{}\"\n", spell.school));
-    //        contents.push_str("glyphs = [");
-    //        for (i, glyph) in spell.glyphs.iter().enumerate() {
+    //        contents.push_str(&format!("command = \"{}\"\n", spell.command));
+    //        contents.push_str(&format!("description = \"{}\"\n", spell.description));
+    //        contents.push_str(&format!("category = \"{}\"\n", spell.category));
+    //        contents.push_str("tags = [");
+    //        for (i, tag) in spell.tags.iter().enumerate() {
     //            if i > 0 {
     //                contents.push_str(", ");
     //            }
@@ -253,7 +200,7 @@ impl Archivist {
     //        path: &str,
     //        name: String,
     //        cover: Option<String>,
-    //        sigil: Option<String>,
+    //        decoration: Option<String>,
     //    ) -> Result<(), Box<dyn std::error::Error>> {
     //        log_info!("Creating spellbook: {}", name);
     //
@@ -267,9 +214,9 @@ impl Archivist {
     //            }
     //        }
     //
-    //        if let Some(s) = sigil {
+    //        if let Some(s) = decoration {
     //            if !s.is_empty() {
-    //                new_spellbook.push_str(&format!("sigil = \"{}\"\n", s));
+    //                new_spellbook.push_str(&format!("decoration = \"{}\"\n", s));
     //            }
     //        }
     //
@@ -393,7 +340,7 @@ impl Archivist {
     //            #[serde(skip_serializing_if = "String::is_empty")]
     //            cover: String,
     //            #[serde(skip_serializing_if = "String::is_empty")]
-    //            sigil: String,
+    //            decoration: String,
     //            #[serde(skip_serializing_if = "Vec::is_empty")]
     //            spell_ids: Vec<String>,
     //            #[serde(skip_serializing_if = "Vec::is_empty")]
@@ -407,7 +354,7 @@ impl Archivist {
     //            spellbooks: vec![ExportedSpellbookData {
     //                name: spellbook.name.clone(),
     //                cover: spellbook.cover.clone(),
-    //                sigil: spellbook.sigil.clone(),
+    //                decoration: spellbook.decoration.clone(),
     //                spell_ids: spellbook.spell_ids.clone(),
     //                spells: spellbook.spells.clone(),
     //                style: spellbook.style,
@@ -517,7 +464,9 @@ impl Archivist {
     //        }
     //    }
     //}
-    //
+
+    // TESTS
+
     //// for merging codexes
     //#[derive(Debug, Clone, Copy, PartialEq)]
     //pub enum MergeStrategy {
@@ -537,4 +486,220 @@ impl Archivist {
     //    pub added_spells: Vec<String>,
     //    pub added_spellbooks: Vec<String>,
     //    pub conflicts: Vec<MergeConflict>,
+    //}
+}
+
+// ============================================================================
+// Tests
+// ============================================================================
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::error::ValidationError;
+    use crate::models::Codex;
+    use crate::test_utils::{make_codex, make_spell, make_spellbook};
+    use std::path::PathBuf;
+
+    /// Temp directory that cleans itself up on drop.
+    struct TestDir {
+        path: PathBuf,
+    }
+
+    impl TestDir {
+        fn new() -> Self {
+            let path =
+                std::env::temp_dir().join(format!("spellbook_test_{}", uuid::Uuid::new_v4()));
+            std::fs::create_dir_all(&path).unwrap();
+            Self { path }
+        }
+
+        fn path(&self, name: &str) -> PathBuf {
+            self.path.join(name)
+        }
+    }
+
+    impl Drop for TestDir {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_dir_all(&self.path);
+        }
+    }
+
+    fn write_file(path: &PathBuf, content: &str) {
+        std::fs::write(path, content).unwrap();
+    }
+
+    // === loading ===
+
+    #[test]
+    fn load_valid_codex() {
+        let dir = TestDir::new();
+        let path = dir.path("codex.toml");
+
+        let spell = make_spell("List Files");
+        let spellbook = make_spellbook("Test Commands", vec![spell.id.clone()]);
+        let codex = Codex {
+            spells: vec![spell],
+            spellbooks: vec![spellbook],
+        };
+
+        // Save a valid codex first, then load it.
+        Archivist::save(&codex, path.to_str().unwrap()).unwrap();
+        let loaded = Archivist::load(path.to_str().unwrap()).unwrap();
+
+        assert_eq!(loaded.spells.len(), 1);
+        assert_eq!(loaded.spells[0].name, "List Files");
+        assert_eq!(loaded.spellbooks.len(), 1);
+        assert_eq!(loaded.spellbooks[0].name, "Test Commands");
+    }
+
+    #[test]
+    fn load_file_not_found() {
+        let dir = TestDir::new();
+        let path = dir.path("missing.toml");
+
+        let result = Archivist::load(path.to_str().unwrap());
+        assert!(result.is_err());
+        assert!(matches!(result.unwrap_err(), LoadError::Read { .. }));
+    }
+
+    #[test]
+    fn load_invalid_toml() {
+        let dir = TestDir::new();
+        let path = dir.path("bad.toml");
+        write_file(&path, "this is not valid toml [[[");
+
+        let result = Archivist::load(path.to_str().unwrap());
+        assert!(result.is_err());
+        assert!(matches!(result.unwrap_err(), LoadError::Parse { .. }));
+    }
+
+    #[test]
+    fn load_validation_failure() {
+        let dir = TestDir::new();
+        let path = dir.path("invalid.toml");
+        write_file(
+            &path,
+            r#"
+[[spells]]
+id = "spell-1"
+name = "List Files"
+command = "echo list files"
+description = ""
+category = ""
+tags = []
+confirm = false
+run_mode = "simple"
+working_dir = ""
+favorite = false
+
+[[spells]]
+id = "spell-2"
+name = "List Files"
+command = "echo list files"
+description = ""
+category = ""
+tags = []
+confirm = false
+run_mode = "simple"
+working_dir = ""
+favorite = false
+"#,
+        );
+
+        let result = Archivist::load(path.to_str().unwrap());
+        assert!(result.is_err());
+        assert!(matches!(
+            result.unwrap_err(),
+            LoadError::Validation(ValidationError::DuplicateSpellName { .. })
+        ));
+    }
+
+    #[test]
+    fn load_generates_missing_ids() {
+        let dir = TestDir::new();
+        let path = dir.path("noids.toml");
+        write_file(
+            &path,
+            r#"
+[[spells]]
+id = ""
+name = "List Files"
+command = "echo list files"
+description = ""
+category = ""
+tags = []
+confirm = false
+run_mode = "simple"
+working_dir = ""
+favorite = false
+"#,
+        );
+
+        let result = Archivist::load(path.to_str().unwrap());
+        assert!(result.is_ok());
+        let codex = result.unwrap();
+        assert!(!codex.spells[0].id.is_empty());
+    }
+
+    // === saving ===
+
+    #[test]
+    fn save_creates_file() {
+        let dir = TestDir::new();
+        let path = dir.path("saved.toml");
+
+        let codex = make_codex();
+        let result = Archivist::save(&codex, path.to_str().unwrap());
+
+        assert!(result.is_ok());
+        assert!(path.exists());
+    }
+
+    #[test]
+    fn save_roundtrip() {
+        let dir = TestDir::new();
+        let path = dir.path("roundtrip.toml");
+
+        let spell = make_spell("List Files");
+        let spellbook = make_spellbook("My Commands", vec![spell.id.clone()]);
+        let codex = Codex {
+            spells: vec![spell],
+            spellbooks: vec![spellbook],
+        };
+
+        Archivist::save(&codex, path.to_str().unwrap()).unwrap();
+        let loaded = Archivist::load(path.to_str().unwrap()).unwrap();
+
+        assert_eq!(loaded.spells.len(), 1);
+        assert_eq!(loaded.spells[0].name, "List Files");
+        assert_eq!(loaded.spellbooks.len(), 1);
+        assert_eq!(loaded.spellbooks[0].name, "My Commands");
+    }
+
+    #[test]
+    fn save_pretty_toml() {
+        let dir = TestDir::new();
+        let path = dir.path("pretty.toml");
+
+        let codex = make_codex();
+        Archivist::save(&codex, path.to_str().unwrap()).unwrap();
+
+        let content = std::fs::read_to_string(&path).unwrap();
+        assert!(content.contains("spells = []"));
+        assert!(content.contains("spellbooks = []"));
+    }
+
+    // === atomic write ===
+
+    #[test]
+    fn atomic_write_roundtrip() {
+        let dir = TestDir::new();
+        let path = dir.path("atomic.toml");
+
+        atomic_write(path.to_str().unwrap(), "hello world").unwrap();
+        let content = std::fs::read_to_string(&path).unwrap();
+        assert_eq!(content, "hello world");
+        assert!(!path.with_extension("tmp").exists());
+    }
 }

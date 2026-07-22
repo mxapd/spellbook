@@ -2,8 +2,8 @@
 pub enum AddSpellField {
     Name,
     Command,
-    Lore,
-    School,
+    Description,
+    Category,
     Tags,
     WorkingDir,
     RunMode,
@@ -22,8 +22,8 @@ pub struct AddSpellForm {
     pub field: AddSpellField,
     pub name: String,
     pub command: String,
-    pub lore: String,
-    pub school: String,
+    pub description: String,
+    pub category: String,
     pub tags: String,
     pub run_mode: crate::models::RunMode,
     pub confirm: bool,
@@ -44,8 +44,8 @@ impl Default for AddSpellForm {
             field: AddSpellField::default(),
             name: String::new(),
             command: String::new(),
-            lore: String::new(),
-            school: String::new(),
+            description: String::new(),
+            category: String::new(),
             tags: String::new(),
             run_mode: crate::models::RunMode::Simple,
             confirm: false,
@@ -66,8 +66,8 @@ impl AddSpellForm {
     pub fn clear(&mut self) {
         self.name.clear();
         self.command.clear();
-        self.lore.clear();
-        self.school.clear();
+        self.description.clear();
+        self.category.clear();
         self.tags.clear();
         self.run_mode = crate::models::RunMode::Simple;
         self.confirm = false;
@@ -94,10 +94,10 @@ impl AddSpellForm {
         self.clear();
         self.editing_spell_id = Some(spell.id.clone());
         self.name = spell.name.clone();
-        self.command = spell.incantation.clone();
-        self.lore = spell.lore.clone();
-        self.school = spell.school.clone();
-        self.tags = spell.glyphs.join(", ");
+        self.command = spell.command.clone();
+        self.description = spell.description.clone();
+        self.category = spell.category.clone();
+        self.tags = spell.tags.join(", ");
         self.run_mode = spell.run_mode;
         self.confirm = spell.confirm;
         self.working_dir = spell.working_dir.clone();
@@ -115,8 +115,8 @@ impl AddSpellForm {
             self.field,
             AddSpellField::Name
                 | AddSpellField::Command
-                | AddSpellField::Lore
-                | AddSpellField::School
+                |         AddSpellField::Description
+                | AddSpellField::Category
                 | AddSpellField::Tags
                 | AddSpellField::RunMode
                 | AddSpellField::Confirm
@@ -141,8 +141,8 @@ mod tests {
         assert_eq!(form.field, AddSpellField::Name);
         assert!(form.name.is_empty());
         assert!(form.command.is_empty());
-        assert!(form.lore.is_empty());
-        assert!(form.school.is_empty());
+        assert!(form.description.is_empty());
+        assert!(form.category.is_empty());
         assert!(form.tags.is_empty());
         assert_eq!(form.run_mode, RunMode::Simple);
         assert!(!form.confirm);
@@ -161,8 +161,8 @@ mod tests {
             field: AddSpellField::RunMode,
             name: "Test".to_string(),
             command: "echo test".to_string(),
-            lore: "Lore".to_string(),
-            school: "School".to_string(),
+            description: "Description".to_string(),
+            category: "Category".to_string(),
             tags: "tag1,tag2".to_string(),
             run_mode: RunMode::Tui,
             confirm: true,
@@ -182,8 +182,8 @@ mod tests {
         assert_eq!(form.field, AddSpellField::Name);
         assert!(form.name.is_empty());
         assert!(form.command.is_empty());
-        assert!(form.lore.is_empty());
-        assert!(form.school.is_empty());
+        assert!(form.description.is_empty());
+        assert!(form.category.is_empty());
         assert!(form.tags.is_empty());
         assert_eq!(form.run_mode, RunMode::Simple);
         assert!(!form.confirm);

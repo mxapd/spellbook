@@ -1,13 +1,15 @@
 use spellbook::models::{Codex, RunMode, Spell, Spellbook};
 
+// === unassigned count ===
+
 fn spell(id: &str, name: &str) -> Spell {
     Spell {
         id: id.to_string(),
         name: name.to_string(),
-        incantation: String::new(),
-        lore: String::new(),
-        school: String::new(),
-        glyphs: Vec::new(),
+        command: String::new(),
+        description: String::new(),
+        category: String::new(),
+        tags: Vec::new(),
         confirm: false,
         run_mode: RunMode::Simple,
         working_dir: String::new(),
@@ -19,7 +21,7 @@ fn book(name: &str, ids: &[&str]) -> Spellbook {
     Spellbook {
         name: name.to_string(),
         cover: String::new(),
-        sigil: String::new(),
+        decoration: String::new(),
         color: None,
         style: None,
         spell_ids: ids.iter().map(|s| s.to_string()).collect(),
@@ -57,7 +59,7 @@ fn unassigned_count_is_all_when_no_spellbooks() {
 }
 
 #[test]
-fn unassigned_spells_are_empty_when_spell_id_in_multiple_books() {
+fn empty_when_spell_id_in_multiple_books() {
     // A spell assigned to multiple spellbooks should still not be "unassigned".
     let codex = Codex {
         spells: vec![spell("a", "A")],

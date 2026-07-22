@@ -4,7 +4,9 @@ use std::collections::HashSet;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Codex {
+    #[serde(default)]
     pub spells: Vec<Spell>,
+    #[serde(default)]
     pub spellbooks: Vec<Spellbook>,
 }
 
@@ -48,14 +50,16 @@ mod tests {
     use crate::models::Spell;
     use crate::models::Spellbook;
 
+    // === unassigned count logic ===
+
     fn spell(id: &str, name: &str) -> Spell {
         Spell {
             id: id.to_string(),
             name: name.to_string(),
-            incantation: String::new(),
-            lore: String::new(),
-            school: String::new(),
-            glyphs: Vec::new(),
+            command: String::new(),
+            description: String::new(),
+            category: String::new(),
+            tags: Vec::new(),
             confirm: false,
             run_mode: crate::models::RunMode::Simple,
             working_dir: String::new(),
@@ -67,7 +71,7 @@ mod tests {
         Spellbook {
             name: name.to_string(),
             cover: String::new(),
-            sigil: String::new(),
+            decoration: String::new(),
             color: None,
             style: None,
             spell_ids: ids.iter().map(|s| s.to_string()).collect(),
@@ -76,7 +80,7 @@ mod tests {
     }
 
     #[test]
-    fn unassigned_count_excludes_assigned_spells() {
+    fn excludes_assigned_spells() {
         let codex = Codex {
             spells: vec![spell("a", "A"), spell("b", "B"), spell("c", "C")],
             spellbooks: vec![book("main", &["a", "b"])],
@@ -87,7 +91,7 @@ mod tests {
     }
 
     #[test]
-    fn unassigned_count_is_zero_when_all_assigned() {
+    fn zero_when_all_assigned() {
         let codex = Codex {
             spells: vec![spell("a", "A")],
             spellbooks: vec![book("main", &["a"])],
@@ -96,7 +100,7 @@ mod tests {
     }
 
     #[test]
-    fn unassigned_count_is_all_when_no_spellbooks() {
+    fn all_when_no_spellbooks() {
         let codex = Codex {
             spells: vec![spell("a", "A"), spell("b", "B")],
             spellbooks: vec![],

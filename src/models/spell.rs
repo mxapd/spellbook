@@ -7,13 +7,17 @@ pub struct Spell {
     #[serde(default)]
     pub id: SpellId,
     pub name: String,
-    pub incantation: String,
+    #[serde(alias = "incantation")]
+    pub command: String,
     #[serde(default)]
-    pub lore: String,
+    #[serde(alias = "lore")]
+    pub description: String,
     #[serde(default)]
-    pub school: String,
+    #[serde(alias = "school")]
+    pub category: String,
     #[serde(default)]
-    pub glyphs: Vec<String>,
+    #[serde(alias = "glyphs")]
+    pub tags: Vec<String>,
     #[serde(default)]
     pub confirm: bool,
     #[serde(default)]
@@ -68,8 +72,10 @@ impl RunMode {
 mod tests {
     use super::*;
 
+    // === confirmation ===
+
     #[test]
-    fn test_requires_confirmation_false_when_flag_clear() {
+    fn requires_confirmation_false_when_flag_clear() {
         let spell = Spell {
             name: "Minor Illusion".into(),
             confirm: false,
@@ -79,7 +85,7 @@ mod tests {
     }
 
     #[test]
-    fn test_requires_confirmation_true_when_confirm_flag_set() {
+    fn requires_confirmation_true_when_confirm_flag_set() {
         let spell = Spell {
             name: "Any Spell".into(),
             confirm: true,
@@ -88,15 +94,17 @@ mod tests {
         assert!(spell.requires_confirmation());
     }
 
+    // === defaults & generation ===
+
     #[test]
-    fn test_spell_default_values() {
+    fn spell_default_values() {
         let spell = Spell::default();
         assert!(spell.id.is_empty());
         assert!(spell.name.is_empty());
-        assert!(spell.incantation.is_empty());
-        assert!(spell.lore.is_empty());
-        assert!(spell.school.is_empty());
-        assert!(spell.glyphs.is_empty());
+        assert!(spell.command.is_empty());
+        assert!(spell.description.is_empty());
+        assert!(spell.category.is_empty());
+        assert!(spell.tags.is_empty());
         assert!(!spell.confirm);
         assert!(spell.working_dir.is_empty());
         assert!(!spell.favorite);
@@ -104,7 +112,7 @@ mod tests {
     }
 
     #[test]
-    fn test_run_mode_from_str() {
+    fn run_mode_from_str() {
         assert_eq!(RunMode::from_str("simple"), RunMode::Simple);
         assert_eq!(RunMode::from_str("tui"), RunMode::Tui);
         assert_eq!(RunMode::from_str("background"), RunMode::Background);
@@ -112,14 +120,14 @@ mod tests {
     }
 
     #[test]
-    fn test_run_mode_as_str() {
+    fn run_mode_as_str() {
         assert_eq!(RunMode::Simple.as_str(), "simple");
         assert_eq!(RunMode::Tui.as_str(), "tui");
         assert_eq!(RunMode::Background.as_str(), "background");
     }
 
     #[test]
-    fn test_spell_generate_id() {
+    fn spell_generate_id() {
         let mut spell = Spell::default();
         assert!(spell.id.is_empty());
         spell.generate_id();

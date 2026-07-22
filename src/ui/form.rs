@@ -3,7 +3,7 @@
 //! This module contains shared form handling logic.
 
 use crate::archivist::Archivist;
-use crate::models::{RunMode, Spell};
+use crate::models::{RunMode, Spell, Spellbook};
 use crate::state::State;
 use crate::ui::add_spellbook_form::AddSpellbookField;
 use crate::ui::{AddSpellField, BrowseState, Mode, UiState};
@@ -15,8 +15,8 @@ fn is_text_field(field: AddSpellField) -> bool {
         field,
         AddSpellField::Name
             | AddSpellField::Command
-            | AddSpellField::Lore
-            | AddSpellField::School
+            | AddSpellField::Description
+            | AddSpellField::Category
             | AddSpellField::Tags
             | AddSpellField::WorkingDir
     )
@@ -25,7 +25,7 @@ fn is_text_field(field: AddSpellField) -> bool {
 fn is_spellbook_text_field(field: AddSpellbookField) -> bool {
     matches!(
         field,
-        AddSpellbookField::Name | AddSpellbookField::Cover | AddSpellbookField::Sigil
+        AddSpellbookField::Name | AddSpellbookField::Cover | AddSpellbookField::Decoration
     )
 }
 
@@ -168,11 +168,11 @@ fn handle_add_spell_edit_mode(key: KeyCode, ui: &mut UiState) -> bool {
                 AddSpellField::Command => {
                     ui.add_spell.command.pop();
                 }
-                AddSpellField::Lore => {
-                    ui.add_spell.lore.pop();
+                AddSpellField::Description => {
+                    ui.add_spell.description.pop();
                 }
-                AddSpellField::School => {
-                    ui.add_spell.school.pop();
+                AddSpellField::Category => {
+                    ui.add_spell.category.pop();
                 }
                 AddSpellField::Tags => {
                     ui.add_spell.tags.pop();
@@ -195,11 +195,11 @@ fn handle_add_spell_edit_mode(key: KeyCode, ui: &mut UiState) -> bool {
                 AddSpellField::Command => {
                     ui.add_spell.command.push(c);
                 }
-                AddSpellField::Lore => {
-                    ui.add_spell.lore.push(c);
+                AddSpellField::Description => {
+                    ui.add_spell.description.push(c);
                 }
-                AddSpellField::School => {
-                    ui.add_spell.school.push(c);
+                AddSpellField::Category => {
+                    ui.add_spell.category.push(c);
                 }
                 AddSpellField::Tags => {
                     ui.add_spell.tags.push(c);
@@ -312,7 +312,7 @@ pub fn handle_add_spellbook(
             if is_spellbook_text_field(ui.add_spellbook.field) {
                 // Enter on text field enters edit mode
                 ui.add_spellbook.is_editing = true;
-            } else if ui.add_spellbook.field == AddSpellbookField::Sigil {
+            } else if ui.add_spellbook.field == AddSpellbookField::Decoration {
                 save_spellbook(state, ui);
             }
             false
@@ -349,8 +349,8 @@ fn handle_add_spellbook_edit_mode(key: KeyCode, ui: &mut UiState) -> bool {
                 AddSpellbookField::Cover => {
                     ui.add_spellbook.cover.pop();
                 }
-                AddSpellbookField::Sigil => {
-                    ui.add_spellbook.sigil.pop();
+                AddSpellbookField::Decoration => {
+                    ui.add_spellbook.decoration.pop();
                 }
             }
             ui.add_spellbook.has_unsaved = true;
@@ -366,8 +366,8 @@ fn handle_add_spellbook_edit_mode(key: KeyCode, ui: &mut UiState) -> bool {
                 AddSpellbookField::Cover => {
                     ui.add_spellbook.cover.push(c);
                 }
-                AddSpellbookField::Sigil => {
-                    ui.add_spellbook.sigil.push(c);
+                AddSpellbookField::Decoration => {
+                    ui.add_spellbook.decoration.push(c);
                 }
             }
             ui.add_spellbook.has_unsaved = true;
@@ -409,8 +409,8 @@ fn save_spell(state: &mut State, ui: &mut UiState) {
         }
     }
 
-    // Parse tags (glyphs)
-    let glyphs: Vec<String> = ui
+    // Parse tags
+    let tags: Vec<String> = ui
         .add_spell
         .tags
         .split(',')
@@ -428,10 +428,10 @@ fn save_spell(state: &mut State, ui: &mut UiState) {
     let spell = Spell {
         id: spell_id,
         name: ui.add_spell.name.trim().to_string(),
-        incantation: ui.add_spell.command.trim().to_string(),
-        lore: ui.add_spell.lore.trim().to_string(),
-        school: ui.add_spell.school.trim().to_string(),
-        glyphs,
+        command: ui.add_spell.command.trim().to_string(),
+        description: ui.add_spell.description.trim().to_string(),
+        category: ui.add_spell.category.trim().to_string(),
+        tags,
         confirm: ui.add_spell.confirm,
         run_mode: ui.add_spell.run_mode,
         working_dir: ui.add_spell.working_dir.trim().to_string(),
@@ -502,23 +502,31 @@ fn save_spellbook(state: &mut State, ui: &mut UiState) {
     } else {
         Some(std::mem::take(&mut ui.add_spellbook.cover))
     };
-    let sigil = if ui.add_spellbook.sigil.is_empty() {
+    let decoration = if ui.add_spellbook.decoration.is_empty() {
         None
     } else {
-        Some(std::mem::take(&mut ui.add_spellbook.sigil))
+        Some(std::mem::take(&mut ui.add_spellbook.decoration))
     };
 
     ui.start_loading("Saving spellbook...");
-    match Archivist::append_spellbook("codex.toml", name, cover, sigil) {
+
+    let new_book = Spellbook {
+        name,
+        cover: cover.unwrap_or_default(),
+        decoration: decoration.unwrap_or_default(),
+        spell_ids: vec![],
+        spells: vec![],
+        style: None,
+        color: None,
+    };
+    state.codex.spellbooks.push(new_book);
+
+    match Archivist::save(&state.codex, "codex.toml") {
         Ok(_) => {
             ui.stop_loading();
             ui.add_spellbook.message = Some(("Spellbook saved!".to_string(), false));
             ui.add_spellbook.has_unsaved = false;
             log_info!("Spellbook saved");
-
-            // Reload codex from disk so the new spellbook appears immediately
-            state.reload_codex();
-
             ui.add_spellbook.clear();
             ui.mode = Mode::BrowseSpellbooks(BrowseState::default());
         }
@@ -534,9 +542,9 @@ fn save_spellbook(state: &mut State, ui: &mut UiState) {
 fn next_add_spell_field(current: AddSpellField) -> AddSpellField {
     match current {
         AddSpellField::Name => AddSpellField::Command,
-        AddSpellField::Command => AddSpellField::Lore,
-        AddSpellField::Lore => AddSpellField::School,
-        AddSpellField::School => AddSpellField::Tags,
+        AddSpellField::Command => AddSpellField::Description,
+        AddSpellField::Description => AddSpellField::Category,
+        AddSpellField::Category => AddSpellField::Tags,
         AddSpellField::Tags => AddSpellField::WorkingDir,
         AddSpellField::WorkingDir => AddSpellField::RunMode,
         AddSpellField::RunMode => AddSpellField::Confirm,
@@ -550,28 +558,13 @@ fn prev_add_spell_field(current: AddSpellField) -> AddSpellField {
     match current {
         AddSpellField::Name => AddSpellField::Spellbook,
         AddSpellField::Command => AddSpellField::Name,
-        AddSpellField::Lore => AddSpellField::Command,
-        AddSpellField::School => AddSpellField::Lore,
-        AddSpellField::Tags => AddSpellField::School,
+        AddSpellField::Description => AddSpellField::Command,
+        AddSpellField::Category => AddSpellField::Description,
+        AddSpellField::Tags => AddSpellField::Category,
         AddSpellField::WorkingDir => AddSpellField::Tags,
         AddSpellField::RunMode => AddSpellField::WorkingDir,
         AddSpellField::Confirm => AddSpellField::RunMode,
         AddSpellField::Spellbook => AddSpellField::Confirm,
-    }
-}
-
-/// Get next field, skipping Confirm (for Enter key navigation)
-fn next_add_spell_field_skip_confirm(current: AddSpellField) -> AddSpellField {
-    match current {
-        AddSpellField::Name => AddSpellField::Command,
-        AddSpellField::Command => AddSpellField::Lore,
-        AddSpellField::Lore => AddSpellField::School,
-        AddSpellField::School => AddSpellField::Tags,
-        AddSpellField::Tags => AddSpellField::WorkingDir,
-        AddSpellField::WorkingDir => AddSpellField::Spellbook,
-        AddSpellField::RunMode => AddSpellField::Spellbook,
-        AddSpellField::Confirm => AddSpellField::Spellbook,
-        AddSpellField::Spellbook => AddSpellField::Name,
     }
 }
 

@@ -8,7 +8,7 @@ use crate::state::State;
 use crate::ui::search_overlay::{
     get_spell_at_index, get_spell_by_index, get_spell_count_for_spellbook,
 };
-use crate::ui::{Overlay, UiState, streaming_modal};
+use crate::ui::{default_launch_dir, BrowseState, Mode, Overlay, UiState, streaming_modal};
 use crossterm::event::{KeyCode, KeyModifiers};
 
 /// Handle key events in BrowseSpells mode (inside a spellbook)
@@ -36,20 +36,20 @@ pub fn handle_browse_spells(
         return false;
     }
 
-    // Handle Left arrow or 'h' - go back to BrowseSpellbooks
-    if key == KeyCode::Left || key == KeyCode::Char('h') {
+    // Handle Left arrow or 'h' - go back to BrowseSpellbooks (not during search/paused)
+    if key == KeyCode::Left || (key == KeyCode::Char('h') && !ui.search_active()) {
         ui.enter_browse_spellbooks();
         return false;
     }
 
     // '/' key - open explicit search mode
-    if key == KeyCode::Char('/') {
+    if key == KeyCode::Char('/') && !ui.is_searching() {
         ui.open_search();
         return false;
     }
 
     // ':' key - open command palette directly
-    if key == KeyCode::Char(':') {
+    if key == KeyCode::Char(':') && !ui.is_searching() {
         ui.open_search();
         if let Some(query) = ui.search_query_mut() {
             query.push(':');
@@ -70,57 +70,128 @@ pub fn handle_browse_spells(
         return false;
     }
 
-    // Handle spell list navigation
-    if spell_count > 0 {
-        match key {
-            // Navigate down (arrow or vim j)
-            KeyCode::Down | KeyCode::Char('j') => {
-                let current = ui.spell_list_state.selected().unwrap_or(0);
-                let next = if current >= spell_count - 1 {
-                    0
-                } else {
-                    current + 1
-                };
-                ui.spell_list_state.select(Some(next));
-                return false;
-            }
+    // ── Navigation ──────────────────────────────────
 
-            // Navigate up (arrow or vim k)
-            KeyCode::Up | KeyCode::Char('k') => {
-                let current = ui.spell_list_state.selected().unwrap_or(0);
-                let prev = if current == 0 {
-                    spell_count - 1
-                } else {
-                    current - 1
-                };
-                ui.spell_list_state.select(Some(prev));
-                return false;
-            }
+    let is_search_active = ui.search_active(); // Searching or SearchPaused
 
-            // Enter - execute command if in command mode, otherwise copy/execute spell
-            KeyCode::Enter => {
-                let is_command_mode = ui.search_query().starts_with(':');
-                if is_command_mode {
-                    execute_command(state, ui);
-                } else if modifiers.contains(KeyModifiers::ALT) {
-                    log_info!("Alt+Enter detected - executing spell");
-                    let spell_idx = ui.spell_list_state.selected().unwrap_or(0);
-                    execute_spell_at_index(state, ui, spellbook_index, spell_idx);
-                } else {
-                    copy_spell_at_index(
-                        state,
-                        ui,
-                        spellbook_index,
-                        ui.spell_list_state.selected().unwrap_or(0),
-                    );
+    // Helper: navigate within search results
+    let nav_search = |ui: &mut UiState, dir: i32| {
+        let total = ui.filtered_indices().len();
+        if total == 0 { return; }
+        let current = ui.search_results_state().selected();
+        let next = match current {
+            None => { if dir > 0 { 0 } else { total - 1 } }
+            Some(c) => {
+                if dir > 0 { if c >= total - 1 { 0 } else { c + 1 } }
+                else { if c == 0 { total - 1 } else { c - 1 } }
+            }
+        };
+        ui.search_results_state().select(Some(next));
+    };
+
+    // Helper: navigate within normal spell list
+    let nav_list = |ui: &mut UiState, dir: i32| {
+        if spell_count == 0 { return; }
+        let current = ui.spell_list_state.selected().unwrap_or(0);
+        let next = if dir > 0 {
+            if current >= spell_count - 1 { 0 } else { current + 1 }
+        } else {
+            if current == 0 { spell_count - 1 } else { current - 1 }
+        };
+        ui.spell_list_state.select(Some(next));
+    };
+
+    // Down / Up arrows (with or without Ctrl) and Ctrl+J/K
+    match key {
+        KeyCode::Down | KeyCode::Char('j') if modifiers.contains(KeyModifiers::CONTROL) => {
+            if is_search_active {
+                nav_search(ui, 1);
+                if ui.is_searching() { ui.pause_search(); }
+            } else { nav_list(ui, 1); }
+            return false;
+        }
+        KeyCode::Up | KeyCode::Char('k') if modifiers.contains(KeyModifiers::CONTROL) => {
+            if is_search_active {
+                nav_search(ui, -1);
+                if ui.is_searching() { ui.pause_search(); }
+            } else { nav_list(ui, -1); }
+            return false;
+        }
+        KeyCode::Down => {
+            if is_search_active {
+                nav_search(ui, 1);
+                if ui.is_searching() { ui.pause_search(); }
+            } else { nav_list(ui, 1); }
+            return false;
+        }
+        KeyCode::Up => {
+            if is_search_active {
+                nav_search(ui, -1);
+                if ui.is_searching() { ui.pause_search(); }
+            } else { nav_list(ui, -1); }
+            return false;
+        }
+        _ => {}
+    }
+
+    // Bare j/k navigate only when NOT searching/paused (during search they type into query)
+    if key == KeyCode::Char('j') && !is_search_active {
+        nav_list(ui, 1);
+        return false;
+    }
+    if key == KeyCode::Char('k') && !is_search_active {
+        nav_list(ui, -1);
+        return false;
+    }
+
+    // ── Actions ──────────────────────────────────────
+
+    // Enter - execute command or copy/execute spell
+    if key == KeyCode::Enter {
+        let is_command_mode = ui.search_query().starts_with(':');
+        if is_command_mode {
+            execute_command(state, ui);
+        } else if modifiers.contains(KeyModifiers::ALT) {
+            log_info!("Alt+Enter detected - executing spell");
+            let spell_idx = ui.spell_list_state.selected().unwrap_or(0);
+            execute_spell_at_index(state, ui, spellbook_index, spell_idx);
+        } else {
+            copy_spell_at_index(
+                state,
+                ui,
+                spellbook_index,
+                ui.spell_list_state.selected().unwrap_or(0),
+            );
+        }
+        return false;
+    }
+
+    // Action keys: work when NOT searching OR when in SearchPaused
+    fn handle_action<F>(key: KeyCode, active: bool, searching: bool, f: F) -> bool
+    where F: Fn() -> bool {
+        if active || !searching { f() } else { false }
+    }
+
+    match key {
+        KeyCode::Char('e') if !ui.is_searching() || !ui.is_searching() => {
+            // Edit: works when not Searching (Idle/Viewing or SearchPaused)
+            if is_search_active && !ui.is_searching() {
+                // SearchPaused mode — act on search result
+                if let Some(sel) = ui.search_results_state().selected() {
+                    let indices = ui.filtered_indices();
+                    if let Some(spell_idx) = indices.get(sel) {
+                        if let Some(spell) = state.codex.spells.get(*spell_idx) {
+                            for (sb_idx, sb) in state.codex.spellbooks.iter().enumerate() {
+                                if sb.spell_ids.contains(&spell.id) {
+                                    ui.add_spell.start_edit(spell, Some(sb_idx));
+                                    ui.enter_edit_spell(sb_idx, 0);
+                                    return false;
+                                }
+                            }
+                        }
+                    }
                 }
-                return false;
-            }
-
-            // 'e' key - edit the selected spell (works with Ctrl in search mode too)
-            KeyCode::Char('e')
-                if !ui.is_searching() || modifiers.contains(KeyModifiers::CONTROL) =>
-            {
+            } else if !is_search_active && spell_count > 0 {
                 let spell_idx = ui.spell_list_state.selected().unwrap_or(0);
                 if let Some((spell_id, _)) = get_spell_at_index(state, spellbook_index, spell_idx) {
                     if let Some(spell) = state.get_spell(&spell_id) {
@@ -131,15 +202,26 @@ pub fn handle_browse_spells(
                     }
                 }
             }
+            return false;
+        }
 
-            // 'd' key - delete the selected spell (with confirmation)
-            KeyCode::Char('d')
-                if !ui.is_searching() || modifiers.contains(KeyModifiers::CONTROL) =>
-            {
+        KeyCode::Char('d') if !ui.is_searching() || !ui.is_searching() => {
+            if is_search_active && !ui.is_searching() {
+                if let Some(sel) = ui.search_results_state().selected() {
+                    let indices = ui.filtered_indices();
+                    if let Some(spell_idx) = indices.get(sel) {
+                        if let Some(spell) = state.codex.spells.get(*spell_idx) {
+                            ui.confirm_dialog = Some(
+                                crate::ui::confirm::ConfirmDialogState::delete_spell(spell.clone()),
+                            );
+                            ui.push_overlay(Overlay::ConfirmDialog);
+                            return false;
+                        }
+                    }
+                }
+            } else if !is_search_active && spell_count > 0 {
                 let spell_idx = ui.spell_list_state.selected().unwrap_or(0);
-                if let Some((spell_id, _spell_name)) =
-                    get_spell_at_index(state, spellbook_index, spell_idx)
-                {
+                if let Some((spell_id, _)) = get_spell_at_index(state, spellbook_index, spell_idx) {
                     if let Some(spell) = state.get_spell(&spell_id) {
                         ui.confirm_dialog = Some(
                             crate::ui::confirm::ConfirmDialogState::delete_spell(spell.clone()),
@@ -150,161 +232,66 @@ pub fn handle_browse_spells(
                     }
                 }
             }
-
-            // 'f' key - toggle favorite
-            KeyCode::Char('f')
-                if !ui.is_searching() || modifiers.contains(KeyModifiers::CONTROL) =>
-            {
-                let spell_index = ui.spell_list_state.selected().unwrap_or(0);
-                if let Some((spell_id, _)) = get_spell_at_index(state, spellbook_index, spell_index)
-                {
-                    if let Some(spell) = state.codex.spells.iter_mut().find(|s| s.id == *spell_id) {
-                        spell.favorite = !spell.favorite;
-                        let status = if spell.favorite {
-                            "added to"
-                        } else {
-                            "removed from"
-                        };
-                        ui.show_success(format!("Spell {} favorites", status));
-                        ui.flash(
-                            crate::ui::FlashAction::Spell {
-                                spellbook_index,
-                                spell_index: ui.spell_list_state.selected().unwrap_or(0),
-                            },
-                            None,
-                        );
-                    }
-                }
-                return false;
-            }
-
-            // 's' - simple execution (exit TUI and run via exec)
-            KeyCode::Char('s')
-                if !ui.is_searching() || modifiers.contains(KeyModifiers::CONTROL) =>
-            {
-                let spell_idx = ui.spell_list_state.selected().unwrap_or(0);
-                if let Some(spell) = get_spell_by_index(state, spellbook_index, spell_idx) {
-                    if spell.confirm {
-                        // Show confirmation dialog first
-                        ui.confirm_dialog =
-                            Some(crate::ui::confirm::ConfirmDialogState::execute_spell(
-                                spell.clone(),
-                                RunMode::Simple,
-                            ));
-                        ui.push_overlay(Overlay::ConfirmDialog);
-                        return false;
-                    }
-
-                    // Execute in simple mode
-                    crate::ui::execute_simple_mode(&spell, state, ui);
-                }
-                return false;
-            }
-
-            // Ctrl+r - TUI execution with streaming
-            KeyCode::Char('r') if modifiers.contains(KeyModifiers::CONTROL) => {
-                let spell_idx = ui.spell_list_state.selected().unwrap_or(0);
-                if let Some(spell) = get_spell_by_index(state, spellbook_index, spell_idx) {
-                    if spell.confirm {
-                        ui.confirm_dialog =
-                            Some(crate::ui::confirm::ConfirmDialogState::execute_spell(
-                                spell.clone(),
-                                RunMode::Tui,
-                            ));
-                        ui.push_overlay(Overlay::ConfirmDialog);
-                        return false;
-                    }
-                    log_info!(
-                        "Ctrl+r: Executing spell '{}' in TUI mode with streaming",
-                        spell.name
-                    );
-                    state.add_recent(spell.id.clone(), spell.name.clone(), RecentAction::Run);
-                    let working_dir = if spell.working_dir.is_empty() {
-                        if state.launch_dir.is_empty() {
-                            None
-                        } else {
-                            Some(state.launch_dir.clone())
-                        }
-                    } else {
-                        Some(spell.working_dir.clone())
-                    };
-                    if let Err(e) = streaming_modal::start_tui_execution(
-                        ui,
-                        spell.incantation.clone(),
-                        Some(spell.name.clone()),
-                        working_dir,
-                        state.launch_dir.clone(),
-                    ) {
-                        ui.show_error(format!("Failed to start TUI mode: {}", e));
-                    }
-                }
-                return false;
-            }
-
-            // Ctrl+b - background execution
-            KeyCode::Char('b') if modifiers.contains(KeyModifiers::CONTROL) => {
-                let spell_idx = ui.spell_list_state.selected().unwrap_or(0);
-                if let Some(spell) = get_spell_by_index(state, spellbook_index, spell_idx) {
-                    if spell.confirm {
-                        ui.confirm_dialog =
-                            Some(crate::ui::confirm::ConfirmDialogState::execute_spell(
-                                spell.clone(),
-                                RunMode::Background,
-                            ));
-                        ui.push_overlay(Overlay::ConfirmDialog);
-                        return false;
-                    }
-                    log_info!("Ctrl+b: Starting spell '{}' in background", spell.name);
-                    match crate::invoker::start_spell(
-                        spell.name.clone(),
-                        spell.incantation.clone(),
-                        if spell.working_dir.is_empty() {
-                            if state.launch_dir.is_empty() {
-                                None
-                            } else {
-                                Some(state.launch_dir.clone())
-                            }
-                        } else {
-                            Some(spell.working_dir.clone())
-                        },
-                    ) {
-                        Ok(job_id) => {
-                            ui.show_success(format!("Job {} started: {}", job_id, spell.name));
-                            ui.flash(
-                                crate::ui::FlashAction::Spell {
-                                    spellbook_index,
-                                    spell_index: ui.spell_list_state.selected().unwrap_or(0),
-                                },
-                                None,
-                            );
-                            ui.open_jobs_sidebar(); // Auto-open sidebar when job starts
-                            state.add_recent(
-                                spell.id.clone(),
-                                spell.name.clone(),
-                                RecentAction::Run,
-                            );
-                        }
-                        Err(e) => {
-                            ui.show_error(format!("Failed to start: {}", e));
-                        }
-                    }
-                }
-                return false;
-            }
-
-            _ => {}
+            return false;
         }
+
+        KeyCode::Char('s') if !ui.is_searching() || !ui.is_searching() => {
+            if is_search_active && !ui.is_searching() {
+                if let Some(sel) = ui.search_results_state().selected() {
+                    let indices = ui.filtered_indices();
+                    if let Some(spell_idx) = indices.get(sel) {
+                        if let Some(spell) = state.codex.spells.get(*spell_idx).cloned() {
+                            if spell.confirm {
+                                ui.confirm_dialog = Some(
+                                    crate::ui::confirm::ConfirmDialogState::execute_spell(spell, RunMode::Simple),
+                                );
+                                ui.push_overlay(Overlay::ConfirmDialog);
+                            } else {
+                                crate::ui::execute_simple_mode(&spell, state, ui);
+                            }
+                            return false;
+                        }
+                    }
+                }
+            } else if !is_search_active && spell_count > 0 {
+                let spell_idx = ui.spell_list_state.selected().unwrap_or(0);
+                if let Some(spell) = get_spell_by_index(state, spellbook_index, spell_idx) {
+                    if spell.confirm {
+                        ui.confirm_dialog = Some(
+                            crate::ui::confirm::ConfirmDialogState::execute_spell(spell.clone(), RunMode::Simple),
+                        );
+                        ui.push_overlay(Overlay::ConfirmDialog);
+                    } else {
+                        crate::ui::execute_simple_mode(&spell, state, ui);
+                    }
+                    return false;
+                }
+            }
+            return false;
+        }
+
+        _ => {}
     }
 
-    // Handle character input for search/filter - only if already in search mode and not with Ctrl
+    // Handle character input
     if let KeyCode::Char(c) = key {
-        if ui.is_searching() && !modifiers.contains(KeyModifiers::CONTROL) {
-            if let Some(query) = ui.search_query_mut() {
-                query.push(c);
-            }
-            if ui.search_in_command_mode() {
-                ui.update_command_filter();
-            } else {
+        if !modifiers.contains(KeyModifiers::CONTROL) {
+            if ui.is_searching() {
+                // Actively searching — type into query
+                if let Some(query) = ui.search_query_mut() {
+                    query.push(c);
+                }
+                if ui.search_in_command_mode() {
+                    ui.update_command_filter();
+                } else {
+                    update_search_filter(state, ui);
+                }
+            } else if let Some(BrowseState::SearchPaused { .. }) = match &ui.mode {
+                Mode::BrowseSpells(s) => Some(s),
+                _ => None,
+            } {
+                // SearchPaused — resume search with this character
+                ui.resume_search(Some(c));
                 update_search_filter(state, ui);
             }
         }
@@ -312,17 +299,19 @@ pub fn handle_browse_spells(
     }
 
     // Handle Backspace in search
-    if key == KeyCode::Backspace {
-        if let Some(query) = ui.search_query_mut() {
-            query.pop();
-        }
-        if ui.search_query().is_empty() {
-            ui.exit_typing_mode();
-            ui.enter_browse_spellbooks();
-        } else if ui.search_in_command_mode() {
-            ui.update_command_filter();
-        } else {
-            update_search_filter(state, ui);
+    if key == KeyCode::Backspace && ui.search_active() {
+        if ui.is_searching() {
+            if let Some(query) = ui.search_query_mut() {
+                query.pop();
+            }
+            if ui.search_query().is_empty() {
+                ui.exit_typing_mode();
+                ui.enter_browse_spellbooks();
+            } else if ui.search_in_command_mode() {
+                ui.update_command_filter();
+            } else {
+                update_search_filter(state, ui);
+            }
         }
         return false;
     }
@@ -338,7 +327,7 @@ fn copy_spell_at_index(
     spell_index: usize,
 ) {
     if let Some(spell) = get_spell_by_index(state, spellbook_index, spell_index) {
-        if crate::clipboard::copy_to_clipboard(&spell.incantation) {
+        if crate::clipboard::copy_to_clipboard(&spell.command) {
             ui.show_success(format!("Copied: {}", spell.name));
             ui.flash(
                 crate::ui::FlashAction::Spell {
@@ -395,23 +384,20 @@ fn start_spell_execution(state: &mut State, ui: &mut UiState, spell: &Spell) {
         crate::models::RunMode::Tui => {
             log_info!("Using TUI execution mode with streaming");
             let working_dir = if spell.working_dir.is_empty() {
-                if state.launch_dir.is_empty() {
-                    None
-                } else {
-                    Some(state.launch_dir.clone())
-                }
+                default_launch_dir()
             } else {
                 Some(spell.working_dir.clone())
             };
+            let ld = default_launch_dir().unwrap_or_default();
             match streaming_modal::start_tui_execution(
                 ui,
-                spell.incantation.clone(),
+                spell.command.clone(),
                 Some(spell.name.clone()),
                 working_dir,
-                state.launch_dir.clone(),
+                ld,
             ) {
                 Ok(_) => Ok(crate::clipboard::ExecutionResult {
-                    command: spell.incantation.clone(),
+                    command: spell.command.clone(),
                     stdout: String::new(),
                     stderr: String::new(),
                     exit_code: Some(0),
@@ -427,7 +413,7 @@ fn start_spell_execution(state: &mut State, ui: &mut UiState, spell: &Spell) {
             log_info!("Using background execution mode");
             match crate::invoker::start_spell(
                 spell.name.clone(),
-                spell.incantation.clone(),
+                spell.command.clone(),
                 if spell.working_dir.is_empty() {
                     None
                 } else {
@@ -435,7 +421,7 @@ fn start_spell_execution(state: &mut State, ui: &mut UiState, spell: &Spell) {
                 },
             ) {
                 Ok(job_id) => Ok(crate::clipboard::ExecutionResult {
-                    command: spell.incantation.clone(),
+                    command: spell.command.clone(),
                     stdout: format!("Job {} started", job_id),
                     stderr: String::new(),
                     exit_code: Some(0),
@@ -479,7 +465,7 @@ pub fn update_search_filter(state: &State, ui: &mut UiState) {
         return;
     }
 
-    // Filter spells that match the query in name, lore, school, or glyphs
+    // Filter spells that match the query in name, description, category, or tags
     let indices: Vec<usize> = state
         .codex
         .spells
@@ -487,10 +473,10 @@ pub fn update_search_filter(state: &State, ui: &mut UiState) {
         .enumerate()
         .filter(|(_, spell)| {
             spell.name.to_lowercase().contains(&query)
-                || spell.lore.to_lowercase().contains(&query)
-                || spell.school.to_lowercase().contains(&query)
+                || spell.description.to_lowercase().contains(&query)
+                || spell.category.to_lowercase().contains(&query)
                 || spell
-                    .glyphs
+                    .tags
                     .iter()
                     .any(|g| g.to_lowercase().contains(&query))
         })
@@ -498,13 +484,6 @@ pub fn update_search_filter(state: &State, ui: &mut UiState) {
         .collect();
 
     *ui.filtered_indices_mut() = indices;
-
-    // Select first result
-    if !ui.filtered_indices().is_empty() {
-        ui.search_results_state().select(Some(0));
-    } else {
-        ui.search_results_state().select(None);
-    }
 }
 
 /// Execute the selected command

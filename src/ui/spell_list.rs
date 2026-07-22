@@ -16,7 +16,7 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
         ])
         .split(frame.area());
 
-    let theme = &state.theme;
+    let theme = state.theme();
 
     let spellbook_index = match ui.selected_spellbook() {
         Some(index) => index,
@@ -95,7 +95,7 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
 
     let details = match selected_spell {
         Some(spell) => {
-            let glyphs_str = spell.glyphs.join(", ");
+            let glyphs_str = spell.tags.join(", ");
             let muted = Style::new().fg(theme.muted);
             let command_style = Style::new().fg(theme.accent);
             let lore_style = Style::new().fg(theme.fg);
@@ -103,12 +103,12 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
             vec![
                 Line::from(vec![
                     Span::raw("$ "),
-                    Span::styled(spell.incantation.clone(), command_style),
+                    Span::styled(spell.command.clone(), command_style),
                 ]),
                 Line::from(""),
                 Line::from(vec![
                     Span::styled("⌬ ", muted),
-                    Span::styled(spell.school.clone(), muted),
+                    Span::styled(spell.category.clone(), muted),
                 ]),
                 Line::from(vec![
                     Span::styled("△ ", muted),
@@ -116,7 +116,7 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
                 ]),
                 Line::from(""),
                 Line::from(vec![Span::styled("-", muted)]),
-                Line::from(vec![Span::styled(spell.lore.clone(), lore_style)]),
+                Line::from(vec![Span::styled(spell.description.clone(), lore_style)]),
             ]
         }
         None => vec![Line::from("Select a spell to view details")],
@@ -138,7 +138,7 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
     let footer = ui
         .feedback
         .as_ref()
-        .map(|f| f.paragraph(theme))
+        .map(|f| f.paragraph(&theme))
         .unwrap_or_else(|| {
             Paragraph::new(format!(
                 "arrows/jk navigate  enter copy  s simple  Ctrl+r tui  Ctrl+b bg  esc/q back",
@@ -163,7 +163,7 @@ pub fn render_in_area(
         ])
         .split(area);
 
-    let theme = &state.theme;
+    let theme = state.theme();
 
     let spellbook_index = match ui.selected_spellbook() {
         Some(index) => index,
@@ -242,7 +242,7 @@ pub fn render_in_area(
 
     let details = match selected_spell {
         Some(spell) => {
-            let glyphs_str = spell.glyphs.join(", ");
+            let glyphs_str = spell.tags.join(", ");
             let muted = Style::new().fg(theme.muted);
             let command_style = Style::new().fg(theme.accent);
             let lore_style = Style::new().fg(theme.fg);
@@ -250,19 +250,19 @@ pub fn render_in_area(
             vec![
                 Line::from(vec![
                     Span::raw("$ "),
-                    Span::styled(spell.incantation.clone(), command_style),
+                    Span::styled(spell.command.clone(), command_style),
                 ]),
                 Line::from(""),
                 Line::from(vec![
-                    Span::styled("School: ", muted),
-                    Span::styled(spell.school.clone(), muted),
+                    Span::styled("Category: ", muted),
+                    Span::styled(spell.category.clone(), muted),
                 ]),
                 Line::from(vec![
-                    Span::styled("Glyphs: ", muted),
+                    Span::styled("Tags: ", muted),
                     Span::styled(glyphs_str.clone(), muted),
                 ]),
                 Line::from(""),
-                Line::from(vec![Span::styled(spell.lore.clone(), lore_style)]),
+                Line::from(vec![Span::styled(spell.description.clone(), lore_style)]),
             ]
         }
         None => vec![Line::from("Select a spell to view details")],
@@ -284,7 +284,7 @@ pub fn render_in_area(
     let footer = ui
         .feedback
         .as_ref()
-        .map(|f| f.paragraph(theme))
+        .map(|f| f.paragraph(&theme))
         .unwrap_or_else(|| {
             Paragraph::new(
                 "arrows/jk navigate  enter copy  s simple  Ctrl+r tui  Ctrl+b bg  h/esc back",

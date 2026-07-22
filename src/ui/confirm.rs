@@ -142,7 +142,7 @@ fn render_delete_spell(
     let line2 = Line::from(vec![
         Span::styled("Command: ", Style::new().fg(theme.muted)),
         Span::styled(
-            truncate_string(&spell.incantation, inner_width.saturating_sub(12)),
+            truncate_string(&spell.command, inner_width.saturating_sub(12)),
             Style::new().fg(theme.fg),
         ),
     ]);
@@ -229,7 +229,7 @@ fn render_execute_spell(
         "Command: ",
         Style::new().fg(theme.muted),
     )]);
-    let cmd_display = truncate_string(&spell.incantation, inner_width.saturating_sub(10));
+    let cmd_display = truncate_string(&spell.command, inner_width.saturating_sub(10));
     let cmd_line = Line::from(vec![
         Span::raw("  "),
         Span::styled(&cmd_display, Style::new().fg(theme.accent)),

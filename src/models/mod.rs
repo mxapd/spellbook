@@ -5,30 +5,15 @@ mod spellbook;
 mod theme;
 
 pub use codex::Codex;
-pub use job::{JobManager, JobsData, RecentAction, RecentEntry};
+pub use job::{RecentAction, RecentEntry};
 pub use spell::{RunMode, Spell};
 pub use spellbook::{Spellbook, SpineStyle};
-pub use spellbook_ref::FocusTarget;
-pub use theme::{RatatuiColors, Theme, ThemeConfig, UserSettings, ViewMode};
+pub use theme::{RatatuiColors, ThemeConfig, UserSettings, ViewMode};
 
-mod spellbook_ref {
-    use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
-    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
-    pub enum VirtualKind {
-        Favorites,
-        Recent,
-    }
-
-    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
-    pub enum SpellbookRef {
-        Virtual(VirtualKind),
-        Codex(usize),
-    }
-
-    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
-    pub enum FocusTarget {
-        Main,
-        JobsSidebar,
-    }
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum FocusTarget {
+    Main,
+    JobsSidebar,
 }

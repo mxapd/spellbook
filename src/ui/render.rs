@@ -29,7 +29,7 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
 
     // Render loading indicator on top if active
     if ui.is_loading() {
-        render_loading_indicator(frame, ui, &state.theme);
+        render_loading_indicator(frame, ui, &state.theme());
     }
 }
 
@@ -103,7 +103,7 @@ fn render_overlay(overlay: Overlay, frame: &mut Frame, state: &State, ui: &mut U
         Overlay::OutputModal => {
             // Use new streaming modal if streaming is active, otherwise fall back to legacy
             if ui.streaming_modal.streaming.is_some() || ui.streaming_modal.output.is_streaming {
-                streaming_modal::render_streaming_modal(frame, ui, &state.theme);
+                streaming_modal::render_streaming_modal(frame, ui, &state.theme());
             } else if ui.output_popup.is_some() {
                 render_output_popup(frame, state, ui);
             }
@@ -136,7 +136,7 @@ fn render_overlay(overlay: Overlay, frame: &mut Frame, state: &State, ui: &mut U
 }
 
 fn render_spell_details_overlay(frame: &mut Frame, state: &State, ui: &UiState) {
-    let theme = &state.theme;
+    let theme = state.theme();
     let area = frame.area();
 
     // Dim the background
@@ -166,7 +166,7 @@ fn render_spell_details_overlay(frame: &mut Frame, state: &State, ui: &UiState) 
     // Get spell details
     if let Some(spell_id) = &ui.spell_details_spell_id {
         if let Some(spell) = state.codex.spells.iter().find(|s| s.id == *spell_id) {
-            let details = format_full_spell_details(spell, theme);
+            let details = format_full_spell_details(spell, &theme);
 
             let details_block = Paragraph::new(details)
                 .block(
@@ -186,7 +186,7 @@ fn render_spell_details_overlay(frame: &mut Frame, state: &State, ui: &UiState) 
 
 fn render_with_sidebar(frame: &mut Frame, state: &State, ui: &mut UiState, overlays: &[Overlay]) {
     let area = frame.area();
-    let theme = &state.theme;
+    let theme = state.theme();
     let sidebar_width: u16 = 40;
     let sidebar_min_width: u16 = 30;
 
@@ -243,7 +243,6 @@ fn render_with_sidebar(frame: &mut Frame, state: &State, ui: &mut UiState, overl
 }
 
 fn render_output_popup(frame: &mut Frame, state: &State, ui: &UiState) {
-    let theme = &state.theme;
     let area = frame.area();
     render_output_popup_in_area(frame, state, ui, area);
 }
@@ -254,7 +253,7 @@ fn render_output_popup_in_area(
     ui: &UiState,
     area: ratatui::layout::Rect,
 ) {
-    let theme = &state.theme;
+    let theme = state.theme();
 
     // Full-screen overlay to hide content behind popup
     let overlay_rect = area;
@@ -414,7 +413,7 @@ fn string_visual_width(s: &str) -> usize {
 }
 
 fn render_confirm_popup(frame: &mut Frame, state: &State, ui: &UiState) {
-    let theme = &state.theme;
+    let theme = state.theme();
     let area = frame.area();
 
     let overlay_rect = ratatui::layout::Rect {
@@ -440,7 +439,7 @@ fn render_confirm_popup(frame: &mut Frame, state: &State, ui: &UiState) {
     };
 
     if let Some(ref dialog) = ui.confirm_dialog {
-        confirm::render_confirm_dialog(frame, popup_area, theme, dialog);
+        confirm::render_confirm_dialog(frame, popup_area, &theme, dialog);
     }
 }
 
@@ -448,7 +447,7 @@ fn render_input_popup_overlay(frame: &mut Frame, state: &State, ui: &UiState) {
     use ratatui::widgets::Borders;
 
     let area = frame.area();
-    let theme = &state.theme;
+    let theme = state.theme();
 
     let overlay_rect = ratatui::layout::Rect {
         x: 0,
@@ -515,7 +514,7 @@ fn render_input_popup_overlay(frame: &mut Frame, state: &State, ui: &UiState) {
 }
 
 fn render_help_overlay(frame: &mut Frame, state: &State) {
-    let theme = &state.theme;
+    let theme = state.theme();
     let area = frame.area();
 
     // Dim the background
@@ -545,5 +544,5 @@ fn render_help_overlay(frame: &mut Frame, state: &State) {
     // Clear popup area so it appears over background
     frame.render_widget(Clear, popup_area);
 
-    help::render_help(frame, popup_area, theme);
+    help::render_help(frame, popup_area, &theme);
 }

@@ -49,7 +49,7 @@ pub fn validate_codex(codex: &Codex) -> Result<(), ValidationError> {
             if !spell_ids.contains(spell_id) {
                 return Err(ValidationError::BrokenReference {
                     spellbook: spellbook.name.clone(),
-                    spell: spell_id.clone(),
+                    spell_id: spell_id.clone(),
                 });
             }
         }
@@ -58,7 +58,7 @@ pub fn validate_codex(codex: &Codex) -> Result<(), ValidationError> {
     Ok(())
 }
 
-pub fn validate_codex_warnings(codex: &Codex) -> Vec<ValidationWarning> {
+pub fn collect_codex_warnings(codex: &Codex) -> Vec<ValidationWarning> {
     let mut warnings = Vec::new();
     let spell_ids: HashSet<&String> = codex.spells.iter().map(|s| &s.id).collect();
 
@@ -80,9 +80,9 @@ pub fn validate_codex_warnings(codex: &Codex) -> Vec<ValidationWarning> {
             });
         }
 
-        if spell.incantation.trim().is_empty() {
+        if spell.command.trim().is_empty() {
             warnings.push(ValidationWarning {
-                message: format!("Spell '{}' has empty incantation", spell.name),
+                message: format!("Spell '{}' has empty command", spell.name),
                 severity: WarningSeverity::Warning,
             });
         }
@@ -160,10 +160,10 @@ mod tests {
         Spell {
             id: uuid::Uuid::new_v4().to_string(),
             name: name.to_string(),
-            incantation: "test command".to_string(),
-            lore: "Test lore".to_string(),
-            school: "Test".to_string(),
-            glyphs: vec![],
+            command: "test command".to_string(),
+            description: "Test lore".to_string(),
+            category: "Test".to_string(),
+            tags: vec![],
             confirm: false,
             run_mode: crate::models::RunMode::Simple,
             working_dir: String::new(),
@@ -175,7 +175,7 @@ mod tests {
         Spellbook {
             name: name.to_string(),
             cover: "Test cover".to_string(),
-            sigil: "*".to_string(),
+            decoration: "*".to_string(),
             spell_ids,
             spells: vec![],
             style: None,
@@ -183,8 +183,10 @@ mod tests {
         }
     }
 
+    // === valid inputs ===
+
     #[test]
-    fn test_valid_empty_codex() {
+    fn valid_empty_codex() {
         let codex = Codex {
             spells: vec![],
             spellbooks: vec![],
@@ -193,76 +195,78 @@ mod tests {
     }
 
     #[test]
-    fn test_valid_single_spell() {
+    fn valid_single_spell() {
         let codex = Codex {
-            spells: vec![make_spell("Fireball")],
+            spells: vec![make_spell("List Files")],
             spellbooks: vec![],
         };
         assert!(validate_codex(&codex).is_ok());
     }
 
     #[test]
-    fn test_valid_spell_and_spellbook() {
-        let fireball = make_spell("Fireball");
-        let ice_bolt = make_spell("Ice Bolt");
+    fn valid_spell_and_spellbook() {
+        let list_files = make_spell("List Files");
+        let disk_usage = make_spell("Disk Usage");
         let codex = Codex {
-            spells: vec![fireball.clone(), ice_bolt.clone()],
+            spells: vec![list_files.clone(), disk_usage.clone()],
             spellbooks: vec![make_spellbook_with_ids(
-                "Fire Magic",
-                vec![fireball.id.clone()],
+                "File Operations",
+                vec![list_files.id.clone()],
             )],
         };
         assert!(validate_codex(&codex).is_ok());
     }
 
     #[test]
-    fn test_valid_multiple_spellbooks() {
-        let fireball = make_spell("Fireball");
-        let heal = make_spell("Heal");
+    fn valid_multiple_spellbooks() {
+        let list_files = make_spell("List Files");
+        let search_text = make_spell("Search Text");
         let codex = Codex {
-            spells: vec![fireball.clone(), heal.clone()],
+            spells: vec![list_files.clone(), search_text.clone()],
             spellbooks: vec![
-                make_spellbook_with_ids("Fire Magic", vec![fireball.id.clone()]),
-                make_spellbook_with_ids("Healing Arts", vec![heal.id.clone()]),
+                make_spellbook_with_ids("File Operations", vec![list_files.id.clone()]),
+                make_spellbook_with_ids("Text Tools", vec![search_text.id.clone()]),
             ],
         };
         assert!(validate_codex(&codex).is_ok());
     }
 
     #[test]
-    fn test_valid_spellbook_referencing_multiple_spells() {
-        let fireball = make_spell("Fireball");
-        let frostbite = make_spell("Frostbite");
-        let lightning = make_spell("Lightning");
+    fn valid_spellbook_referencing_multiple_spells() {
+        let list_files = make_spell("List Files");
+        let process_list = make_spell("Process List");
+        let net_status = make_spell("Network Status");
         let codex = Codex {
-            spells: vec![fireball.clone(), frostbite.clone(), lightning.clone()],
+            spells: vec![list_files.clone(), process_list.clone(), net_status.clone()],
             spellbooks: vec![make_spellbook_with_ids(
-                "Elemental Magic",
+                "System Commands",
                 vec![
-                    fireball.id.clone(),
-                    frostbite.id.clone(),
-                    lightning.id.clone(),
+                    list_files.id.clone(),
+                    process_list.id.clone(),
+                    net_status.id.clone(),
                 ],
             )],
         };
         assert!(validate_codex(&codex).is_ok());
     }
 
+    // === rejected inputs ===
+
     #[test]
-    fn test_duplicate_spell_names_rejected() {
+    fn duplicate_spell_names_rejected() {
         let codex = Codex {
-            spells: vec![make_spell("Fireball"), make_spell("Fireball")],
+            spells: vec![make_spell("List Files"), make_spell("List Files")],
             spellbooks: vec![],
         };
         let result = validate_codex(&codex);
         assert!(result.is_err());
         let err = result.unwrap_err().to_string();
-        assert!(err.contains("Duplicate spell name"));
-        assert!(err.contains("Fireball"));
+        assert!(err.contains("duplicate spell name"));
+        assert!(err.contains("List Files"));
     }
 
     #[test]
-    fn test_empty_spell_name_rejected() {
+    fn empty_spell_name_rejected() {
         let codex = Codex {
             spells: vec![make_spell("")],
             spellbooks: vec![],
@@ -271,12 +275,12 @@ mod tests {
         assert!(result.is_err());
         assert_eq!(
             result.unwrap_err().to_string(),
-            "Spell name cannot be empty"
+            "spell name cannot be empty"
         );
     }
 
     #[test]
-    fn test_whitespace_only_spell_name_rejected() {
+    fn whitespace_only_spell_name_rejected() {
         let codex = Codex {
             spells: vec![make_spell("   ")],
             spellbooks: vec![],
@@ -285,48 +289,48 @@ mod tests {
         assert!(result.is_err());
         assert_eq!(
             result.unwrap_err().to_string(),
-            "Spell name cannot be empty"
+            "spell name cannot be empty"
         );
     }
 
     #[test]
-    fn test_duplicate_spellbook_names_rejected() {
-        let fireball = make_spell("Fireball");
+    fn duplicate_spellbook_names_rejected() {
+        let list_files = make_spell("List Files");
         let codex = Codex {
-            spells: vec![fireball.clone()],
+            spells: vec![list_files.clone()],
             spellbooks: vec![
-                make_spellbook_with_ids("Wizardry", vec![fireball.id.clone()]),
-                make_spellbook_with_ids("Wizardry", vec![fireball.id.clone()]),
+                make_spellbook_with_ids("Utilities", vec![list_files.id.clone()]),
+                make_spellbook_with_ids("Utilities", vec![list_files.id.clone()]),
             ],
         };
         let result = validate_codex(&codex);
         assert!(result.is_err());
         let err = result.unwrap_err().to_string();
-        assert!(err.contains("Duplicate spellbook name"));
-        assert!(err.contains("Wizardry"));
+        assert!(err.contains("duplicate spellbook name"));
+        assert!(err.contains("Utilities"));
     }
 
     #[test]
-    fn test_empty_spellbook_name_rejected() {
-        let fireball = make_spell("Fireball");
+    fn empty_spellbook_name_rejected() {
+        let list_files = make_spell("List Files");
         let codex = Codex {
-            spells: vec![fireball.clone()],
-            spellbooks: vec![make_spellbook_with_ids("", vec![fireball.id.clone()])],
+            spells: vec![list_files.clone()],
+            spellbooks: vec![make_spellbook_with_ids("", vec![list_files.id.clone()])],
         };
         let result = validate_codex(&codex);
         assert!(result.is_err());
         assert_eq!(
             result.unwrap_err().to_string(),
-            "Spellbook name cannot be empty"
+            "spellbook name cannot be empty"
         );
     }
 
     #[test]
-    fn test_spellbook_referencing_nonexistent_spell_rejected() {
+    fn spellbook_referencing_nonexistent_spell_rejected() {
         let codex = Codex {
-            spells: vec![make_spell("Fireball")],
+            spells: vec![make_spell("List Files")],
             spellbooks: vec![make_spellbook_with_ids(
-                "Necromancy",
+                "System Info",
                 vec!["nonexistent-id".to_string()],
             )],
         };
@@ -334,15 +338,16 @@ mod tests {
         assert!(result.is_err());
         let err = result.unwrap_err().to_string();
         assert!(err.contains("references non-existent spell id"));
-        assert!(err.contains("Necromancy"));
+        assert!(err.contains("System Info"));
+        assert!(err.contains("nonexistent-id"));
     }
 
     #[test]
-    fn test_multiple_validation_errors_returns_first() {
+    fn multiple_validation_errors_returns_first() {
         let codex = Codex {
             spells: vec![
-                make_spell("Fireball"),
-                make_spell("Fireball"),
+                make_spell("List Files"),
+                make_spell("List Files"),
                 make_spell(""),
             ],
             spellbooks: vec![],

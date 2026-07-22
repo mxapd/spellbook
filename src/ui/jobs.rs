@@ -26,7 +26,7 @@ impl Default for JobsPanelState {
 }
 
 pub fn render_jobs_panel(f: &mut Frame, state: &State, ui: &mut crate::ui::UiState, area: Rect) {
-    let theme = &state.theme;
+    let theme = state.theme();
     let jobs = invoker::list_jobs();
 
     if jobs.is_empty() {

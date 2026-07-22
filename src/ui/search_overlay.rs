@@ -64,10 +64,10 @@ impl SpellbookItem<'_> {
             SpellbookItem::VirtualAll { .. } => "=".to_string(),
             SpellbookItem::VirtualUnassigned { .. } => "\u{2205}".to_string(), // ∅
             SpellbookItem::Real { spellbook } => {
-                if spellbook.sigil.is_empty() {
+                if spellbook.decoration.is_empty() {
                     String::new()
                 } else {
-                    spellbook.sigil.clone()
+                    spellbook.decoration.clone()
                 }
             }
         }
@@ -343,7 +343,7 @@ fn build_spine_decorations(
 pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
     let area = frame.area();
 
-    let theme = &state.theme;
+    let theme = state.theme();
 
     // Calculate early whether to show details panel
     let should_show_details = match &ui.mode {
@@ -447,7 +447,22 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
     // Render main content based on mode (Elm-style: single source of truth)
     match &ui.mode {
         Mode::BrowseSpells(_) => {
-            render_spellbook_spells(frame, state, ui, chunks[1]);
+            if ui.search_active() && !ui.search_query().is_empty() {
+                if ui.filtered_indices().is_empty() {
+                    let empty = Paragraph::new("No spells found")
+                        .block(
+                            Block::default()
+                                .borders(Borders::ALL)
+                                .border_style(Style::new().fg(theme.border)),
+                        )
+                        .style(Style::new().fg(theme.muted).bg(theme.bg));
+                    frame.render_widget(empty, chunks[1]);
+                } else {
+                    render_search_results(frame, state, ui, chunks[1]);
+                }
+            } else {
+                render_spellbook_spells(frame, state, ui, chunks[1]);
+            }
         }
         Mode::BrowseSpellbooks(_) => {
             if ui.search_query().is_empty() && ui.showing_spellbooks() {
@@ -504,7 +519,7 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
     }
 
     let hint = if let Some(ref feedback) = ui.feedback {
-        feedback.paragraph(theme)
+        feedback.paragraph(&theme)
     } else {
         let hint_text = match &ui.mode {
             Mode::BrowseSpellbooks(_)
@@ -515,6 +530,9 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
             Mode::BrowseSpells(_) => {
                 "arrows/hjkl navigate  enter copy  s simple  Ctrl+r tui  Ctrl+b bg  h back"
                     .to_string()
+            }
+            _ if !ui.is_searching() && ui.search_active() => {
+                "s exec  e edit  d delete  f fav  b bg  r tui  arrows navigate  esc exit".to_string()
             }
             _ => {
                 if ui.search_query().starts_with(':') {
@@ -562,7 +580,7 @@ pub fn render_in_area(
     ui: &mut UiState,
     area: ratatui::layout::Rect,
 ) {
-    let theme = &state.theme;
+    let theme = state.theme();
 
     let chunks = Layout::default()
         .direction(Direction::Vertical)
@@ -611,7 +629,17 @@ pub fn render_in_area(
 
     match &ui.mode {
         Mode::BrowseSpells(_) => {
-            render_spellbook_spells(frame, state, ui, chunks[1]);
+            if ui.search_active() && !ui.search_query().is_empty() {
+                if ui.filtered_indices().is_empty() {
+                    let message = format!("No spells found for '{}'", ui.search_query());
+                    let para = Paragraph::new(message).style(Style::new().fg(theme.muted));
+                    frame.render_widget(para, chunks[1]);
+                } else {
+                    render_search_results(frame, state, ui, chunks[1]);
+                }
+            } else {
+                render_spellbook_spells(frame, state, ui, chunks[1]);
+            }
         }
         Mode::BrowseSpellbooks(_) => {
             if ui.search_query().is_empty() && ui.showing_spellbooks() {
@@ -647,7 +675,7 @@ pub fn render_in_area(
                 .and_then(|idx| get_spell_ref_by_index(state, spellbook_index, idx));
 
             match spell_opt {
-                Some(spell) => format_compact_spell_details(spell, theme),
+                Some(spell) => format_compact_spell_details(spell, &theme),
                 None => {
                     if ui.spell_list_state.selected().is_some() {
                         vec![Line::from("")]
@@ -675,7 +703,7 @@ pub fn render_in_area(
     }
 
     let hint = if let Some(ref feedback) = ui.feedback {
-        feedback.paragraph(theme)
+        feedback.paragraph(&theme)
     } else if ui.search_query().starts_with(':') && !ui.search_query().ends_with(' ') {
         Paragraph::new("type command and press enter")
             .style(Style::new().fg(theme.muted).bg(theme.bg))
@@ -690,6 +718,9 @@ pub fn render_in_area(
             Mode::BrowseSpells(_) => {
                 "arrows/hjkl navigate  enter copy  s simple  Ctrl+r tui  Ctrl+b bg  h back"
                     .to_string()
+            }
+            _ if !ui.is_searching() && ui.search_active() => {
+                "s exec  e edit  d delete  f fav  b bg  r tui  arrows navigate  esc exit".to_string()
             }
             _ => {
                 if ui.search_query().starts_with(':') {
@@ -712,7 +743,7 @@ fn render_spellbook_browser(
     ui: &mut UiState,
     area: ratatui::layout::Rect,
 ) {
-    let theme = &state.theme;
+    let theme = state.theme();
     let total_count = total_spellbook_count(state);
 
     if total_count == 0 {
@@ -751,12 +782,6 @@ fn render_spellbook_browser(
             }
         }
     }
-
-    let border_color = if ui.jobs_sidebar_open && ui.focus == FocusTarget::Main {
-        theme.accent
-    } else {
-        theme.border
-    };
 
     let inner = area;
 
@@ -899,7 +924,7 @@ fn render_spellbook_cards(
     card_gap: usize,
     cards_per_row: usize,
 ) {
-    let theme = &state.theme;
+    let theme = state.theme();
     let total_count = total_spellbook_count(state);
 
     let selected = ui
@@ -1016,7 +1041,7 @@ fn render_spellbook_spines(
     _spine_width: usize,
     spines_per_row: usize,
 ) {
-    let theme = &state.theme;
+    let theme = state.theme();
     let total_count = total_spellbook_count(state);
 
     let selected = ui
@@ -1195,7 +1220,7 @@ fn render_spellbook_list(
 ) {
     use ratatui::widgets::{List, ListItem};
 
-    let theme = &state.theme;
+    let theme = state.theme();
     let total_count = total_spellbook_count(state);
 
     if total_count == 0 {
@@ -1306,7 +1331,7 @@ fn render_command_list(
 ) {
     use crate::ui::filter_commands;
 
-    let theme = &state.theme;
+    let theme = state.theme();
     let query = ui.search_query();
     let query_after_colon = query.strip_prefix(':').unwrap_or("");
     let filtered = filter_commands(query_after_colon);
@@ -1354,12 +1379,12 @@ fn render_search_results(
     ui: &mut UiState,
     area: ratatui::layout::Rect,
 ) {
-    // Guard: only render when in Searching state
-    if !ui.is_searching() {
+    // Guard: only render when search is active or paused
+    if !ui.search_active() {
         return;
     }
 
-    let theme = &state.theme;
+    let theme = state.theme();
 
     let flash = ui
         .flash_action
@@ -1381,7 +1406,7 @@ fn render_search_results(
                 .map(|spell| (result_idx, spell))
         })
         .map(|(result_idx, spell)| {
-            let line = format!("{}  [{}]", spell.name, spell.school);
+            let line = format!("{}  [{}]", spell.name, spell.category);
             let style = if flash == Some(result_idx) {
                 Style::new()
                     .fg(theme.bg)
@@ -1409,72 +1434,6 @@ fn render_search_results(
     frame.render_stateful_widget(list, area, ui.search_results_state());
 }
 
-/// Render filtered spellbook search results
-fn render_spellbook_details<'a>(state: &'a State, ui: &mut UiState) -> Vec<Line<'a>> {
-    let theme = &state.theme;
-
-    let spellbooks = &state.codex.spellbooks;
-    let selected = match ui.search_spellbook_index() {
-        Some(i) if i < spellbooks.len() => i,
-        _ => return vec![Line::from("")],
-    };
-
-    let spellbook = &spellbooks[selected];
-    let mut lines = Vec::new();
-
-    lines.push(Line::from(vec![Span::styled(
-        &spellbook.name,
-        Style::new().fg(theme.accent).add_modifier(Modifier::BOLD),
-    )]));
-
-    if !spellbook.cover.is_empty() {
-        lines.push(Line::from(vec![Span::styled(
-            &spellbook.cover,
-            Style::new().fg(theme.muted),
-        )]));
-    }
-
-    lines.push(Line::from(vec![Span::raw("")]));
-
-    let spell_count = spellbook.spell_ids.len();
-    if spell_count > 0 {
-        lines.push(Line::from(vec![Span::styled(
-            "Spells:",
-            Style::new().fg(theme.fg).add_modifier(Modifier::BOLD),
-        )]));
-
-        let spells: Vec<String> = spellbook
-            .spell_ids
-            .iter()
-            .filter_map(|id| state.codex.spells.iter().find(|s| s.id == *id))
-            .map(|s| s.name.clone())
-            .take(10)
-            .collect();
-
-        for spell_name in spells {
-            lines.push(Line::from(vec![
-                Span::raw("  "),
-                Span::raw("- "),
-                Span::styled(spell_name, Style::new().fg(theme.fg)),
-            ]));
-        }
-
-        if spell_count > 10 {
-            lines.push(Line::from(vec![Span::styled(
-                format!("  ... and {} more", spell_count - 10),
-                Style::new().fg(theme.muted),
-            )]));
-        }
-    } else {
-        lines.push(Line::from(vec![Span::styled(
-            "No spells in this spellbook",
-            Style::new().fg(theme.muted),
-        )]));
-    }
-
-    lines
-}
-
 /// Format spell details for popup (full info)
 pub fn format_full_spell_details<'a>(
     spell: &'a crate::models::Spell,
@@ -1495,18 +1454,18 @@ pub fn format_full_spell_details<'a>(
     // Command
     lines.push(Line::from(vec![
         Span::raw("$ "),
-        Span::styled(&spell.incantation, accent),
+        Span::styled(&spell.command, accent),
     ]));
     lines.push(Line::from(""));
 
-    // Metadata line with glyphs
-    let glyphs_joined = spell.glyphs.join(", ");
+    // Metadata line with tags
+    let glyphs_joined = spell.tags.join(", ");
     let mut meta_parts: Vec<Span> = vec![
-        Span::styled("School: ", muted),
-        Span::styled(&spell.school, fg),
+        Span::styled("Category: ", muted),
+        Span::styled(&spell.category, fg),
     ];
     if !glyphs_joined.is_empty() {
-        meta_parts.push(Span::styled(" | Glyphs: ", muted));
+        meta_parts.push(Span::styled(" | Tags: ", muted));
         meta_parts.push(Span::styled(glyphs_joined, fg));
     }
     lines.push(Line::from(meta_parts));
@@ -1540,10 +1499,10 @@ pub fn format_full_spell_details<'a>(
         lines.push(Line::from(flags));
     }
 
-    // Lore
-    if !spell.lore.is_empty() {
+    // Description
+    if !spell.description.is_empty() {
         lines.push(Line::from(""));
-        lines.push(Line::from(vec![Span::styled(&spell.lore, fg)]));
+        lines.push(Line::from(vec![Span::styled(&spell.description, fg)]));
     }
 
     lines
@@ -1558,7 +1517,7 @@ fn format_compact_spell_details<'a>(
 
     vec![Line::from(vec![
         Span::raw("$ "),
-        Span::styled(&spell.incantation, accent),
+        Span::styled(&spell.command, accent),
     ])]
 }
 
@@ -1574,7 +1533,7 @@ fn render_spell_details<'a>(state: &'a State, ui: &mut UiState) -> Vec<Line<'a>>
     match spell_opt {
         Some(spell_idx) if spell_idx < state.codex.spells.len() => {
             let spell = &state.codex.spells[spell_idx];
-            format_compact_spell_details(spell, &state.theme)
+            format_compact_spell_details(spell, &state.theme())
         }
         _ => vec![Line::from("")],
     }
@@ -1597,7 +1556,7 @@ fn render_spellbook_spells(
     ui: &mut UiState,
     area: ratatui::layout::Rect,
 ) {
-    let theme = &state.theme;
+    let theme = state.theme();
     let spellbook_index = match ui.selected_spellbook() {
         Some(idx) => idx,
         None => return,
@@ -1749,7 +1708,7 @@ fn render_add_spell_form(
     ui: &mut UiState,
     area: ratatui::layout::Rect,
 ) {
-    let theme = &state.theme;
+    let theme = state.theme();
 
     let form_block = Block::bordered()
         .title(" Add New Spell ")
@@ -1795,7 +1754,7 @@ fn render_add_spellbook_form(
     ui: &mut UiState,
     area: ratatui::layout::Rect,
 ) {
-    let theme = &state.theme;
+    let theme = state.theme();
 
     let form_block = Block::bordered()
         .title(" Add New Spellbook ")
@@ -1840,7 +1799,7 @@ pub fn render_output_mode(
     ui: &UiState,
     area: ratatui::layout::Rect,
 ) {
-    let theme = &state.theme;
+    let theme = state.theme();
     let output = match &ui.output_popup {
         Some(o) => o,
         None => return,
@@ -1917,7 +1876,7 @@ pub fn render_output_mode(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::{Codex, RecentAction, RecentEntry, Spell, Spellbook};
+    use crate::models::{Codex, RecentAction, RecentEntry, Spell, Spellbook, UserSettings};
 
     fn make_codex() -> Codex {
         Codex {
@@ -1930,10 +1889,10 @@ mod tests {
         Spell {
             id: uuid::Uuid::new_v4().to_string(),
             name: name.to_string(),
-            incantation: format!("echo 'Running {}'", name),
-            lore: String::new(),
-            school: String::new(),
-            glyphs: vec![],
+            command: format!("echo 'Running {}'", name),
+            description: String::new(),
+            category: String::new(),
+            tags: vec![],
             confirm: false,
             run_mode: crate::models::RunMode::Simple,
             working_dir: String::new(),
@@ -1945,10 +1904,10 @@ mod tests {
         Spell {
             id: uuid::Uuid::new_v4().to_string(),
             name: name.to_string(),
-            incantation: format!("echo 'Running {}'", name),
-            lore: String::new(),
-            school: String::new(),
-            glyphs: vec![],
+            command: format!("echo 'Running {}'", name),
+            description: String::new(),
+            category: String::new(),
+            tags: vec![],
             confirm: false,
             run_mode: crate::models::RunMode::Simple,
             working_dir: String::new(),
@@ -1968,7 +1927,7 @@ mod tests {
         Spellbook {
             name: name.to_string(),
             cover: format!("{} cover", name),
-            sigil: "*".to_string(),
+            decoration: "*".to_string(),
             spell_ids: vec![],
             spells: vec![],
             style: None,
@@ -1977,7 +1936,7 @@ mod tests {
     }
 
     fn make_test_state() -> State {
-        State::new_test(make_codex())
+        State::new(make_codex(), UserSettings::default())
     }
 
     #[test]
@@ -1998,7 +1957,7 @@ mod tests {
         let mut codex = make_codex();
         codex.spells.push(make_favorite_spell("Fav1"));
         codex.spells.push(make_favorite_spell("Fav2"));
-        let state = State::new_test(codex);
+        let state = State::new(codex, UserSettings::default());
 
         let item = get_spellbook_item(&state, 0);
         assert!(matches!(
@@ -2010,7 +1969,7 @@ mod tests {
     #[test]
     fn test_get_spellbook_item_with_recent() {
         let codex = make_codex();
-        let mut state = State::new_test(codex);
+        let mut state = State::new(codex, UserSettings::default());
         state.recents.push(make_recent_entry("id1", "Recent1"));
 
         let item = get_spellbook_item(&state, 0);
@@ -2022,7 +1981,7 @@ mod tests {
     fn test_get_spellbook_item_real_spellbook() {
         let mut codex = make_codex();
         codex.spellbooks.push(make_spellbook("Test Book"));
-        let state = State::new_test(codex);
+        let state = State::new(codex, UserSettings::default());
 
         // With isolated test state (no recents), real spellbooks appear first.
         let item = get_spellbook_item(&state, 0);
@@ -2040,7 +1999,7 @@ mod tests {
     fn test_total_spellbook_count_with_favorites() {
         let mut codex = make_codex();
         codex.spells.push(make_favorite_spell("Fav1"));
-        let state = State::new_test(codex);
+        let state = State::new(codex, UserSettings::default());
         // 1 for Favorites + 1 for All + 1 for Unassigned = 3
         assert_eq!(total_spellbook_count(&state), 3);
     }
@@ -2058,7 +2017,7 @@ mod tests {
         let mut codex = make_codex();
         codex.spells.push(make_favorite_spell("Fav1"));
         codex.spellbooks.push(make_spellbook("Book"));
-        let mut state = State::new_test(codex);
+        let mut state = State::new(codex, UserSettings::default());
         state.recents.push(make_recent_entry("id1", "Recent1"));
 
         // 1 for Favorites + 1 for Recent + 1 for Book + 1 for All + 1 for Unassigned = 5
@@ -2070,7 +2029,7 @@ mod tests {
         let mut codex = make_codex();
         codex.spells.push(make_spell("Spell1"));
         codex.spells.push(make_spell("Spell2"));
-        let state = State::new_test(codex);
+        let state = State::new(codex, UserSettings::default());
 
         // All is at the end, so with 0 spellbooks: index 0 should be VirtualAll
         let item = get_spellbook_item(&state, 0);
@@ -2082,7 +2041,7 @@ mod tests {
         let mut codex = make_codex();
         codex.spells.push(make_favorite_spell("Fav1"));
         codex.spells.push(make_spell("Spell1"));
-        let mut state = State::new_test(codex);
+        let mut state = State::new(codex, UserSettings::default());
         state.recents.push(make_recent_entry("id1", "Recent1"));
 
         // With 0 spellbooks: index 0 = Favorites, index 1 = Recent, index 2 = All
@@ -2127,10 +2086,10 @@ mod tests {
 
         let mut ui = UiState::new(false);
         ui.show_success("copied!");
-        let state = State::new_test(Codex {
+        let state = State::new(Codex {
             spells: vec![],
             spellbooks: vec![],
-        });
+        }, UserSettings::default());
 
         let backend = TestBackend::new(80, 24);
         let mut terminal = Terminal::new(backend).unwrap();
@@ -2157,10 +2116,10 @@ mod tests {
             spells: vec![Spell {
                 id: spell_id.clone(),
                 name: "FlashMe".to_string(),
-                incantation: "echo flash".to_string(),
-                lore: String::new(),
-                school: String::new(),
-                glyphs: vec![],
+                command: "echo flash".to_string(),
+                description: String::new(),
+                category: String::new(),
+                tags: vec![],
                 confirm: false,
                 run_mode: crate::models::RunMode::Simple,
                 working_dir: String::new(),
@@ -2169,14 +2128,14 @@ mod tests {
             spellbooks: vec![crate::models::Spellbook {
                 name: "Book".to_string(),
                 cover: String::new(),
-                sigil: "*".to_string(),
+                decoration: "*".to_string(),
                 spell_ids: vec![spell_id],
                 spells: vec![],
                 style: None,
                 color: None,
             }],
         };
-        let state = State::new_test(codex);
+        let state = State::new(codex, UserSettings::default());
         let mut ui = UiState::new(false);
         ui.enter_browse_spells(0); // real spellbook at index 0
         ui.spell_list_state.select(Some(0));
@@ -2206,7 +2165,7 @@ mod tests {
         let accent_cells = buffer
             .content
             .iter()
-            .filter(|cell| cell.style().bg == Some(state.theme.accent))
+            .filter(|cell| cell.style().bg == Some(state.theme().accent))
             .count();
         assert!(
             accent_cells > 0,

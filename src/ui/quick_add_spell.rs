@@ -74,7 +74,7 @@ pub fn render(frame: &mut Frame, state: &crate::state::State, ui: &mut UiState) 
 
     frame.render_widget(Clear, popup_area);
 
-    let theme = &state.theme;
+    let theme = state.theme();
     let form = ui
         .quick_add_spell
         .as_ref()
@@ -131,7 +131,7 @@ pub fn render(frame: &mut Frame, state: &crate::state::State, ui: &mut UiState) 
         form.field == QuickAddField::Name,
         form.is_editing && form.field == QuickAddField::Name,
         true,
-        theme,
+        &theme,
     );
 
     // Tags field
@@ -143,7 +143,7 @@ pub fn render(frame: &mut Frame, state: &crate::state::State, ui: &mut UiState) 
         form.field == QuickAddField::Tags,
         form.is_editing && form.field == QuickAddField::Tags,
         false,
-        theme,
+        &theme,
     );
 
     // Run mode field
@@ -158,7 +158,7 @@ pub fn render(frame: &mut Frame, state: &crate::state::State, ui: &mut UiState) 
         "@ Run",
         run_mode_value,
         form.field == QuickAddField::RunMode,
-        theme,
+        &theme,
     );
 
     // Spellbook field
@@ -179,7 +179,7 @@ pub fn render(frame: &mut Frame, state: &crate::state::State, ui: &mut UiState) 
         "> Book",
         spellbook_label,
         form.field == QuickAddField::Spellbook,
-        theme,
+        &theme,
     );
 
     // Message
@@ -208,7 +208,7 @@ pub fn render(frame: &mut Frame, state: &crate::state::State, ui: &mut UiState) 
 
     // Render dropdown last so it draws on top of the footer/hints bar.
     if show_dropdown {
-        render_spellbook_dropdown(frame, chunks[4], state, form, theme);
+        render_spellbook_dropdown(frame, chunks[4], state, form, &theme);
     }
 }
 
@@ -571,7 +571,7 @@ fn save(state: &mut State, ui: &mut UiState) {
         return;
     }
 
-    let glyphs: Vec<String> = form
+    let tags: Vec<String> = form
         .tags
         .split(',')
         .map(|s| s.trim().to_string())
@@ -582,10 +582,10 @@ fn save(state: &mut State, ui: &mut UiState) {
     let spell = Spell {
         id: spell_id,
         name: form.name.trim().to_string(),
-        incantation: form.command.trim().to_string(),
-        lore: String::new(),
-        school: String::new(),
-        glyphs,
+        command: form.command.trim().to_string(),
+        description: String::new(),
+        category: String::new(),
+        tags,
         confirm: false,
         run_mode: form.run_mode,
         working_dir: String::new(),

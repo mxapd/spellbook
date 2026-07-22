@@ -2,7 +2,7 @@
 pub enum AddSpellbookField {
     Name,
     Cover,
-    Sigil,
+    Decoration,
 }
 
 impl Default for AddSpellbookField {
@@ -16,7 +16,7 @@ pub struct AddSpellbookForm {
     pub field: AddSpellbookField,
     pub name: String,
     pub cover: String,
-    pub sigil: String,
+    pub decoration: String,
     pub is_editing: bool,
     pub message: Option<(String, bool)>, // (message, is_error)
     pub has_unsaved: bool,
@@ -26,7 +26,7 @@ impl AddSpellbookForm {
     pub fn clear(&mut self) {
         self.name.clear();
         self.cover.clear();
-        self.sigil.clear();
+        self.decoration.clear();
         self.field = AddSpellbookField::Name;
         self.is_editing = false;
         self.message = None;
@@ -40,16 +40,16 @@ impl AddSpellbookForm {
     pub fn next_field(&mut self) {
         self.field = match self.field {
             AddSpellbookField::Name => AddSpellbookField::Cover,
-            AddSpellbookField::Cover => AddSpellbookField::Sigil,
-            AddSpellbookField::Sigil => AddSpellbookField::Name,
+            AddSpellbookField::Cover => AddSpellbookField::Decoration,
+            AddSpellbookField::Decoration => AddSpellbookField::Name,
         };
     }
 
     pub fn prev_field(&mut self) {
         self.field = match self.field {
-            AddSpellbookField::Name => AddSpellbookField::Sigil,
+            AddSpellbookField::Name => AddSpellbookField::Decoration,
             AddSpellbookField::Cover => AddSpellbookField::Name,
-            AddSpellbookField::Sigil => AddSpellbookField::Cover,
+            AddSpellbookField::Decoration => AddSpellbookField::Cover,
         };
     }
 }
@@ -73,7 +73,7 @@ pub fn render_in_area(
     ui: &mut crate::ui::UiState,
     area: Rect,
 ) {
-    let theme = &state.theme;
+    let theme = state.theme();
     let form = &ui.add_spellbook;
 
     // Main layout
@@ -104,7 +104,7 @@ pub fn render_in_area(
         .constraints([
             Constraint::Length(3), // Name
             Constraint::Length(3), // Cover
-            Constraint::Length(3), // Sigil
+            Constraint::Length(3), // Decoration
         ])
         .split(chunks[1]);
 
@@ -117,7 +117,7 @@ pub fn render_in_area(
         &form.name,
         form.field == AddSpellbookField::Name,
         form.is_editing && form.field == AddSpellbookField::Name,
-        theme,
+        &theme,
     );
 
     // Cover field
@@ -129,19 +129,19 @@ pub fn render_in_area(
         &form.cover,
         form.field == AddSpellbookField::Cover,
         form.is_editing && form.field == AddSpellbookField::Cover,
-        theme,
+        &theme,
     );
 
-    // Sigil field
+    // Decoration field
     render_field(
         frame,
         form_chunks[2],
-        "Sigil",
+        "Decoration",
         '@',
-        &form.sigil,
-        form.field == AddSpellbookField::Sigil,
-        form.is_editing && form.field == AddSpellbookField::Sigil,
-        theme,
+        &form.decoration,
+        form.field == AddSpellbookField::Decoration,
+        form.is_editing && form.field == AddSpellbookField::Decoration,
+        &theme,
     );
 
     // Message area
@@ -218,7 +218,7 @@ mod tests {
         assert_eq!(form.field, AddSpellbookField::Name);
         assert!(form.name.is_empty());
         assert!(form.cover.is_empty());
-        assert!(form.sigil.is_empty());
+        assert!(form.decoration.is_empty());
         assert!(form.message.is_none());
         assert!(!form.has_unsaved);
     }
@@ -226,10 +226,10 @@ mod tests {
     #[test]
     fn test_add_spellbook_form_clear() {
         let mut form = AddSpellbookForm {
-            field: AddSpellbookField::Sigil,
+            field: AddSpellbookField::Decoration,
             name: "Test".to_string(),
             cover: "Cover".to_string(),
-            sigil: "*".to_string(),
+            decoration: "*".to_string(),
             message: Some(("Error".to_string(), true)),
             has_unsaved: true,
             is_editing: true,
@@ -240,7 +240,7 @@ mod tests {
         assert_eq!(form.field, AddSpellbookField::Name);
         assert!(form.name.is_empty());
         assert!(form.cover.is_empty());
-        assert!(form.sigil.is_empty());
+        assert!(form.decoration.is_empty());
         assert!(form.message.is_none());
         assert!(!form.has_unsaved);
     }
@@ -265,7 +265,7 @@ mod tests {
         assert_eq!(form.field, AddSpellbookField::Cover);
 
         form.next_field();
-        assert_eq!(form.field, AddSpellbookField::Sigil);
+        assert_eq!(form.field, AddSpellbookField::Decoration);
 
         form.next_field();
         assert_eq!(form.field, AddSpellbookField::Name);
@@ -276,7 +276,7 @@ mod tests {
         let mut form = AddSpellbookForm::default();
 
         form.prev_field();
-        assert_eq!(form.field, AddSpellbookField::Sigil);
+        assert_eq!(form.field, AddSpellbookField::Decoration);
 
         form.prev_field();
         assert_eq!(form.field, AddSpellbookField::Cover);

@@ -8,7 +8,7 @@ use ratatui::widgets::ListState;
 use ratatui::widgets::{Block, Borders, List, ListItem, Paragraph};
 
 pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
-    let theme = &state.theme;
+    let theme = state.theme();
 
     let chunks = Layout::default()
         .direction(Direction::Vertical)
@@ -89,16 +89,16 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
     ]));
     frame.render_widget(cmd_line, form_chunks[1]);
 
-    let lore_value = if ui.add_spell.lore.is_empty() {
+    let lore_value = if ui.add_spell.description.is_empty() {
         "[...]".to_string()
     } else {
-        format!("[{}]", ui.add_spell.lore)
+        format!("[{}]", ui.add_spell.description)
     };
     let lore_line = Paragraph::new(Line::from(vec![
-        Span::styled(":: Lore:   ", label_style),
+        Span::styled(":: Description:", label_style),
         Span::styled(
             lore_value,
-            if ui.add_spell.field == AddSpellField::Lore {
+            if ui.add_spell.field == AddSpellField::Description {
                 active_style
             } else {
                 normal_style
@@ -107,16 +107,16 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
     ]));
     frame.render_widget(lore_line, form_chunks[2]);
 
-    let school_value = if ui.add_spell.school.is_empty() {
+    let school_value = if ui.add_spell.category.is_empty() {
         "[...]".to_string()
     } else {
-        format!("[{}]", ui.add_spell.school)
+        format!("[{}]", ui.add_spell.category)
     };
     let school_line = Paragraph::new(Line::from(vec![
-        Span::styled("^ School:  ", label_style),
+        Span::styled("^ Category:", label_style),
         Span::styled(
             school_value,
-            if ui.add_spell.field == AddSpellField::School {
+            if ui.add_spell.field == AddSpellField::Category {
                 active_style
             } else {
                 normal_style
@@ -290,7 +290,7 @@ pub fn render(frame: &mut Frame, state: &State, ui: &mut UiState) {
     } else {
         format!(
             "tab/arrows/jk navigate  Enter next  Ctrl+S save  Esc cancel  t {}",
-            state.current_theme.name()
+            state.user_settings.theme.name()
         )
     };
 
@@ -305,7 +305,7 @@ pub fn render_in_area(
     ui: &mut UiState,
     area: ratatui::layout::Rect,
 ) {
-    let theme = &state.theme;
+    let theme = state.theme();
 
     let chunks = Layout::default()
         .direction(Direction::Vertical)
@@ -388,16 +388,16 @@ pub fn render_in_area(
     ]));
     frame.render_widget(cmd_line, form_chunks[1]);
 
-    let lore_value = if ui.add_spell.lore.is_empty() {
+    let lore_value = if ui.add_spell.description.is_empty() {
         "[...]".to_string()
     } else {
-        format!("[{}]", ui.add_spell.lore)
+        format!("[{}]", ui.add_spell.description)
     };
     let lore_line = Paragraph::new(Line::from(vec![
-        Span::styled(":: Lore:   ", label_style),
+        Span::styled(":: Description:", label_style),
         Span::styled(
             lore_value,
-            if ui.add_spell.field == AddSpellField::Lore {
+            if ui.add_spell.field == AddSpellField::Description {
                 active_style
             } else {
                 normal_style
@@ -406,16 +406,16 @@ pub fn render_in_area(
     ]));
     frame.render_widget(lore_line, form_chunks[2]);
 
-    let school_value = if ui.add_spell.school.is_empty() {
+    let school_value = if ui.add_spell.category.is_empty() {
         "[...]".to_string()
     } else {
-        format!("[{}]", ui.add_spell.school)
+        format!("[{}]", ui.add_spell.category)
     };
     let school_line = Paragraph::new(Line::from(vec![
-        Span::styled("^ School:  ", label_style),
+        Span::styled("^ Category:", label_style),
         Span::styled(
             school_value,
-            if ui.add_spell.field == AddSpellField::School {
+            if ui.add_spell.field == AddSpellField::Category {
                 active_style
             } else {
                 normal_style

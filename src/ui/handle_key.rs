@@ -17,7 +17,7 @@ use crate::archivist::Archivist;
 use crate::models::{FocusTarget, RunMode};
 use crate::state::{CONFIG_PATH, State};
 use crate::ui::search_overlay::real_spellbook_index;
-use crate::ui::{FormState, Mode, Overlay, QuickAddSpellState, UiState, ViewMode, streaming_modal};
+use crate::ui::{default_launch_dir, FormState, Mode, Overlay, QuickAddSpellState, UiState, ViewMode, streaming_modal};
 use crate::{log_debug, log_error, log_info};
 use crossterm::event::{KeyCode, KeyModifiers};
 
@@ -45,7 +45,7 @@ enum CommandAction {
     Help,
     Export,
     Import,
-    SetColor(String),
+    SetColor,
     Quit,
 }
 
@@ -120,7 +120,7 @@ fn get_commands() -> Vec<Command> {
         Command {
             aliases: vec!["setcolor", "color", "set-color"],
             description: "Set spellbook color (r,g,b or #hex)",
-            action: CommandAction::SetColor(String::new()),
+            action: CommandAction::SetColor,
         },
         Command {
             aliases: vec!["q", "quit"],
@@ -130,12 +130,28 @@ fn get_commands() -> Vec<Command> {
     ]
 }
 
-/// Filter commands based on query string
+/// Rank how well an alias matches the query (higher = better).
+fn score_alias(alias: &str, query: &str, query_lower: &str) -> usize {
+    if alias == query {
+        4 // exact case-sensitive match
+    } else if alias.to_lowercase() == query_lower {
+        3 // exact case-insensitive match
+    } else if alias.starts_with(query) {
+        2 // case-sensitive prefix match
+    } else if alias.to_lowercase().starts_with(query_lower) {
+        1 // case-insensitive prefix match
+    } else {
+        0 // substring match (already filtered)
+    }
+}
+
+/// Filter commands based on query string.
+/// Results are sorted so exact matches come first.
 pub fn filter_commands(query: &str) -> Vec<(usize, &'static str, &'static str)> {
     let query_lower = query.to_lowercase();
     let commands = get_commands();
 
-    commands
+    let mut results: Vec<_> = commands
         .into_iter()
         .enumerate()
         .filter(|(_, cmd)| {
@@ -145,8 +161,22 @@ pub fn filter_commands(query: &str) -> Vec<(usize, &'static str, &'static str)> 
         })
         .map(|(idx, cmd)| {
             let primary = cmd.aliases[0];
-            (idx, primary, cmd.description)
+            let best = cmd
+                .aliases
+                .iter()
+                .map(|a| score_alias(a, query, &query_lower))
+                .max()
+                .unwrap_or(0);
+            (idx, primary, cmd.description, best)
         })
+        .collect();
+
+    // Sort by score descending, then by original index for stability
+    results.sort_by(|a, b| b.3.cmp(&a.3).then(a.0.cmp(&b.0)));
+
+    results
+        .into_iter()
+        .map(|(idx, primary, desc, _)| (idx, primary, desc))
         .collect()
 }
 
@@ -367,12 +397,6 @@ impl UiState {
 
         match key {
             KeyCode::Esc => true,
-            KeyCode::Char(c) => {
-                if let Some(placeholder) = popup.placeholders.get_mut(popup.placeholder_index) {
-                    placeholder.value.push(c);
-                }
-                false
-            }
             KeyCode::Backspace => {
                 if let Some(placeholder) = popup.placeholders.get_mut(popup.placeholder_index) {
                     placeholder.value.pop();
@@ -398,6 +422,12 @@ impl UiState {
                 } else {
                     false
                 }
+            }
+            KeyCode::Char(c) => {
+                if let Some(placeholder) = popup.placeholders.get_mut(popup.placeholder_index) {
+                    placeholder.value.push(c);
+                }
+                false
             }
             _ => false,
         }
@@ -454,21 +484,18 @@ impl UiState {
                                         crate::models::RecentAction::Run,
                                     );
                                     let working_dir = if spell.working_dir.is_empty() {
-                                        if state.launch_dir.is_empty() {
-                                            None
-                                        } else {
-                                            Some(state.launch_dir.clone())
-                                        }
+                                        default_launch_dir()
                                     } else {
                                         Some(spell.working_dir.clone())
                                     };
+                                    let ld = default_launch_dir().unwrap_or_default();
                                     log_info!("Starting TUI execution for spell: {}", spell.name);
                                     match crate::ui::streaming_modal::start_tui_execution(
                                         self,
-                                        spell.incantation.clone(),
+                                        spell.command.clone(),
                                         Some(spell.name.clone()),
                                         working_dir,
-                                        state.launch_dir.clone(),
+                                        ld,
                                     ) {
                                         Ok(pid) => {
                                             log_info!(
@@ -490,13 +517,9 @@ impl UiState {
                                     let spell_name = spell.name.clone();
                                     match crate::invoker::start_spell(
                                         spell.name.clone(),
-                                        spell.incantation.clone(),
+                                        spell.command.clone(),
                                         if spell.working_dir.is_empty() {
-                                            if state.launch_dir.is_empty() {
-                                                None
-                                            } else {
-                                                Some(state.launch_dir.clone())
-                                            }
+                                            default_launch_dir()
                                         } else {
                                             Some(spell.working_dir.clone())
                                         },
@@ -611,7 +634,7 @@ impl UiState {
                 log_info!("Command: import (needs arguments)");
                 self.show_info("Usage: :import <filename>".to_string());
             }
-            CommandAction::SetColor(_) => {
+            CommandAction::SetColor => {
                 let query = self.search_query();
                 let color_str = query.trim_start_matches(':').trim();
 
@@ -744,11 +767,7 @@ pub fn execute_simple_mode(spell: &crate::models::Spell, state: &mut State, _ui:
 
     // Step 3: Determine working directory
     let working_dir = if spell.working_dir.is_empty() {
-        if state.launch_dir.is_empty() {
-            None
-        } else {
-            Some(state.launch_dir.clone())
-        }
+        default_launch_dir()
     } else {
         Some(spell.working_dir.clone())
     };
@@ -757,15 +776,16 @@ pub fn execute_simple_mode(spell: &crate::models::Spell, state: &mut State, _ui:
     let _ = crossterm::terminal::disable_raw_mode();
 
     // Step 5: Execute via exec() — replaces our process
+    let ld = default_launch_dir().unwrap_or_default();
     log_info!(
         "Executing spell '{}' in simple mode: {}",
         spell.name,
-        spell.incantation
+        spell.command
     );
     crate::invoker::exec_simple(
-        &spell.incantation,
+        &spell.command,
         working_dir.as_deref(),
-        &state.launch_dir,
+        &ld,
     );
 }
 

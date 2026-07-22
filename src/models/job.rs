@@ -145,8 +145,10 @@ impl JobManager {
 mod tests {
     use super::*;
 
+    // === job status ===
+
     #[test]
-    fn test_job_status_variants() {
+    fn job_status_variants() {
         assert!(matches!(JobStatus::Queued, JobStatus::Queued));
         assert!(matches!(JobStatus::Running, JobStatus::Running));
         assert!(matches!(JobStatus::Completed, JobStatus::Completed));
@@ -154,8 +156,10 @@ mod tests {
         assert!(matches!(JobStatus::Cancelled, JobStatus::Cancelled));
     }
 
+    // === recents ===
+
     #[test]
-    fn test_recent_entry_creation() {
+    fn recent_entry_creation() {
         let entry = RecentEntry::new(
             "test-id".to_string(),
             "Test Spell".to_string(),
@@ -167,7 +171,7 @@ mod tests {
     }
 
     #[test]
-    fn test_job_manager_next_id() {
+    fn job_manager_next_id() {
         let mut manager = JobManager::new();
         assert_eq!(manager.get_next_id(), 1);
         assert_eq!(manager.get_next_id(), 2);

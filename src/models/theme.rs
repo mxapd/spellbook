@@ -241,9 +241,13 @@ impl ViewMode {
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize, Default)]
 pub struct UserSettings {
     #[serde(default)]
+    pub theme: Theme,
+    #[serde(default)]
     pub view_mode: ViewMode,
 }
 
+/// Legacy config wrapper kept for backward-compatible (de)serialization.
+/// New code should use [`UserSettings`] directly.
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct ThemeConfig {
     #[serde(default)]
@@ -254,9 +258,31 @@ pub struct ThemeConfig {
 
 impl Default for ThemeConfig {
     fn default() -> Self {
+        let settings = UserSettings::default();
         Self {
-            selected_theme: Theme::default(),
-            settings: UserSettings::default(),
+            selected_theme: settings.theme,
+            settings,
+        }
+    }
+}
+
+impl ThemeConfig {
+    /// Return the effective user settings, migrating a legacy `selected_theme`
+    /// into `settings.theme` when the theme field was never set.
+    pub fn user_settings(self) -> UserSettings {
+        let mut settings = self.settings;
+        if settings.theme == Theme::default() && self.selected_theme != Theme::default() {
+            settings.theme = self.selected_theme;
+        }
+        settings
+    }
+}
+
+impl From<UserSettings> for ThemeConfig {
+    fn from(settings: UserSettings) -> Self {
+        Self {
+            selected_theme: settings.theme,
+            settings,
         }
     }
 }
@@ -265,8 +291,10 @@ impl Default for ThemeConfig {
 mod tests {
     use super::*;
 
+    // === theme ===
+
     #[test]
-    fn test_theme_next_cycles_through_all() {
+    fn theme_next_cycles_through_all() {
         let themes = Theme::all();
         let mut current = Theme::DarkDefault;
 
@@ -277,26 +305,26 @@ mod tests {
     }
 
     #[test]
-    fn test_theme_default_is_dark_default() {
+    fn theme_default_is_dark_default() {
         assert_eq!(Theme::default(), Theme::DarkDefault);
     }
 
     #[test]
-    fn test_theme_from_usize_converts_correctly() {
+    fn theme_from_usize_converts_correctly() {
         assert_eq!(Theme::from(0), Theme::DarkDefault);
         assert_eq!(Theme::from(1), Theme::LightDefault);
         assert_eq!(Theme::from(5), Theme::Nord);
     }
 
     #[test]
-    fn test_theme_from_usize_wraps_around() {
+    fn theme_from_usize_wraps_around() {
         assert_eq!(Theme::from(10), Theme::DarkDefault);
         assert_eq!(Theme::from(11), Theme::LightDefault);
         assert_eq!(Theme::from(100), Theme::DarkDefault);
     }
 
     #[test]
-    fn test_theme_roundtrip_via_usize() {
+    fn theme_roundtrip_via_usize() {
         let themes = Theme::all();
         for (i, theme) in themes.iter().enumerate() {
             let converted: Theme = i.into();
@@ -305,7 +333,7 @@ mod tests {
     }
 
     #[test]
-    fn test_theme_to_usize_roundtrip() {
+    fn theme_to_usize_roundtrip() {
         let themes = Theme::all();
         for theme in themes {
             let converted: usize = theme.into();
@@ -315,7 +343,7 @@ mod tests {
     }
 
     #[test]
-    fn test_theme_name_returns_correct_strings() {
+    fn theme_name_returns_correct_strings() {
         assert_eq!(Theme::DarkDefault.name(), "default");
         assert_eq!(Theme::LightDefault.name(), "default-light");
         assert_eq!(Theme::Dracula.name(), "dracula");
@@ -324,7 +352,7 @@ mod tests {
     }
 
     #[test]
-    fn test_all_themes_have_unique_names() {
+    fn all_themes_have_unique_names() {
         let names: Vec<_> = Theme::all().iter().map(|t| t.name()).collect();
         let mut sorted_names = names.clone();
         sorted_names.sort();
@@ -332,27 +360,29 @@ mod tests {
         assert_eq!(names.len(), sorted_names.len());
     }
 
+    // === view_mode ===
+
     #[test]
-    fn test_view_mode_next_cycles() {
+    fn view_mode_next_cycles() {
         assert_eq!(ViewMode::List.next(), ViewMode::Cards);
         assert_eq!(ViewMode::Cards.next(), ViewMode::Spines);
         assert_eq!(ViewMode::Spines.next(), ViewMode::List);
     }
 
     #[test]
-    fn test_view_mode_default_is_cards() {
+    fn view_mode_default_is_cards() {
         assert_eq!(ViewMode::default(), ViewMode::Cards);
     }
 
     #[test]
-    fn test_view_mode_as_str() {
+    fn view_mode_as_str() {
         assert_eq!(ViewMode::List.as_str(), "list");
         assert_eq!(ViewMode::Cards.as_str(), "cards");
         assert_eq!(ViewMode::Spines.as_str(), "spines");
     }
 
     #[test]
-    fn test_view_mode_next_full_cycle() {
+    fn view_mode_next_full_cycle() {
         let mut mode = ViewMode::List;
         mode = mode.next();
         assert_eq!(mode, ViewMode::Cards);
@@ -362,21 +392,48 @@ mod tests {
         assert_eq!(mode, ViewMode::List);
     }
 
+    // === settings ===
+
     #[test]
-    fn test_user_settings_default() {
+    fn user_settings_default() {
         let settings = UserSettings::default();
+        assert_eq!(settings.theme, Theme::default());
         assert_eq!(settings.view_mode, ViewMode::default());
     }
 
     #[test]
-    fn test_theme_config_default() {
+    fn theme_config_default() {
         let config = ThemeConfig::default();
         assert_eq!(config.selected_theme, Theme::default());
+        assert_eq!(config.settings.theme, Theme::default());
         assert_eq!(config.settings.view_mode, ViewMode::default());
     }
 
     #[test]
-    fn test_ratatui_colors_all_themes_produce_valid_colors() {
+    fn theme_config_migrates_legacy_selected_theme() {
+        let config = ThemeConfig {
+            selected_theme: Theme::Nord,
+            settings: UserSettings::default(),
+        };
+        let settings = config.user_settings();
+        assert_eq!(settings.theme, Theme::Nord);
+    }
+
+    #[test]
+    fn theme_config_settings_theme_wins_over_legacy() {
+        let config = ThemeConfig {
+            selected_theme: Theme::Nord,
+            settings: UserSettings {
+                theme: Theme::Dracula,
+                view_mode: ViewMode::List,
+            },
+        };
+        let settings = config.user_settings();
+        assert_eq!(settings.theme, Theme::Dracula);
+    }
+
+    #[test]
+    fn ratatui_colors_all_themes_produce_valid_colors() {
         for theme in Theme::all() {
             let colors = theme.colors();
             assert!(colors.bg != colors.fg || true);
