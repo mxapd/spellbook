@@ -2,13 +2,13 @@ mod codex;
 mod job;
 mod spell;
 mod spellbook;
-mod theme;
+mod settings;
 
 pub use codex::Codex;
 pub use job::{RecentAction, RecentEntry};
 pub use spell::{RunMode, Spell};
 pub use spellbook::{Spellbook, SpineStyle};
-pub use theme::{RatatuiColors, ThemeConfig, UserSettings, ViewMode};
+pub use settings::{RatatuiColors, Settings, ViewMode};
 
 use serde::{Deserialize, Serialize};
 
