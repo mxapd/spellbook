@@ -1876,7 +1876,7 @@ pub fn render_output_mode(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::{Codex, RecentAction, RecentEntry, Spell, Spellbook, UserSettings};
+    use crate::models::{Codex, RecentAction, RecentEntry, Spell, Spellbook, Settings};
 
     fn make_codex() -> Codex {
         Codex {
@@ -1936,7 +1936,7 @@ mod tests {
     }
 
     fn make_test_state() -> State {
-        State::new(make_codex(), UserSettings::default())
+        State::new(make_codex(), Settings::default())
     }
 
     #[test]
@@ -1957,7 +1957,7 @@ mod tests {
         let mut codex = make_codex();
         codex.spells.push(make_favorite_spell("Fav1"));
         codex.spells.push(make_favorite_spell("Fav2"));
-        let state = State::new(codex, UserSettings::default());
+        let state = State::new(codex, Settings::default());
 
         let item = get_spellbook_item(&state, 0);
         assert!(matches!(
@@ -1969,7 +1969,7 @@ mod tests {
     #[test]
     fn test_get_spellbook_item_with_recent() {
         let codex = make_codex();
-        let mut state = State::new(codex, UserSettings::default());
+        let mut state = State::new(codex, Settings::default());
         state.recents.push(make_recent_entry("id1", "Recent1"));
 
         let item = get_spellbook_item(&state, 0);
@@ -1981,7 +1981,7 @@ mod tests {
     fn test_get_spellbook_item_real_spellbook() {
         let mut codex = make_codex();
         codex.spellbooks.push(make_spellbook("Test Book"));
-        let state = State::new(codex, UserSettings::default());
+        let state = State::new(codex, Settings::default());
 
         // With isolated test state (no recents), real spellbooks appear first.
         let item = get_spellbook_item(&state, 0);
@@ -1999,7 +1999,7 @@ mod tests {
     fn test_total_spellbook_count_with_favorites() {
         let mut codex = make_codex();
         codex.spells.push(make_favorite_spell("Fav1"));
-        let state = State::new(codex, UserSettings::default());
+        let state = State::new(codex, Settings::default());
         // 1 for Favorites + 1 for All + 1 for Unassigned = 3
         assert_eq!(total_spellbook_count(&state), 3);
     }
@@ -2017,7 +2017,7 @@ mod tests {
         let mut codex = make_codex();
         codex.spells.push(make_favorite_spell("Fav1"));
         codex.spellbooks.push(make_spellbook("Book"));
-        let mut state = State::new(codex, UserSettings::default());
+        let mut state = State::new(codex, Settings::default());
         state.recents.push(make_recent_entry("id1", "Recent1"));
 
         // 1 for Favorites + 1 for Recent + 1 for Book + 1 for All + 1 for Unassigned = 5
@@ -2029,7 +2029,7 @@ mod tests {
         let mut codex = make_codex();
         codex.spells.push(make_spell("Spell1"));
         codex.spells.push(make_spell("Spell2"));
-        let state = State::new(codex, UserSettings::default());
+        let state = State::new(codex, Settings::default());
 
         // All is at the end, so with 0 spellbooks: index 0 should be VirtualAll
         let item = get_spellbook_item(&state, 0);
@@ -2041,7 +2041,7 @@ mod tests {
         let mut codex = make_codex();
         codex.spells.push(make_favorite_spell("Fav1"));
         codex.spells.push(make_spell("Spell1"));
-        let mut state = State::new(codex, UserSettings::default());
+        let mut state = State::new(codex, Settings::default());
         state.recents.push(make_recent_entry("id1", "Recent1"));
 
         // With 0 spellbooks: index 0 = Favorites, index 1 = Recent, index 2 = All
@@ -2089,7 +2089,7 @@ mod tests {
         let state = State::new(Codex {
             spells: vec![],
             spellbooks: vec![],
-        }, UserSettings::default());
+        }, Settings::default());
 
         let backend = TestBackend::new(80, 24);
         let mut terminal = Terminal::new(backend).unwrap();
@@ -2135,7 +2135,7 @@ mod tests {
                 color: None,
             }],
         };
-        let state = State::new(codex, UserSettings::default());
+        let state = State::new(codex, Settings::default());
         let mut ui = UiState::new(false);
         ui.enter_browse_spells(0); // real spellbook at index 0
         ui.spell_list_state.select(Some(0));

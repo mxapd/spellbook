@@ -40,7 +40,6 @@ pub enum BrowseState {
     },
     Viewing {
         spellbook_index: usize,
-        spell_list_state: ratatui::widgets::ListState,
     },
 }
 
@@ -52,25 +51,9 @@ impl Default for BrowseState {
     }
 }
 
-/// State for form modes (Elm Model composition)
+/// Marker state for form modes (Elm Model composition)
 #[derive(PartialEq, Clone, Debug, Default)]
-pub enum FormState {
-    #[default]
-    Idle,
-    Editing(FormField), // which field has focus
-}
-
-#[derive(PartialEq, Clone, Debug)]
-pub enum FormField {
-    Name,
-    Command,
-    Description,
-    Category,
-    Tags,
-    WorkingDir,
-    RunMode,
-    Confirm,
-}
+pub struct FormState;
 
 /// Overlays render on top of the current mode
 #[derive(PartialEq, Clone, Copy, Debug)]

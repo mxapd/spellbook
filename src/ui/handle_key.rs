@@ -13,9 +13,9 @@
 //!    ├── self.handle_global_keys()  ← Ctrl+C, ?, J, etc.
 //!    └── self.dispatch_mode()       ← Mode::handle_key() → module handlers
 
-use crate::archivist::Archivist;
+use crate::archivist::{self, Archivist};
 use crate::models::{FocusTarget, RunMode};
-use crate::state::{CONFIG_PATH, State};
+use crate::state::State;
 use crate::ui::search_overlay::real_spellbook_index;
 use crate::ui::{default_launch_dir, FormState, Mode, Overlay, QuickAddSpellState, UiState, ViewMode, streaming_modal};
 use crate::{log_debug, log_error, log_info};
@@ -601,17 +601,17 @@ impl UiState {
             }
             CommandAction::CardsView => {
                 state.user_settings.view_mode = ViewMode::Cards;
-                let _ = Archivist::save_user_settings(CONFIG_PATH, &state.user_settings);
+                let _ = Archivist::save_user_settings(&archivist::config_path().to_string_lossy(), &state.user_settings);
                 log_info!("Command: cards view");
             }
             CommandAction::SpinesView => {
                 state.user_settings.view_mode = ViewMode::Spines;
-                let _ = Archivist::save_user_settings(CONFIG_PATH, &state.user_settings);
+                let _ = Archivist::save_user_settings(&archivist::config_path().to_string_lossy(), &state.user_settings);
                 log_info!("Command: spines view");
             }
             CommandAction::ListView => {
                 state.user_settings.view_mode = ViewMode::List;
-                let _ = Archivist::save_user_settings(CONFIG_PATH, &state.user_settings);
+                let _ = Archivist::save_user_settings(&archivist::config_path().to_string_lossy(), &state.user_settings);
                 log_info!("Command: list view");
             }
             CommandAction::CycleTheme => {

@@ -1,244 +1,760 @@
+# ============================================================
+# Spellbook Demo Codex - ~50 spells across 8 spellbooks
+# ============================================================
+
+# ------------------------------------------------------------
+# Spells
+# ------------------------------------------------------------
+
+# --- Filesystem ---
+
 [[spells]]
-id = "550e8400-e29b-41d4-a716-446655440001"
+id = "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d"
 name = "List Files"
-incantation = "ls -la"
-lore = "List all files with details"
-school = "Filesystem"
-glyphs = [
-    "file",
-    "list",
-]
+command = "ls -la"
+description = "List all files with details"
+category = "Filesystem"
+tags = ["file", "list"]
 confirm = false
 run_mode = "simple"
 working_dir = ""
 favorite = true
 
 [[spells]]
-id = "550e8400-e29b-41d4-a716-446655440002"
+id = "b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e"
 name = "Find Large Files"
-incantation = 'find . -type f -size +100M -exec ls -lh {} \;'
-lore = "Find files larger than 100MB"
-school = "Filesystem"
-glyphs = [
-    "find",
-    "size",
-]
+command = 'find . -type f -size +100M -exec ls -lh {} \;'
+description = "Find files larger than 100MB"
+category = "Filesystem"
+tags = ["find", "size"]
 confirm = false
 run_mode = "simple"
 working_dir = ""
 favorite = false
 
 [[spells]]
-id = "550e8400-e29b-41d4-a716-446655440003"
-name = "Git Status"
-incantation = "git status"
-lore = "Show working tree status"
-school = "Git"
-glyphs = [
-    "git",
-    "status",
-]
+id = "c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f"
+name = "Disk Usage"
+command = "du -sh * | sort -h"
+description = "Show disk usage sorted by size"
+category = "Filesystem"
+tags = ["disk", "size"]
+confirm = false
+run_mode = "simple"
+working_dir = ""
+favorite = false
+
+[[spells]]
+id = "d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f80"
+name = "Tree View"
+command = "tree -L 2 --dirsfirst"
+description = "Show directory tree (2 levels deep)"
+category = "Filesystem"
+tags = ["tree", "structure"]
 confirm = false
 run_mode = "simple"
 working_dir = ""
 favorite = true
 
 [[spells]]
-id = "550e8400-e29b-41d4-a716-446655440004"
+id = "e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8091"
+name = "Find by Name"
+command = 'find . -type f -iname "*<pattern>*"'
+description = "Find files matching a pattern (case-insensitive)"
+category = "Filesystem"
+tags = ["find", "search"]
+confirm = false
+run_mode = "simple"
+working_dir = ""
+favorite = false
+
+# --- Git ---
+
+[[spells]]
+id = "f6a7b8c9-d0e1-4f2a-3b4c-5d6e7f809102"
+name = "Git Status"
+command = "git status"
+description = "Show working tree status"
+category = "Git"
+tags = ["git", "status"]
+confirm = false
+run_mode = "simple"
+working_dir = ""
+favorite = true
+
+[[spells]]
+id = "a7b8c9d0-e1f2-4a3b-4c5d-6e7f80910213"
 name = "Git Log Graph"
-incantation = "git log --oneline --graph --all -20"
-lore = "Show commit history as graph"
-school = "Git"
-glyphs = [
-    "git",
-    "log",
-]
+command = "git log --oneline --graph --all -20"
+description = "Show commit history as graph"
+category = "Git"
+tags = ["git", "log"]
 confirm = false
 run_mode = "simple"
 working_dir = ""
 favorite = false
 
 [[spells]]
-id = "550e8400-e29b-41d4-a716-446655440005"
+id = "b8c9d0e1-f2a3-4b4c-5d6e-7f8091021324"
+name = "Git Diff Stat"
+command = "git diff --stat"
+description = "Show diff summary with file stats"
+category = "Git"
+tags = ["git", "diff"]
+confirm = false
+run_mode = "simple"
+working_dir = ""
+favorite = false
+
+[[spells]]
+id = "c9d0e1f2-a3b4-4c5d-6e7f-809102132435"
+name = "Git Branches"
+command = "git branch -av"
+description = "List all local and remote branches"
+category = "Git"
+tags = ["git", "branch"]
+confirm = false
+run_mode = "simple"
+working_dir = ""
+favorite = false
+
+[[spells]]
+id = "d0e1f2a3-b4c5-4d6e-7f80-910213243546"
+name = "Git Stash List"
+command = "git stash list"
+description = "Show all stashed changes"
+category = "Git"
+tags = ["git", "stash"]
+confirm = false
+run_mode = "simple"
+working_dir = ""
+favorite = false
+
+[[spells]]
+id = "e1f2a3b4-c5d6-4e7f-8091-021324354657"
+name = "Git Interactive Rebase"
+command = "git rebase -i HEAD~<count>"
+description = "Interactive rebase last N commits"
+category = "Git"
+tags = ["git", "rebase"]
+confirm = true
+run_mode = "simple"
+working_dir = ""
+favorite = false
+
+# --- Network ---
+
+[[spells]]
+id = "f2a3b4c5-d6e7-4f80-9102-132435465768"
 name = "Port Scanner"
-incantation = "nmap -sV localhost"
-lore = "Scan local ports for services"
-school = "Network"
-glyphs = [
-    "network",
-    "scan",
-]
+command = "nmap -sV localhost"
+description = "Scan local ports for services"
+category = "Network"
+tags = ["network", "scan"]
 confirm = true
 run_mode = "tui"
 working_dir = ""
 favorite = false
 
 [[spells]]
-id = "550e8400-e29b-41d4-a716-446655440006"
-name = "Tail Logs"
-incantation = "tail -f /var/log/syslog"
-lore = "Follow system logs in real-time"
-school = "System"
-glyphs = [
-    "log",
-    "monitor",
-]
-confirm = false
-run_mode = "tui"
-working_dir = ""
-favorite = false
-
-[[spells]]
-id = "550e8400-e29b-41d4-a716-446655440007"
-name = "Build Project"
-incantation = "cargo build --release"
-lore = "Build project in release mode"
-school = "Build"
-glyphs = [
-    "build",
-    "rust",
-]
-confirm = false
-run_mode = "tui"
-working_dir = ""
-favorite = true
-
-[[spells]]
-id = "550e8400-e29b-41d4-a716-446655440008"
-name = "Run Tests"
-incantation = "cargo test"
-lore = "Run all project tests"
-school = "Build"
-glyphs = [
-    "test",
-    "rust",
-]
-confirm = false
-run_mode = "tui"
-working_dir = ""
-favorite = false
-
-[[spells]]
-id = "550e8400-e29b-41d4-a716-446655440009"
-name = "Disk Usage"
-incantation = "du -sh * | sort -h"
-lore = "Show disk usage sorted by size"
-school = "Filesystem"
-glyphs = [
-    "disk",
-    "size",
-]
-confirm = false
-run_mode = "simple"
-working_dir = ""
-favorite = false
-
-[[spells]]
-id = "550e8400-e29b-41d4-a716-446655440010"
+id = "a3b4c5d6-e7f8-4091-0213-243546576879"
 name = "HTTP Server"
-incantation = "python3 -m http.server 8000"
-lore = "Start a simple HTTP server"
-school = "Network"
-glyphs = [
-    "http",
-    "server",
-]
+command = "python3 -m http.server 8000"
+description = "Start a simple HTTP server on port 8000"
+category = "Network"
+tags = ["http", "server"]
 confirm = true
 run_mode = "background"
 working_dir = ""
 favorite = false
 
 [[spells]]
-id = "550e8400-e29b-41d4-a716-446655440011"
-name = "Test Job (15s)"
-incantation = 'for i in {1..15}; do echo "Progress: $i/15"; sleep 1; done'
-lore = "Test job that runs for 15 seconds - useful for testing job features"
-school = "Testing"
-glyphs = [
-    "test",
-    "job",
-]
+id = "b4c5d6e7-f809-4102-1324-35465768798a"
+name = "Check Public IP"
+command = "curl -s ifconfig.me"
+description = "Show public IP address"
+category = "Network"
+tags = ["ip", "public"]
+confirm = false
+run_mode = "simple"
+working_dir = ""
+favorite = false
+
+[[spells]]
+id = "c5d6e7f8-0910-4213-2435-4657687989ab"
+name = "DNS Lookup"
+command = "dig +short <domain>"
+description = "Quick DNS lookup for a domain"
+category = "Network"
+tags = ["dns", "lookup"]
+confirm = false
+run_mode = "simple"
+working_dir = ""
+favorite = false
+
+[[spells]]
+id = "d6e7f809-1021-4324-3546-576879890abc"
+name = "Speed Test"
+command = "speedtest-cli --simple"
+description = "Run internet speed test"
+category = "Network"
+tags = ["speed", "test"]
+confirm = false
+run_mode = "tui"
+working_dir = ""
+favorite = true
+
+# --- Build ---
+
+[[spells]]
+id = "e7f80910-2132-4435-4657-6879890abcde"
+name = "Build Project"
+command = "cargo build --release"
+description = "Build Rust project in release mode"
+category = "Build"
+tags = ["build", "rust"]
 confirm = false
 run_mode = "tui"
 working_dir = ""
 favorite = true
 
 [[spells]]
-id = "640100f8-2e25-4187-a30b-a19ee281776b"
-name = "DANGER"
-incantation = "echo 'DANGER'"
-lore = ""
-school = "destruction"
-glyphs = []
+id = "f8091021-3243-4546-5768-79890abcdef0"
+name = "Run Tests"
+command = "cargo test"
+description = "Run all Rust project tests"
+category = "Build"
+tags = ["test", "rust"]
+confirm = false
+run_mode = "tui"
+working_dir = ""
+favorite = false
+
+[[spells]]
+id = "09102132-4354-4657-6879-890abcdef01"
+name = "Clippy Lint"
+command = "cargo clippy -- -D warnings"
+description = "Run Clippy with strict warnings"
+category = "Build"
+tags = ["lint", "rust"]
+confirm = false
+run_mode = "tui"
+working_dir = ""
+favorite = false
+
+[[spells]]
+id = "10213243-5465-4768-7989-0abcdef0123"
+name = "Format Code"
+command = "cargo fmt"
+description = "Format Rust code with rustfmt"
+category = "Build"
+tags = ["format", "rust"]
+confirm = false
+run_mode = "simple"
+working_dir = ""
+favorite = true
+
+[[spells]]
+id = "21324354-6576-4879-890a-bcdef0123456"
+name = "Build Docker Image"
+command = "docker build -t <name> ."
+description = "Build Docker image from Dockerfile"
+category = "Build"
+tags = ["docker", "build"]
+confirm = false
+run_mode = "tui"
+working_dir = ""
+favorite = false
+
+# --- Docker ---
+
+[[spells]]
+id = "32435465-7687-4989-0abc-def012345678"
+name = "Docker PS"
+command = "docker ps -a --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'"
+description = "List all containers with formatted output"
+category = "Docker"
+tags = ["docker", "list"]
+confirm = false
+run_mode = "simple"
+working_dir = ""
+favorite = true
+
+[[spells]]
+id = "43546576-8798-4a9b-bcde-f01234567890"
+name = "Docker Logs"
+command = "docker logs -f --tail 100 <container>"
+description = "Follow logs of a container (last 100 lines)"
+category = "Docker"
+tags = ["docker", "logs"]
+confirm = false
+run_mode = "tui"
+working_dir = ""
+favorite = false
+
+[[spells]]
+id = "54657687-989a-4bbc-def0-123456789012"
+name = "Docker Exec"
+command = "docker exec -it <container> /bin/sh"
+description = "Open shell in running container"
+category = "Docker"
+tags = ["docker", "exec", "shell"]
+confirm = false
+run_mode = "simple"
+working_dir = ""
+favorite = false
+
+[[spells]]
+id = "65768798-9aab-4ccd-ef01-234567890123"
+name = "Docker Cleanup"
+command = "docker system prune -af"
+description = "Remove all unused containers, networks, images"
+category = "Docker"
+tags = ["docker", "cleanup", "prune"]
 confirm = true
 run_mode = "simple"
 working_dir = ""
 favorite = false
 
 [[spells]]
-id = "c287365d-6b71-496a-a6c5-13add1df8f76"
-name = "nix temp package"
-incantation = "nix-shell -p <package>"
-lore = ""
-school = ""
-glyphs = [
-    "nix",
-    "package",
-]
+id = "76879890-abbc-4dde-f012-345678901234"
+name = "Docker Compose Up"
+command = "docker compose up -d"
+description = "Start services in detached mode"
+category = "Docker"
+tags = ["docker", "compose", "up"]
+confirm = false
+run_mode = "simple"
+working_dir = ""
+favorite = true
+
+[[spells]]
+id = "87989012-bccd-4eef-0123-456789012345"
+name = "Docker Compose Down"
+command = "docker compose down"
+description = "Stop and remove services"
+category = "Docker"
+tags = ["docker", "compose", "down"]
+confirm = true
+run_mode = "simple"
+working_dir = ""
+favorite = false
+
+[[spells]]
+id = "98901234-ccde-4ff0-1234-567890123456"
+name = "Docker Images"
+command = "docker images --format 'table {{.Repository}}\t{{.Tag}}\t{{.Size}}'"
+description = "List Docker images with size"
+category = "Docker"
+tags = ["docker", "images"]
 confirm = false
 run_mode = "simple"
 working_dir = ""
 favorite = false
 
+# --- Nix ---
+
+[[spells]]
+id = "00112233-ddef-4012-3456-789012345678"
+name = "Nix Temp Shell"
+command = "nix-shell -p <package>"
+description = "Open temporary shell with a package"
+category = "Nix"
+tags = ["nix", "shell", "temp"]
+confirm = false
+run_mode = "simple"
+working_dir = ""
+favorite = true
+
+[[spells]]
+id = "11223344-ee01-4234-5678-901234567890"
+name = "Nix Search"
+command = "nix search nixpkgs <query>"
+description = "Search for packages in nixpkgs"
+category = "Nix"
+tags = ["nix", "search"]
+confirm = false
+run_mode = "simple"
+working_dir = ""
+favorite = false
+
+[[spells]]
+id = "22334455-f012-4345-6789-012345678901"
+name = "Nix GC"
+command = "nix-collect-garbage -d"
+description = "Collect garbage (remove old generations)"
+category = "Nix"
+tags = ["nix", "gc", "cleanup"]
+confirm = true
+run_mode = "simple"
+working_dir = ""
+favorite = false
+
+[[spells]]
+id = "33445566-0123-4456-7890-123456789012"
+name = "Nix Flakes Update"
+command = "nix flake update"
+description = "Update all flake inputs"
+category = "Nix"
+tags = ["nix", "flake", "update"]
+confirm = true
+run_mode = "simple"
+working_dir = ""
+favorite = false
+
+[[spells]]
+id = "44556677-1234-4567-8901-234567890123"
+name = "Nix Store Path"
+command = "nix-store -q --requisites /run/current-system | head -20"
+description = "Show first 20 store paths"
+category = "Nix"
+tags = ["nix", "store"]
+confirm = false
+run_mode = "simple"
+working_dir = ""
+favorite = false
+
+[[spells]]
+id = "55667788-2345-4678-9012-345678901234"
+name = "Nix Develop"
+command = "nix develop"
+description = "Enter dev shell from flake"
+category = "Nix"
+tags = ["nix", "develop", "shell"]
+confirm = false
+run_mode = "simple"
+working_dir = ""
+favorite = true
+
+# --- System Admin ---
+
+[[spells]]
+id = "66778899-3456-4789-0123-456789012345"
+name = "System Top"
+command = "htop"
+description = "Interactive process viewer"
+category = "System"
+tags = ["system", "process", "monitor"]
+confirm = false
+run_mode = "simple"
+working_dir = ""
+favorite = true
+
+[[spells]]
+id = "77889900-4567-4890-1234-567890123456"
+name = "Journal Logs"
+command = "journalctl -f -n 50"
+description = "Follow journal (last 50 entries)"
+category = "System"
+tags = ["journal", "logs"]
+confirm = false
+run_mode = "tui"
+working_dir = ""
+favorite = false
+
+[[spells]]
+id = "88990011-5678-4901-2345-678901234567"
+name = "Disk Free"
+command = "df -h"
+description = "Show disk space usage"
+category = "System"
+tags = ["disk", "space"]
+confirm = false
+run_mode = "simple"
+working_dir = ""
+favorite = false
+
+[[spells]]
+id = "99001122-6789-4012-3456-789012345678"
+name = "Memory Usage"
+command = "free -h"
+description = "Show memory and swap usage"
+category = "System"
+tags = ["memory", "usage"]
+confirm = false
+run_mode = "simple"
+working_dir = ""
+favorite = false
+
+[[spells]]
+id = "aa112233-7890-4123-4567-890123456789"
+name = "System Uptime"
+command = "uptime"
+description = "Show system uptime and load"
+category = "System"
+tags = ["uptime", "load"]
+confirm = false
+run_mode = "simple"
+working_dir = ""
+favorite = false
+
+[[spells]]
+id = "bb223344-8901-4234-5678-901234567890"
+name = "List Services"
+command = "systemctl list-units --type=service --state=running"
+description = "Show running systemd services"
+category = "System"
+tags = ["systemd", "services"]
+confirm = false
+run_mode = "simple"
+working_dir = ""
+favorite = false
+
+[[spells]]
+id = "cc334455-9012-4345-6789-012345678901"
+name = "Top Processes by CPU"
+command = "ps aux --sort=-%cpu | head -15"
+description = "Show top 15 processes by CPU usage"
+category = "System"
+tags = ["process", "cpu"]
+confirm = false
+run_mode = "simple"
+working_dir = ""
+favorite = false
+
+[[spells]]
+id = "dd445566-0123-4456-7890-123456789012"
+name = "Network Connections"
+command = "ss -tunlp"
+description = "Show listening network sockets"
+category = "System"
+tags = ["network", "ports", "sockets"]
+confirm = false
+run_mode = "simple"
+working_dir = ""
+favorite = false
+
+# --- Text Processing ---
+
+[[spells]]
+id = "ee556677-1234-4567-8901-234567890123"
+name = "JSON Pretty Print"
+command = "jq '.'"
+description = "Pretty print JSON from stdin"
+category = "Text"
+tags = ["json", "format"]
+confirm = false
+run_mode = "simple"
+working_dir = ""
+favorite = true
+
+[[spells]]
+id = "ff667788-2345-4678-9012-345678901234"
+name = "Count Lines"
+command = "wc -l"
+description = "Count lines from stdin"
+category = "Text"
+tags = ["count", "lines"]
+confirm = false
+run_mode = "simple"
+working_dir = ""
+favorite = false
+
+[[spells]]
+id = "00778899-3456-4789-0123-456789012345"
+name = "Sort & Unique"
+command = "sort | uniq -c | sort -rn"
+description = "Count and sort unique lines"
+category = "Text"
+tags = ["sort", "unique", "count"]
+confirm = false
+run_mode = "simple"
+working_dir = ""
+favorite = false
+
+[[spells]]
+id = "11889900-4567-4890-1234-567890123456"
+name = "Extract Column"
+command = "awk '{print $<col>}'"
+description = "Extract a column from delimited text"
+category = "Text"
+tags = ["awk", "column", "extract"]
+confirm = false
+run_mode = "simple"
+working_dir = ""
+favorite = false
+
+[[spells]]
+id = "22990011-5678-4901-2345-678901234567"
+name = "CSV to Table"
+command = "column -t -s ','"
+description = "Format CSV as aligned table"
+category = "Text"
+tags = ["csv", "table", "format"]
+confirm = false
+run_mode = "simple"
+working_dir = ""
+favorite = false
+
+# --- Testing ---
+
+[[spells]]
+id = "33001122-6789-4012-3456-789012345678"
+name = "Test Job (15s)"
+command = 'for i in {1..15}; do echo "Progress: $i/15"; sleep 1; done'
+description = "Test job that runs for 15 seconds"
+category = "Testing"
+tags = ["test", "job"]
+confirm = false
+run_mode = "tui"
+working_dir = ""
+favorite = true
+
+[[spells]]
+id = "44112233-7890-4123-4567-890123456789"
+name = "DANGER"
+command = "echo 'DANGER'"
+description = "Dangerous spell - requires confirmation"
+category = "Testing"
+tags = ["test", "danger"]
+confirm = true
+run_mode = "simple"
+working_dir = ""
+favorite = false
+
+[[spells]]
+id = "55223344-8901-4234-5678-901234567890"
+name = "Slow Background Job"
+command = 'for i in $(seq 1 30); do echo "Tick $i"; sleep 2; done'
+description = "Background job that runs for 60 seconds"
+category = "Testing"
+tags = ["test", "background"]
+confirm = false
+run_mode = "background"
+working_dir = ""
+favorite = false
+
+# ------------------------------------------------------------
+# Spellbooks
+# ------------------------------------------------------------
+
 [[spellbooks]]
 name = "Filesystem"
 cover = ""
-sigil = "#"
+decoration = "#"
 spell_ids = [
-    "550e8400-e29b-41d4-a716-446655440001",
-    "550e8400-e29b-41d4-a716-446655440002",
-    "550e8400-e29b-41d4-a716-446655440009",
-    "640100f8-2e25-4187-a30b-a19ee281776b",
-    "c287365d-6b71-496a-a6c5-13add1df8f76",
+    "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+    "b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e",
+    "c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f",
+    "d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f80",
+    "e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8091",
 ]
 spells = []
+color = [100, 180, 255]
 
 [[spellbooks]]
 name = "Git"
 cover = ""
-sigil = ">"
+decoration = ">"
 spell_ids = [
-    "550e8400-e29b-41d4-a716-446655440003",
-    "550e8400-e29b-41d4-a716-446655440004",
+    "f6a7b8c9-d0e1-4f2a-3b4c-5d6e7f809102",
+    "a7b8c9d0-e1f2-4a3b-4c5d-6e7f80910213",
+    "b8c9d0e1-f2a3-4b4c-5d6e-7f8091021324",
+    "c9d0e1f2-a3b4-4c5d-6e7f-809102132435",
+    "d0e1f2a3-b4c5-4d6e-7f80-910213243546",
+    "e1f2a3b4-c5d6-4e7f-8091-021324354657",
 ]
 spells = []
+color = [255, 120, 50]
 
 [[spellbooks]]
 name = "Build Tools"
 cover = ""
-sigil = "*"
+decoration = "*"
 spell_ids = [
-    "550e8400-e29b-41d4-a716-446655440007",
-    "550e8400-e29b-41d4-a716-446655440008",
+    "e7f80910-2132-4435-4657-6879890abcde",
+    "f8091021-3243-4546-5768-79890abcdef0",
+    "09102132-4354-4657-6879-890abcdef01",
+    "10213243-5465-4768-7989-0abcdef0123",
+    "21324354-6576-4879-890a-bcdef0123456",
 ]
 spells = []
+color = [200, 50, 50]
 
 [[spellbooks]]
 name = "Network"
 cover = ""
-sigil = "@"
+decoration = "@"
 spell_ids = [
-    "550e8400-e29b-41d4-a716-446655440005",
-    "550e8400-e29b-41d4-a716-446655440010",
+    "f2a3b4c5-d6e7-4f80-9102-132435465768",
+    "a3b4c5d6-e7f8-4091-0213-243546576879",
+    "b4c5d6e7-f809-4102-1324-35465768798a",
+    "c5d6e7f8-0910-4213-2435-4657687989ab",
+    "d6e7f809-1021-4324-3546-576879890abc",
 ]
 spells = []
+color = [50, 200, 100]
+
+[[spellbooks]]
+name = "Docker"
+cover = ""
+decoration = "~"
+spell_ids = [
+    "32435465-7687-4989-0abc-def012345678",
+    "43546576-8798-4a9b-bcde-f01234567890",
+    "54657687-989a-4bbc-def0-123456789012",
+    "65768798-9aab-4ccd-ef01-234567890123",
+    "76879890-abbc-4dde-f012-345678901234",
+    "87989012-bccd-4eef-0123-456789012345",
+    "98901234-ccde-4ff0-1234-567890123456",
+]
+spells = []
+color = [50, 130, 220]
+
+[[spellbooks]]
+name = "Nix"
+cover = ""
+decoration = "^"
+spell_ids = [
+    "00112233-ddef-4012-3456-789012345678",
+    "11223344-ee01-4234-5678-901234567890",
+    "22334455-f012-4345-6789-012345678901",
+    "33445566-0123-4456-7890-123456789012",
+    "44556677-1234-4567-8901-234567890123",
+    "55667788-2345-4678-9012-345678901234",
+]
+spells = []
+color = [160, 80, 220]
+
+[[spellbooks]]
+name = "System Admin"
+cover = ""
+decoration = "%"
+spell_ids = [
+    "66778899-3456-4789-0123-456789012345",
+    "77889900-4567-4890-1234-567890123456",
+    "88990011-5678-4901-2345-678901234567",
+    "99001122-6789-4012-3456-789012345678",
+    "aa112233-7890-4123-4567-890123456789",
+    "bb223344-8901-4234-5678-901234567890",
+    "cc334455-9012-4345-6789-012345678901",
+    "dd445566-0123-4456-7890-123456789012",
+]
+spells = []
+color = [220, 80, 60]
+
+[[spellbooks]]
+name = "Text Processing"
+cover = ""
+decoration = "|"
+spell_ids = [
+    "ee556677-1234-4567-8901-234567890123",
+    "ff667788-2345-4678-9012-345678901234",
+    "00778899-3456-4789-0123-456789012345",
+    "11889900-4567-4890-1234-567890123456",
+    "22990011-5678-4901-2345-678901234567",
+]
+spells = []
+color = [80, 200, 120]
 
 [[spellbooks]]
 name = "Testing"
 cover = ""
-sigil = "?"
+decoration = "?"
 spell_ids = [
-    "550e8400-e29b-41d4-a716-446655440011",
-    "640100f8-2e25-4187-a30b-a19ee281776b",
+    "33001122-6789-4012-3456-789012345678",
+    "44112233-7890-4123-4567-890123456789",
+    "55223344-8901-4234-5678-901234567890",
 ]
 spells = []
+color = [180, 100, 255]

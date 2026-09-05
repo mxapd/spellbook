@@ -37,8 +37,15 @@ fn run(terminal: &mut DefaultTerminal) -> io::Result<()> {
     logging::init_logging();
 
     // LOADING THE CODEX
-    // TODO: hardcoded file name
-    let codex = match archivist::Archivist::load("codex.toml") {
+    let codex_path = archivist::codex_path();
+    let config_path = archivist::config_path();
+
+    // Ensure spellbook dir exists
+    if let Some(parent) = codex_path.parent() {
+        let _ = std::fs::create_dir_all(parent);
+    }
+
+    let codex = match archivist::Archivist::load(&codex_path.to_string_lossy()) {
         Ok(c) => {
             // Run validation and log warnings
             // Non-blocking: collect additional diagnostics (empty commands, empty spellbooks, etc.)
@@ -64,27 +71,29 @@ fn run(terminal: &mut DefaultTerminal) -> io::Result<()> {
         }
 
         Err(e) => {
-            eprintln!("Error loading codex.toml: {}", e);
+            eprintln!("Error loading codex: {}", e);
             eprintln!("Creating empty codex...");
             let empty_codex = models::Codex {
                 spells: vec![],
                 spellbooks: vec![],
             };
 
-            // TODO: add general check for if there already exists a codex to ensure no overwrites
             // Try to save the empty codex
-            if let Err(save_err) = archivist::Archivist::save(&empty_codex, "codex.toml") {
+            if let Err(save_err) =
+                archivist::Archivist::save(&empty_codex, &codex_path.to_string_lossy())
+            {
                 eprintln!("Warning: Could not save empty codex: {}", save_err);
             }
             empty_codex
         }
     };
 
-    let user_settings = archivist::Archivist::load_user_settings("config.toml");
+    let user_settings = archivist::Archivist::load_user_settings(&config_path.to_string_lossy());
     let mut state = state::State::new(codex, user_settings);
 
     //// UI initialization (disabled — will be re-enabled later)
     let mut ui_state = ui::UiState::new(mode == AppMode::AddSpell);
+
     // Start on BrowseSpellbooks mode by default (unless --add is passed for AddSpell mode)
     if mode != AppMode::Browse {
         ui_state.set_mode(ui::Mode::AddSpell(ui::FormState::default()));
@@ -162,6 +171,4 @@ fn run(terminal: &mut DefaultTerminal) -> io::Result<()> {
             }
         }
     }
-
-    Ok(())
 }

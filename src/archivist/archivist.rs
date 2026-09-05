@@ -1,17 +1,18 @@
-use crate::models::{Codex, RecentEntry, ThemeConfig, UserSettings};
 use crate::error::{LoadError, SaveError};
+use crate::models::{Codex, RecentEntry, Settings};
 use crate::validation::validate_codex;
 use crate::{log_debug, log_info};
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
-//
+
 fn atomic_write(path: &str, content: &str) -> Result<(), Box<dyn std::error::Error>> {
     let tmp_path = format!("{}.tmp", path);
     fs::write(&tmp_path, content)?;
     fs::rename(&tmp_path, path)?;
     Ok(())
 }
+
 fn ensure_spellbook_dir() -> PathBuf {
     let home = dirs::home_dir().unwrap_or_else(|| PathBuf::from("."));
     let dir = home.join(".spellbook");
@@ -20,9 +21,17 @@ fn ensure_spellbook_dir() -> PathBuf {
     }
     dir
 }
-//
+
+pub fn codex_path() -> PathBuf {
+    ensure_spellbook_dir().join("codex.toml")
+}
+
+pub fn config_path() -> PathBuf {
+    ensure_spellbook_dir().join("config.toml")
+}
+
 pub struct Archivist;
-//
+
 impl Archivist {
     pub fn load(path: &str) -> Result<Codex, LoadError> {
         log_info!("Loading codex from: {}", path);
@@ -71,29 +80,24 @@ impl Archivist {
         Ok(())
     }
 
-    pub fn load_user_settings(path: &str) -> UserSettings {
+    pub fn load_user_settings(path: &str) -> Settings {
         let contents = match fs::read_to_string(path) {
             Ok(c) => c,
-            Err(_) => return UserSettings::default(),
+            Err(_) => return Settings::default(),
         };
 
-        let config: ThemeConfig = match toml::from_str(&contents) {
-            Ok(c) => c,
-            Err(_) => return UserSettings::default(),
-        };
-
-        config.user_settings()
+        toml::from_str(&contents).unwrap_or_default()
     }
 
     pub fn save_user_settings(
         path: &str,
-        settings: &UserSettings,
+        settings: &Settings,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let config = ThemeConfig::from(settings.clone());
-        let new_content = toml::to_string_pretty(&config)?;
+        let new_content = toml::to_string_pretty(&settings)?;
         atomic_write(path, &new_content)?;
         Ok(())
     }
+
     //
     //    pub fn load_jobs() -> Result<JobManager, Box<dyn std::error::Error>> {
     //        let path = ensure_spellbook_dir().join("jobs.toml");
@@ -120,6 +124,7 @@ impl Archivist {
     //        Ok(())
     //    }
     //
+
     pub fn load_recents() -> Result<Vec<RecentEntry>, Box<dyn std::error::Error>> {
         let path = ensure_spellbook_dir().join("recents.toml");
         if !path.exists() {

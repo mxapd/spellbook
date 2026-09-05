@@ -10,7 +10,7 @@ use crate::ui::confirm::ConfirmDialogState;
 use crate::ui::feedback::{Feedback, FeedbackLevel, FlashAction};
 use crate::ui::input::InputPopupState;
 use crate::ui::jobs::JobsPanelState;
-use crate::ui::mode::{BrowseState, FormState, FormField, Mode, Overlay};
+use crate::ui::mode::{BrowseState, FormState, Mode, Overlay};
 use crate::ui::quick_add_spell::QuickAddSpellState;
 use crate::ui::spellbook_browser::SpellbookBrowserState;
 use crate::ui::streaming_modal::StreamingModalState;
@@ -349,7 +349,6 @@ impl UiState {
                 if let Some(book_idx) = idx {
                     *state = BrowseState::Viewing {
                         spellbook_index: book_idx,
-                        spell_list_state: ratatui::widgets::ListState::default(),
                     };
                 } else {
                     *state = BrowseState::Idle {
@@ -499,7 +498,6 @@ impl UiState {
                     filtered_spellbook_indices,
                 } => filtered_spellbook_indices,
                 BrowseState::Searching { filtered_spellbook_indices, .. }
-                | BrowseState::SearchPaused { filtered_spellbook_indices, .. }
                 | BrowseState::SearchPaused { filtered_spellbook_indices, .. } => filtered_spellbook_indices,
                 BrowseState::Viewing { .. } => &[],
             },
@@ -556,8 +554,8 @@ impl UiState {
     pub fn set_selected_spellbook(&mut self, index: usize) {
         self.mode = Mode::BrowseSpells(BrowseState::Viewing {
             spellbook_index: index,
-            spell_list_state: ratatui::widgets::ListState::default(),
         });
+        self.spell_list_state.select(Some(0));
     }
 
     /// Clear selected spellbook - transition to Idle state
@@ -565,35 +563,6 @@ impl UiState {
         self.mode = Mode::BrowseSpells(BrowseState::Idle {
             filtered_spellbook_indices: Vec::new(),
         });
-    }
-
-    /// Get spell list state (from BrowseState::Viewing)
-    pub fn spell_list_state(&self) -> Option<&ratatui::widgets::ListState> {
-        match &self.mode {
-            Mode::BrowseSpells(BrowseState::Viewing {
-                spell_list_state, ..
-            }) => Some(spell_list_state),
-            _ => None,
-        }
-    }
-
-    /// Get mutable spell list state (from BrowseState::Viewing)
-    pub fn spell_list_state_mut(&mut self) -> Option<&mut ratatui::widgets::ListState> {
-        match &mut self.mode {
-            Mode::BrowseSpells(BrowseState::Viewing {
-                spell_list_state, ..
-            }) => Some(spell_list_state),
-            _ => None,
-        }
-    }
-
-    pub fn set_showing_spellbooks(&mut self, value: bool) {
-        // This is now derived - we change mode instead
-        if value {
-            self.mode = Mode::BrowseSpellbooks(BrowseState::default());
-        } else if let Some(idx) = self.selected_spellbook() {
-            self.set_selected_spellbook(idx);
-        }
     }
 
     /// Check if in command mode (query starts with ':')
@@ -708,7 +677,6 @@ impl UiState {
     pub fn enter_browse_spells(&mut self, spellbook_index: usize) {
         self.mode = Mode::BrowseSpells(BrowseState::Viewing {
             spellbook_index,
-            spell_list_state: ratatui::widgets::ListState::default(),
         });
         self.spell_list_state.select(Some(0));
     }

@@ -24,7 +24,7 @@ pub fn handle_browse_spellbooks(
         if ui.is_searching() {
             ui.exit_typing_mode();
         }
-        ui.set_showing_spellbooks(true);
+        ui.enter_browse_spellbooks();
         ui.set_search_spellbook_index(Some(0));
         return false;
     }
@@ -474,7 +474,7 @@ fn handle_search_navigation(
         if was_empty {
             // Query was already empty, exit search mode
             ui.exit_typing_mode();
-            ui.set_showing_spellbooks(true);
+            ui.enter_browse_spellbooks();
             ui.set_search_spellbook_index(Some(0));
         } else {
             // Remove last character

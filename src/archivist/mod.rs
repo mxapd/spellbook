@@ -1,2 +1,2 @@
 mod archivist;
-pub use archivist::Archivist;
+pub use archivist::{codex_path, config_path, Archivist};

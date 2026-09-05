@@ -9,7 +9,7 @@ pub use handle_key::execute_simple_mode;
 pub use handle_key::filter_commands;
 pub use input::InputPopupState;
 pub use jobs::JobsPanelState;
-pub use mode::{BrowseState, FormField, FormState, Mode, Overlay};
+pub use mode::{BrowseState, FormState, Mode, Overlay};
 pub use quick_add_spell::QuickAddSpellState;
 pub use render::render;
 pub use spellbook_browser::SpellbookBrowserState;

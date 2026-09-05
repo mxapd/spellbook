@@ -1,19 +1,17 @@
-use crate::archivist::Archivist;
+use crate::archivist::{self, Archivist};
 use crate::log_info;
-use crate::models::{Codex, RecentAction, RecentEntry, Spell, RatatuiColors, UserSettings};
-
-pub(crate) const CONFIG_PATH: &str = "config.toml";
+use crate::models::{Codex, RecentAction, RecentEntry, Spell, RatatuiColors, Settings};
 
 #[derive(Debug, Clone, Default)]
 pub struct State {
     pub codex: Codex,
-    pub user_settings: UserSettings,
+    pub user_settings: Settings,
     pub recents: Vec<RecentEntry>,
 }
 
 impl State {
     /// Pure constructor — all loading happens in caller.
-    pub fn new(codex: Codex, user_settings: UserSettings) -> Self {
+    pub fn new(codex: Codex, user_settings: Settings) -> Self {
         Self {
             codex,
             user_settings,
@@ -31,7 +29,10 @@ impl State {
     pub fn cycle_theme(&mut self) {
         self.user_settings.theme = self.user_settings.theme.next();
         log_info!("Theme changed to: {}", self.user_settings.theme.name());
-        if let Err(e) = Archivist::save_user_settings(CONFIG_PATH, &self.user_settings) {
+        if let Err(e) = Archivist::save_user_settings(
+            &archivist::config_path().to_string_lossy(),
+            &self.user_settings,
+        ) {
             log_info!("Failed to save theme: {}", e);
         }
     }
@@ -40,7 +41,10 @@ impl State {
         self.user_settings.view_mode = self.user_settings.view_mode.next();
         let mode_str = self.user_settings.view_mode.as_str();
         log_info!("View mode changed to: {}", mode_str);
-        if let Err(e) = Archivist::save_user_settings(CONFIG_PATH, &self.user_settings) {
+        if let Err(e) = Archivist::save_user_settings(
+            &archivist::config_path().to_string_lossy(),
+            &self.user_settings,
+        ) {
             log_info!("Failed to save view mode: {}", e);
         }
     }
@@ -51,7 +55,7 @@ impl State {
     pub fn update_spell(&mut self, spell: Spell) -> Result<(), String> {
         if let Some(existing) = self.codex.spells.iter_mut().find(|s| s.id == spell.id) {
             *existing = spell;
-            Archivist::save(&self.codex, "codex.toml")
+            Archivist::save(&self.codex, &archivist::codex_path().to_string_lossy())
                 .map_err(|e| format!("Failed to save: {}", e))?;
             log_info!("Spell updated successfully");
             Ok(())
@@ -69,7 +73,7 @@ impl State {
             for spellbook in &mut self.codex.spellbooks {
                 spellbook.spell_ids.retain(|id| id != spell_id);
             }
-            Archivist::save(&self.codex, "codex.toml")
+            Archivist::save(&self.codex, &archivist::codex_path().to_string_lossy())
                 .map_err(|e| format!("Failed to save: {}", e))?;
             log_info!("Spell deleted successfully");
             Ok(())
@@ -84,7 +88,7 @@ impl State {
         self.codex.spellbooks.retain(|sb| sb.name != spellbook_name);
 
         if self.codex.spellbooks.len() < initial_len {
-            Archivist::save(&self.codex, "codex.toml")
+            Archivist::save(&self.codex, &archivist::codex_path().to_string_lossy())
                 .map_err(|e| format!("Failed to save: {}", e))?;
             log_info!("Spellbook '{}' deleted successfully", spellbook_name);
             Ok(())
@@ -107,7 +111,7 @@ impl State {
             }
         };
 
-        Archivist::save(&self.codex, "codex.toml")
+        Archivist::save(&self.codex, &archivist::codex_path().to_string_lossy())
             .map_err(|e| format!("Failed to save: {}", e))?;
         Ok(is_fav)
     }
@@ -136,7 +140,7 @@ impl State {
 
     /// Reload the codex from disk.
     pub fn reload_codex(&mut self) {
-        match Archivist::load("codex.toml") {
+        match Archivist::load(&archivist::codex_path().to_string_lossy()) {
             Ok(new_codex) => {
                 self.codex = new_codex;
                 log_info!("Codex reloaded successfully");
@@ -188,7 +192,7 @@ mod tests {
     }
 
     fn make_test_state(codex: Codex) -> State {
-        let user_settings = UserSettings {
+        let user_settings = Settings {
             view_mode: ViewMode::List,
             ..Default::default()
         };
